@@ -17,15 +17,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set working directory to frontend folder
-      - name: Set working directory to frontend
-        working-directory: frontend
-        run: echo "Now working in the frontend directory."
-
-      # Setup Node (npm) for the frontend
+      # Setup Node (npm) for the frontend, this should be run outside of the frontend directory
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -43,12 +38,10 @@ jobs:
 
       # Install dependencies inside the frontend folder
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm install
+        run: npm install
+        working-directory: frontend
 
       # Build with Next.js inside the frontend folder
       - name: Build with Next.js
-        run: |
-          cd frontend
-          npm run build
+        run: npm run build
+        working-directory: frontend
