@@ -1,11 +1,8 @@
 name: Build Next.js site
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 permissions:
@@ -23,31 +20,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Set working directory to frontend folder
       - name: Set working directory to frontend
-        run: cd frontend
+        working-directory: frontend
+        run: echo "Now working in the frontend directory."
 
+      # Setup Node (npm) for the frontend
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
 
+      # Restore cache for frontend dependencies
       - name: Restore cache
         uses: actions/cache@v4
         with:
-          path: |
-            frontend/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('frontend/**/package-lock.json') }}-${{ hashFiles('frontend/**.[jt]s', 'frontend/**.[jt]sx') }}
+          path: frontend/node_modules
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('frontend/package-lock.json') }}-${{ hashFiles('frontend/**.[jt]s', 'frontend/**.[jt]sx') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('frontend/**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-${{ hashFiles('frontend/package-lock.json') }}-
 
-
+      # Install dependencies inside the frontend folder
       - name: Install dependencies
         run: |
           cd frontend
           npm install
 
-
+      # Build with Next.js inside the frontend folder
       - name: Build with Next.js
         run: |
           cd frontend
