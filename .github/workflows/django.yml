@@ -27,7 +27,7 @@ jobs:
         pip install -r ./backend/requirements.txt
     - name: Run Tests
       run: |
-        python manage.py test
+        python ./backend/manage.py test
     - name: Code Audit
       run: |
         source ./backend/venv/bin/activate
