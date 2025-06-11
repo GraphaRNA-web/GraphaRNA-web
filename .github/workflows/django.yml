@@ -23,17 +23,20 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install Dependencies
       run: |
-        source ./backend
+        python -m venv backend/venv
+        source backend/venv/bin/activate
         python -m pip install --upgrade pip
-        pip install -r ./requirements.txt
+        pip install -r backend/requirements.txt
     - name: Run Tests
       run: |
-        python ./backend/manage.py test
+        source backend/venv/bin/activate
+        python backend/manage.py test
     - name: Code Audit
       run: |
-        source ./backend/venv/bin/activate
-        mypy .
-        ruff check .
+        source backend/venv/bin/activate
+        mypy backend/
+        ruff check backend/
     - name: Safety check
       run: |
-        safety check -r ./backend/requirements.txt
+        source backend/venv/bin/activate
+        safety check -r backend/requirements.txt
