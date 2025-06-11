@@ -24,15 +24,15 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r ./backend/requirements.txt
     - name: Run Tests
       run: |
         python manage.py test
     - name: Code Audit
       run: |
-        source .venv/bin/activate
+        source ./backend/venv/bin/activate
         mypy .
         ruff check .
     - name: Safety check
       run: |
-        safety check -r requirements.txt
+        safety check -r ./backend/requirements.txt
