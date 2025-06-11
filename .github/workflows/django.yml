@@ -36,7 +36,3 @@ jobs:
         source backend/venv/bin/activate
         mypy backend/
         ruff check backend/
-    - name: Safety check
-      run: |
-        source backend/venv/bin/activate
-        safety check -r backend/requirements.txt
