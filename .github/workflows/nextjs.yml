@@ -45,3 +45,12 @@ jobs:
       - name: Build with Next.js
         run: npm run build
         working-directory: frontend
+
+      # Optional: Run tests or linting if you want to add checks
+      - name: Run Next.js tests
+        run: npm test
+        working-directory: frontend
+
+      - name: Lint Next.js code
+        run: npm run lint
+        working-directory: frontend
