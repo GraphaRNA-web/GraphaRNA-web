@@ -2,10 +2,11 @@ import uuid
 from datetime import timedelta, datetime
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 
 
 def default_expiration() -> datetime:
-    return timezone.now() + timedelta(weeks=2)
+    return timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
 
 
 class Job(models.Model):
