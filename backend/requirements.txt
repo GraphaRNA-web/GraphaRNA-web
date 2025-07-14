@@ -6,6 +6,7 @@ tzdata==2025.2
 whitenoise==6.9.0
 django-stubs==5.2.0
 python-dotenv==1.0.1
+celery==5.3.4
 
 # linters and formatters
 pylama==8.4.1

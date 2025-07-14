@@ -36,10 +36,13 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: grapha_front
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
     networks:
@@ -52,9 +55,31 @@ services:
       dockerfile: Dockerfile
     container_name: grapha_engine
     volumes:
-      - ./engine:/app
+      - ./GraphaRNA:/app
     depends_on:
       - db
+    networks:
+      - backend
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: grapha_rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend
+
+  celery:
+    build:
+      context: ./backend
+    container_name: grapha_celery
+    command: celery -A GraphaRNA worker --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - rabbitmq
     networks:
       - backend
 
