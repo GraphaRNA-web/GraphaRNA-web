@@ -2,12 +2,19 @@
 
 First pull the repository. Make sure that both the ./GraphaRNA and ./GraphaRNA/RiNALMo are present. 
 In .GraphaRNA download the pre-trained model: 
+
 ``` wget https://zenodo.org/records/13750967/files/model_epoch_800.tar.gz?download=1 -O model_epoch_800.tar.gz ```
 ``` tar -xvzf model_epoch_800.tar.gz && mv model_800.h5 save/grapharna/ ```
+
 There is a necessery .env file in the root folder of the project, the structure should be as follows: 
+
 ```DATABASE_NAME=dockerdjango ```
+
 ``` DATABASE_USERNAME=dbuser ```
+
 ``` DATABASE_PASSWORD=dbpassword ```
+
+
 !!! Remember about the .env file in the backend section !!!
 
 Then turn on Docker Desktop run the ```docker compose build``` command.
