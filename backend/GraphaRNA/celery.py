@@ -1,3 +1,4 @@
+
 from celery import Celery
 from celery.schedules import crontab
 import os
@@ -16,6 +17,7 @@ app.conf.beat_schedule = {
         'schedule': crontab(hour='*/1', minute=0), #Run the task every hour eg. 0.00, 1.00, ...
     },
 }
+
 
 
 
