@@ -82,7 +82,18 @@ services:
       - rabbitmq
     networks:
       - backend
-
+  celery-beat:
+    build:
+      context: ./backend
+    container_name: grapha_celery_beat
+    command: celery -A GraphaRNA beat --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - rabbitmq
+    networks:
+      - backend
 volumes:
   postgres_data:
 
