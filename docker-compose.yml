@@ -82,6 +82,7 @@ services:
       - rabbitmq
     networks:
       - backend
+      
   celery-beat:
     build:
       context: ./backend
