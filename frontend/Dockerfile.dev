@@ -1,0 +1,15 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Zainstaluj zależności
+COPY package.json package-lock.json* ./
+RUN npm install
+
+# Skopiuj resztę kodu
+COPY . .
+
+# Otwórz port
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

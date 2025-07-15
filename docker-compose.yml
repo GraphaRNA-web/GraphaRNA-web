@@ -1,0 +1,103 @@
+services:
+  db:
+    image: postgres:15
+    container_name: grapha_pg
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: grapha_django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: grapha_front
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - frontend
+      - backend
+
+  graphrna-engine:
+    build:
+      context: ./GraphaRNA
+      dockerfile: Dockerfile
+    container_name: grapha_engine
+    volumes:
+      - ./GraphaRNA:/app
+    depends_on:
+      - db
+    networks:
+      - backend
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: grapha_rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend
+
+  celery:
+    build:
+      context: ./backend
+    container_name: grapha_celery
+    command: celery -A GraphaRNA worker --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - rabbitmq
+    networks:
+      - backend
+      
+  celery-beat:
+    build:
+      context: ./backend
+    container_name: grapha_celery_beat
+    command: celery -A GraphaRNA beat --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+      - rabbitmq
+    networks:
+      - backend
+volumes:
+  postgres_data:
+
+networks:
+  backend:
+  frontend:

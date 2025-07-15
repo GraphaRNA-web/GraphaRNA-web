@@ -1,0 +1,3 @@
+[submodule "GraphaRNA"]
+	path = GraphaRNA
+	url = https://github.com/GraphaRNA-web/GraphaRNA.git

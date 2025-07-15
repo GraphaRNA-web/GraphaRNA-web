@@ -1,0 +1,16 @@
+asgiref==3.8.1
+Django==5.2.3
+psycopg2-binary==2.9.10
+sqlparse==0.5.3
+tzdata==2025.2
+whitenoise==6.9.0
+django-stubs==5.2.0
+python-dotenv==1.0.1
+celery==5.3.4
+
+# linters and formatters
+pylama==8.4.1
+pycln==2.5.0
+black==25.1.0
+mypy==1.13.0
+ruff==0.11.13
