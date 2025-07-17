@@ -1,6 +1,7 @@
 
 from django.utils import timezone
 from .models import Job
+from celery import shared_task
 
 @shared_task
 def delete_expired_jobs():
