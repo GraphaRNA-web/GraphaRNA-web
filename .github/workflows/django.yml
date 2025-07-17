@@ -10,29 +10,57 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.13]
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: dockerdjango
+          POSTGRES_USER: dbuser
+          POSTGRES_PASSWORD: dbpassword
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DJANGO_SECRET_KEY: test
+      DEBUG: True
+      DJANGO_ALLOWED_HOSTS: 127.0.0.1,localhost
+      DATABASE_ENGINE: django.db.backends.postgresql
+      DATABASE_NAME: dockerdjango
+      DATABASE_USERNAME: dbuser
+      DATABASE_PASSWORD: dbpassword
+      DATABASE_HOST: localhost  # w serwerze db - tu musi być lokalny serwis
+      DATABASE_PORT: 5432
+      DJANGO_SETTINGS_MODULE: GraphaRNA.settings
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Dependencies
-      run: |
-        python -m venv backend/venv
-        source backend/venv/bin/activate
-        python -m pip install --upgrade pip
-        pip install -r backend/requirements.txt
-    - name: Run Tests
-      run: |
-        source backend/venv/bin/activate
-        python backend/manage.py test
-    - name: Code Audit
-      run: |
-        source backend/venv/bin/activate
-        mypy backend/
-        ruff check backend/
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          python -m venv backend/venv
+          source backend/venv/bin/activate
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run tests
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py migrate --noinput
+          python backend/manage.py test
+
+      - name: Code audit
+        run: |
+          source backend/venv/bin/activate
+          mypy backend/
+          ruff check backend/
