@@ -17,6 +17,8 @@ RUN apt-get update \
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+# necessery in order to execute the engine container by the backend
+RUN apt-get update && apt-get install -y docker.io
 
 COPY . .
 
