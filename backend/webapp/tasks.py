@@ -3,9 +3,7 @@ from django.utils import timezone
 from .models import Job, JobResults
 import requests
 from celery import shared_task
-import subprocess
 import os
-import uuid
 import time
 
 @shared_task
