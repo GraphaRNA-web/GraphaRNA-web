@@ -19,7 +19,7 @@ def ValidateEmailAddress(email):
 
 def RnaValidation(rna):
     znaki = set('AUGC')
-    if any(char not in znaki for char in rna.upper()):
+    if rna is None or any(char not in znaki for char in rna.upper()) :
         return False
     else:
         return True
