@@ -1,4 +1,20 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: grapha_front
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - frontend
+      - backend
+
   db:
     image: postgres:15
     container_name: grapha_pg
@@ -23,6 +39,7 @@ services:
     container_name: grapha_django
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
+      - shared_volume:/shared
       - ./backend:/app
     env_file:
       - ./backend/.env
@@ -33,29 +50,16 @@ services:
     networks:
       - backend
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    container_name: grapha_front
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    depends_on:
-      - backend
-    networks:
-      - frontend
-      - backend
-
-  graphrna-engine:
+  grapharna-engine:
     build:
       context: ./GraphaRNA
       dockerfile: Dockerfile
+    image: grapharna-engine:latest
     container_name: grapha_engine
     volumes:
-      - ./GraphaRNA:/app
+      - shared_volume:/shared
+    ports:
+      - "8080:8080"
     depends_on:
       - db
     networks:
@@ -64,6 +68,8 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: grapha_rabbit
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -77,6 +83,7 @@ services:
     command: celery -A GraphaRNA worker --loglevel=info
     volumes:
       - ./backend:/app
+      - shared_volume:/shared
     depends_on:
       - backend
       - rabbitmq
@@ -90,13 +97,17 @@ services:
     command: celery -A GraphaRNA beat --loglevel=info
     volumes:
       - ./backend:/app
+      - shared_volume:/shared
     depends_on:
       - backend
       - rabbitmq
+      - celery
     networks:
       - backend
 volumes:
   postgres_data:
+  shared_volume:
+  rabbitmq_data:
 
 networks:
   backend:
