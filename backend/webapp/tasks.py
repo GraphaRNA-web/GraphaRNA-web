@@ -1,10 +1,11 @@
 
 from django.utils import timezone
 from .models import Job, JobResults
+from time import sleep
+from uuid import uuid
 import requests
 from celery import shared_task
 import os
-import time
 
 @shared_task
 def delete_expired_jobs() -> str:
@@ -16,7 +17,7 @@ def delete_expired_jobs() -> str:
 
 
 @shared_task
-def run_grapharna_task(uuid : uuid.uuid) -> str:
+def run_grapharna_task(uuid : uuid.UUID) -> str:
     db_data = Job.objects.get(uid=uuid)
     dotseq_data = db_data.input_structure
     seed = db_data.seed
@@ -79,7 +80,7 @@ def test_grapharna_run() -> str:
 
     assert response.status_code == 200, f"Błąd: {response.text}"
 
-    time.sleep(1)
+    sleep(1)
 
     assert os.path.exists(output_path), f"Nie znaleziono pliku {output_path}"
 
