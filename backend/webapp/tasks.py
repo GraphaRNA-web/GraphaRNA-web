@@ -7,7 +7,7 @@ import os
 import time
 
 @shared_task
-def delete_expired_jobs():
+def delete_expired_jobs() -> str:
     now = timezone.now()
     expired_jobs = Job.objects.filter(expires_at__lt=now) #Expires at less then now
     count, _ = expired_jobs.delete()
@@ -16,7 +16,7 @@ def delete_expired_jobs():
 
 
 @shared_task
-def run_grapharna_task(uuid):
+def run_grapharna_task(uuid : uuid.uuid) -> str:
     db_data = Job.objects.get(uid=uuid)
     dotseq_data = db_data.input_structure
     seed = db_data.seed
@@ -57,9 +57,10 @@ def run_grapharna_task(uuid):
         os.remove(input_path)
         if os.path.exists(output_path):
             os.remove(output_path)
+        return "OK"
 
     
-def test_grapharna_run():
+def test_grapharna_run() -> str:
     seed = 42
 
     input_path = "/shared/user_inputs/test.dotseq"
@@ -86,8 +87,10 @@ def test_grapharna_run():
         content = f.read()
         assert content == tekst
 
-    print(f"Test zakończony sukcesem – plik wygenerowany: {output_path}")
-
     os.remove(input_path)
     if os.path.exists(output_path):
         os.remove(output_path)
+
+    print(f"Test zakończony sukcesem – plik wygenerowany: {output_path}")
+    return "OK"
+

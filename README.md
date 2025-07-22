@@ -18,8 +18,8 @@ DATABASE_PASSWORD=dbpassword
 
 !!! Remember about the .env file in the backend section !!!
 
-Then turn on Docker Desktop run the ```docker compose build``` command.
-After that all the container should be visible and ready to turn on in the Docker Desktop app.
+Then turn on Docker Desktop run the ```docker compose build``` and ```docker compose up``` commands.
+After that all the container should be visible and on in the Docker Desktop app.
 
 
 # GraphaRNA-web ~ backend
