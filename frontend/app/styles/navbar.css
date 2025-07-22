@@ -1,0 +1,57 @@
+.navbar {
+  position: fixed;
+  top: -1;
+  width: 100%;
+  height: 70px;;
+  background-color: rgba(255, 254, 250, 0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  padding-right: 50px;
+  padding-left: 77px;
+  padding-bottom: 10px;
+  backdrop-filter: blur(20px); /* Blur 20 */
+  box-shadow: 0 2px 20px 0 rgba(223, 222, 218, 1);
+  z-index: 100;
+}
+
+.navbar__left{
+  font-size: 22px;
+  font-family: Raleway;
+}
+
+.name--grapha {
+  color: var(--brown-base);
+  font-weight: 700;
+}
+
+.name--rna {
+  color: var(--brown-base);
+  font-weight: 400;
+}
+
+.name--web {
+  color: var(--brown-lighten-20)
+}
+
+.navbar__right {
+  display: flex;
+  gap: 50px;
+  font-family: Inter;
+}
+
+.navbar__link {
+  color: var(--brown-base); /* lub dowolny kolor */
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.navbar__link:hover {
+  text-decoration: underline;
+}
+
+.navbar__link.active {
+  font-weight: 700;
+}
+

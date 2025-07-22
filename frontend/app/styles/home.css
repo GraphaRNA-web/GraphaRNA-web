@@ -1,0 +1,13 @@
+.home-background {
+  top: -85px;
+  min-height: 100vh;
+  background-image: url('/bg_home.png');
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: auto 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 4rem;
+  padding-top: 70px;
+}

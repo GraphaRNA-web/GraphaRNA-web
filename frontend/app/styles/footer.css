@@ -1,0 +1,30 @@
+@import './globals.css';
+
+.footer {
+  height: 112px;;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 100px;
+  padding-right: 100px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  background-color: var(--brown-base);
+  border-top: 1px solid #ccc;
+}
+
+.footer__left {
+  font-size: 16px;
+  color: var(--background-base);
+}
+
+.footer__right {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
+
+.footer__right .footer__logo {
+  height: 50px;
+  width: auto;
+}
