@@ -1,6 +1,9 @@
 @import './globals.css';
 
 .button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 600;
   border-radius: 50px;
   transition: background-color 0.2s, color 0.2s;

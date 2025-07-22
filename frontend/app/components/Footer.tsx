@@ -13,6 +13,7 @@ const Footer: React.FC = () => {
         <img src="/put_logo.png" alt="Logo" className="footer__logo" />
         <img src="/raa_logo.png" alt="Logo" className="footer__logo" />
         <img src="/ibch_logo.png" alt="Logo" className="footer__logo" />
+        {/* <img src="/sneaky_golem.png" alt="Logo" className="footer__logo" /> */}
       </div>
     </footer>
   );

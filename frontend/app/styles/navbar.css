@@ -42,7 +42,7 @@
 }
 
 .navbar__link {
-  color: var(--brown-base); /* lub dowolny kolor */
+  color: var(--brown-base);
   font-weight: 400;
   font-size: 18px;
 }

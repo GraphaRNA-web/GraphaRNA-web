@@ -9,6 +9,7 @@ type ButtonProps = {
   width?: string;
   height?: string;
   label?: string;
+  fontSize?: string;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
   action?: React.MouseEventHandler<HTMLButtonElement>;
@@ -21,6 +22,7 @@ const Button: React.FC<ButtonProps> = ({
   width = 'auto',
   height = 'auto',
   label = 'Test',
+  fontSize = '16px',
   disabled = false,
   type = 'button',
   action,
@@ -36,7 +38,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       onClick={action}
       className={`button ${variantClass} ${disabledClass}`}
-      style={{ width, height }}
+      style={{ width, height, fontSize }}
     >
       {label}
     </button>
