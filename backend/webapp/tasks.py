@@ -1,8 +1,7 @@
-
 from django.utils import timezone
 from .models import Job, JobResults
 from time import sleep
-from uuid import uuid
+from uuid import UUID
 import requests
 from celery import shared_task
 import os
@@ -17,15 +16,16 @@ def delete_expired_jobs() -> str:
 
 
 @shared_task
-def run_grapharna_task(uuid : uuid.UUID) -> str:
-    db_data = Job.objects.get(uid=uuid)
+def run_grapharna_task(uuid_param : UUID) -> str:
+    db_data = Job.objects.get(uid=uuid_param)
     dotseq_data = db_data.input_structure
     seed = db_data.seed
+    uuid_str = str(uuid_param)
 
     input_dir = "/shared/user_inputs"
     output_dir = f"/shared/samples/grapharna-seed={seed}/800"
-    input_filename = f"{uuid}.dotseq"
-    output_filename = f"{uuid}.pdb"
+    input_filename = f"{uuid_str}.dotseq"
+    output_filename = f"{uuid_str}.pdb"
     input_path = os.path.join(input_dir, input_filename)
     output_path = os.path.join(output_dir, output_filename)
 
@@ -39,7 +39,7 @@ def run_grapharna_task(uuid : uuid.UUID) -> str:
     try:
         response = requests.post(
             "http://grapharna-engine:8080/run",
-            data={"uuid": uuid, "seed": seed}
+            data={"uuid": uuid_str, "seed": seed}
         )
 
         if response.status_code != 200:
