@@ -1,6 +1,7 @@
 # Docker setup
 
 First pull the repository. Make sure that both the ./GraphaRNA and ./GraphaRNA/RiNALMo are present. 
+On the ./GraphaRNA branch use ```git checkout main``` and make sure that you've got the most current version.  
 In .GraphaRNA download the pre-trained model: 
 
 ``` wget https://zenodo.org/records/13750967/files/model_epoch_800.tar.gz?download=1 -O model_epoch_800.tar.gz ```
