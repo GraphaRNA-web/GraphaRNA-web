@@ -8,6 +8,8 @@ django-stubs==5.2.0
 python-dotenv==1.0.1
 celery==5.3.4
 djangorestframework==3.16.0
+requests
+types-requests
 
 # linters and formatters
 pylama==8.4.1
