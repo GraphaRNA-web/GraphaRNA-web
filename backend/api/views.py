@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 import random
 from datetime import date
 from webapp.models import Job
-
+from webapp.tasks import run_grapharna_task
 
 
 def ValidateEmailAddress(email):
@@ -80,8 +80,10 @@ def PostRnaData(request):
     input_structure=rna,
     seed = seed,
     job_name = jobName,
-    email = email
+    email = email,
+    status = 'Q'
     )
+    run_grapharna_task.delay(job.uid)
     return Response({"success":True,"Job":job.job_name})
     
 
