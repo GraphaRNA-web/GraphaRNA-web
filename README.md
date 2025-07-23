@@ -1,6 +1,7 @@
 # Docker setup
 
 First pull the repository. Make sure that both the ./GraphaRNA and ./GraphaRNA/RiNALMo are present. 
+On the ./GraphaRNA branch use ```git checkout main``` and make sure that you've got the most current version.  
 In .GraphaRNA download the pre-trained model: 
 
 ``` wget https://zenodo.org/records/13750967/files/model_epoch_800.tar.gz?download=1 -O model_epoch_800.tar.gz ```
@@ -18,8 +19,8 @@ DATABASE_PASSWORD=dbpassword
 
 !!! Remember about the .env file in the backend section !!!
 
-Then turn on Docker Desktop run the ```docker compose build``` command.
-After that all the container should be visible and ready to turn on in the Docker Desktop app.
+Then turn on Docker Desktop run the ```docker compose build``` and ```docker compose up``` commands.
+After that all the container should be visible and on in the Docker Desktop app.
 
 
 # GraphaRNA-web ~ backend
