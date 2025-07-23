@@ -1,13 +1,13 @@
+
 from django.utils import timezone
 from .models import Job, JobResults
-from time import sleep
-from uuid import UUID
 import requests
 from celery import shared_task
 import os
+import time
 
 @shared_task
-def delete_expired_jobs() -> str:
+def delete_expired_jobs():
     now = timezone.now()
     expired_jobs = Job.objects.filter(expires_at__lt=now) #Expires at less then now
     count, _ = expired_jobs.delete()
@@ -16,16 +16,15 @@ def delete_expired_jobs() -> str:
 
 
 @shared_task
-def run_grapharna_task(uuid_param : UUID) -> str:
-    db_data = Job.objects.get(uid=uuid_param)
+def run_grapharna_task(uuid):
+    db_data = Job.objects.get(uid=uuid)
     dotseq_data = db_data.input_structure
     seed = db_data.seed
-    uuid_str = str(uuid_param)
 
     input_dir = "/shared/user_inputs"
     output_dir = f"/shared/samples/grapharna-seed={seed}/800"
-    input_filename = f"{uuid_str}.dotseq"
-    output_filename = f"{uuid_str}.pdb"
+    input_filename = f"{uuid}.dotseq"
+    output_filename = f"{uuid}.pdb"
     input_path = os.path.join(input_dir, input_filename)
     output_path = os.path.join(output_dir, output_filename)
 
@@ -39,7 +38,7 @@ def run_grapharna_task(uuid_param : UUID) -> str:
     try:
         response = requests.post(
             "http://grapharna-engine:8080/run",
-            data={"uuid": uuid_str, "seed": seed}
+            data={"uuid": uuid, "seed": seed}
         )
 
         if response.status_code != 200:
@@ -58,10 +57,9 @@ def run_grapharna_task(uuid_param : UUID) -> str:
         os.remove(input_path)
         if os.path.exists(output_path):
             os.remove(output_path)
-        return "OK"
 
     
-def test_grapharna_run() -> str:
+def test_grapharna_run():
     seed = 42
 
     input_path = "/shared/user_inputs/test.dotseq"
@@ -80,7 +78,7 @@ def test_grapharna_run() -> str:
 
     assert response.status_code == 200, f"Błąd: {response.text}"
 
-    sleep(1)
+    time.sleep(1)
 
     assert os.path.exists(output_path), f"Nie znaleziono pliku {output_path}"
 
@@ -88,10 +86,8 @@ def test_grapharna_run() -> str:
         content = f.read()
         assert content == tekst
 
+    print(f"Test zakończony sukcesem – plik wygenerowany: {output_path}")
+
     os.remove(input_path)
     if os.path.exists(output_path):
         os.remove(output_path)
-
-    print(f"Test zakończony sukcesem – plik wygenerowany: {output_path}")
-    return "OK"
-
