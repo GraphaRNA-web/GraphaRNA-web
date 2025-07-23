@@ -4,6 +4,7 @@ import api.views
 
 urlpatterns = [
     path('ValidateRNA/', api.views.PostRnaValidation),
-    path('SendRNA/', api.views.PostRnaData),
-    path('hello/',api.views.hello_view)
+    path('postRequestData/', api.views.ProcessRequestData),
+    path('hello/',api.views.hello_view),
+    path('healthcheck/', api.views.healthcheck)
 ]
