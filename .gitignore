@@ -1,2 +1,4 @@
 .github/
 .env
+celerybeat-schedule
+./backend/celerybeat-schedule

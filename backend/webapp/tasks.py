@@ -15,9 +15,13 @@ def delete_expired_jobs() -> str:
 
 
 
-@shared_task
+@shared_task(queue='grapharna')
 def run_grapharna_task(uuid_param : UUID) -> str:
-    db_data = Job.objects.get(uid=uuid_param)
+    try:
+        db_data = Job.objects.get(uid=uuid_param)
+    except Job.DoesNotExist:
+        return "Job not found"
+    
     dotseq_data = db_data.input_structure
     seed = db_data.seed
     uuid_str = str(uuid_param)
