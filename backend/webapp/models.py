@@ -10,11 +10,6 @@ def default_expiration() -> datetime:
 
 
 class Job(models.Model):
-    STATUS = {
-        'Q': 'Queued',
-        'P': 'Processing',
-        'F': 'Finished'
-    }
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
@@ -24,7 +19,7 @@ class Job(models.Model):
     email: models.CharField = models.CharField(max_length=255, null=True, blank=True)
     created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
     expires_at: models.DateTimeField = models.DateTimeField(default=default_expiration)
-    status: models.TextField = models.TextField(choices=STATUS)
+
     def __str__(self) -> str:
         return str(self.job_name)
 
