@@ -81,12 +81,14 @@ def ProcessRequestData(request: Request) -> Response:
         jobName = f'job-{today_str}-{count}'
 
     job = Job.objects.create(
-        input_structure=rna,
-        seed=seed,
-        job_name=jobName,
-        email=email
-    )
 
+    input_structure=rna,
+    seed = seed,
+    job_name = jobName,
+    email = email,
+    status = 'Q'
+    )
+   
     run_grapharna_task.delay(job.uid)
 
     return Response({"success": True, "Job": job.job_name})
