@@ -41,8 +41,6 @@ def run_grapharna_task(uuid_param : UUID) -> str:
         f.write(dotseq_data)
 
     try:
-        db_data.status = 'P'
-        db_data.save()
         response = requests.post(
             "http://grapharna-engine:8080/run",
             data={"uuid": uuid_str, "seed": seed}
@@ -53,9 +51,6 @@ def run_grapharna_task(uuid_param : UUID) -> str:
 
         with open(output_path, "r") as f:
             result = f.read()
-
-        db_data.status = 'F'
-        db_data.save()
 
         JobResults.objects.create(
             job=db_data,
