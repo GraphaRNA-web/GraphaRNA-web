@@ -3,13 +3,16 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
 from typing import Dict, Any
-from webapp.models import Job
+from webapp.models import Job, JobResults
+import uuid
+from datetime import timedelta
+from django.utils import timezone
 
 
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = "/api/SendRNA/"
+        self.url: str = "/api/PostRequestData/"
         self.valid_data: Dict[str, Any] = {
             "RNA": "AUGCUU",
             "email": "test@example.com",
@@ -60,3 +63,82 @@ class PostRnaDataTests(TestCase):
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class GetResultsTests(TestCase):
+    def setUp(self) -> None:
+        self.client: APIClient = APIClient()
+        self.url: str = "/api/GetResults/"
+        self.job = Job.objects.create(
+            input_structure="ACBC",
+            seed=42,
+            job_name="Job",
+            email=None,
+            status="Q"
+        )
+
+        self.job_results = JobResults.objects.create(
+            job=self.job,
+            completed_at=timezone.now(),
+            result_structure="abac"
+        )
+
+    def test_valid_get_no_results(self) -> None:
+        self.job_results.delete()
+        response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.data
+
+        self.assertTrue(data["success"])
+        self.assertEqual(data["status"], self.job.status)
+        self.assertEqual(data["job_name"], self.job.job_name)
+        self.assertEqual(data["input_structure"], self.job.input_structure)
+        self.assertEqual(data["seed"], self.job.seed)
+        self.assertEqual(data["created_at"], self.job.created_at)
+
+        self.assertNotIn("result_structure", data)
+        self.assertNotIn("completed_at", data)
+        self.assertNotIn("processing_time", data)
+
+    def test_valid_get_with_results(self) -> None:
+        response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.data
+
+        self.assertTrue(data["success"])
+        self.assertEqual(data["status"], self.job.status)
+        self.assertEqual(data["job_name"], self.job.job_name)
+        self.assertEqual(data["input_structure"], self.job.input_structure)
+        self.assertEqual(data["seed"], self.job.seed)
+        self.assertEqual(data["created_at"], self.job.created_at)
+
+        self.assertEqual(data["result_structure"], self.job_results.result_structure)
+        self.assertEqual(data["completed_at"], self.job_results.completed_at)
+        self.assertEqual(data["processing_time"], self.job_results.completed_at - self.job.created_at)
+
+    def test_invalid_uid(self) -> None:
+        response: Response = self.client.get(self.url, {"uid": '1234'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
+    
+    def test_missing_uid(self) -> None:
+        response: Response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
+
+    def test_non_existent_job(self) -> None:
+        response: Response = self.client.get(self.url, {"uid": str(uuid.uuid4())})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
+    
+    def test_wrong_http_method_post(self) -> None:
+        response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+
+   
