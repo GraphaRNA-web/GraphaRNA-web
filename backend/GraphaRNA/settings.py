@@ -44,8 +44,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "webapp",
-    'rest_framework',
-    'api',
+    "rest_framework",
+    "api",
 ]
 
 MIDDLEWARE = [
@@ -136,5 +136,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Celery settings
-CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672//'
-CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_BROKER_URL = "amqp://guest:guest@rabbitmq:5672//"
+CELERY_RESULT_BACKEND = "rpc://"
