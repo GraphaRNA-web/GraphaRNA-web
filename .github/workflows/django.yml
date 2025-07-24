@@ -34,7 +34,7 @@ jobs:
       DATABASE_NAME: dockerdjango
       DATABASE_USERNAME: dbuser
       DATABASE_PASSWORD: dbpassword
-      DATABASE_HOST: localhost  # w serwerze db - tu musi być lokalny serwis
+      DATABASE_HOST: postgres  # w serwerze db - tu musi być lokalny serwis
       DATABASE_PORT: 5432
       DJANGO_SETTINGS_MODULE: GraphaRNA.settings
 

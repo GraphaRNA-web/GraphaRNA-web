@@ -9,7 +9,7 @@ from webapp.models import Job
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = '/api/SendRNA/'
+        self.url: str = '/api/postRequestData/'
         self.valid_data: Dict[str, Any] = {
             "RNA": "AUGCUU",
             "email": "test@example.com",
