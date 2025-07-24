@@ -4,11 +4,14 @@ from rest_framework.request import Request
 from rest_framework import status
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from typing import Optional
 import random
 from datetime import date
-from webapp.models import Job
+from webapp.models import Job, JobResults
 from webapp.tasks import run_grapharna_task
+from uuid import UUID
+
 
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
@@ -92,6 +95,34 @@ def ProcessRequestData(request: Request) -> Response:
     run_grapharna_task.delay(job.uid)
 
     return Response({"success": True, "Job": job.job_name})
+
+@api_view(['GET'])
+def GetResults(request: Request) -> Response:
+    uid_param: str = request.GET.get("uid")
+    
+    try:
+        uid: UUID = UUID(uid_param)
+    except (TypeError, ValueError):
+        return Response({"success": False, "error": "Invalid or missing UID"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        job: Job = Job.objects.get(uid__exact = uid)
+    except:
+        return Response({"success": False, "error": "Job doesn't exist"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        job_results: JobResults = JobResults.objects.get(job__exact = job)
+        return Response({"success": True, "status": job.status, "job_name": job.job_name, 
+                         "input_structure": job.input_structure, "seed": job.seed,
+                         "created_at": job.created_at, "completed_at": job_results.completed_at,
+                         "result_structure": job_results.result_structure, "processing_time": job_results.completed_at-job.created_at
+                         })
+    except JobResults.DoesNotExist:
+        return Response({"success": True, "status": job.status, "job_name": job.job_name, 
+                         "input_structure": job.input_structure, "seed": job.seed,
+                         "created_at": job.created_at
+                         })
+
 
 
 @api_view(['GET'])

@@ -6,5 +6,6 @@ urlpatterns = [
     path('ValidateRNA/', api.views.PostRnaValidation),
     path('postRequestData/', api.views.ProcessRequestData),
     path('hello/',api.views.hello_view),
-    path('healthcheck/', api.views.healthcheck)
+    path('healthcheck/', api.views.healthcheck),
+    path('GetResults/', api.views.GetResults)
 ]
