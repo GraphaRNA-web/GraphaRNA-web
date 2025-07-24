@@ -1,11 +1,10 @@
-
 from django.contrib import admin
 from .models import Job, JobResults
 
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ("job_name", "email", "created_at", "expires_at")
+    list_display = ("uid", "job_name", "email", "created_at", "expires_at")
     search_fields = ("job_name", "email")
 
 

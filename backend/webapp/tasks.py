@@ -7,22 +7,22 @@ import requests
 from celery import shared_task
 import os
 
+
 @shared_task
 def delete_expired_jobs() -> str:
     now = timezone.now()
-    expired_jobs = Job.objects.filter(expires_at__lt=now) #Expires at less then now
+    expired_jobs = Job.objects.filter(expires_at__lt=now)  # Expires at less then now
     count, _ = expired_jobs.delete()
     return f"Deleted {count} expired jobs."
 
 
-
-@shared_task(queue='grapharna')
-def run_grapharna_task(uuid_param : UUID) -> str:
+@shared_task(queue="grapharna")
+def run_grapharna_task(uuid_param: UUID) -> str:
     try:
         db_data = Job.objects.get(uid=uuid_param)
     except Job.DoesNotExist:
         return "Job not found"
-    
+
     dotseq_data = db_data.input_structure
     dotseq_data = ">" + db_data.job_name + "\n" + dotseq_data 
     seed = db_data.seed
@@ -39,13 +39,15 @@ def run_grapharna_task(uuid_param : UUID) -> str:
     os.makedirs(output_dir, exist_ok=True)
 
     # Save input file
-    with open(input_path, 'w') as f:
+    with open(input_path, "w") as f:
         f.write(dotseq_data)
 
     try:
+
+        db_data.status = "P"
+        db_data.save()
         response = requests.post(
-            "http://grapharna-engine:8080/run",
-            data={"uuid": uuid_str, "seed": seed}
+            "http://grapharna-engine:8080/run", data={"uuid": uuid_str, "seed": seed}
         )
 
         if response.status_code != 200:
@@ -54,10 +56,10 @@ def run_grapharna_task(uuid_param : UUID) -> str:
         with open(output_path, "r") as f:
             result = f.read()
 
+        db_data.status = "F"
+        db_data.save()
         JobResults.objects.create(
-            job=db_data,
-            result_structure=result,
-            completed_at=timezone.now()
+            job=db_data, result_structure=result, completed_at=timezone.now()
         )
 
     finally:
@@ -66,7 +68,7 @@ def run_grapharna_task(uuid_param : UUID) -> str:
             os.remove(output_path)
         return "OK"
 
-    
+
 def test_grapharna_run() -> str:
     seed = 42
 
@@ -100,4 +102,3 @@ def test_grapharna_run() -> str:
 
     print(f"Test zakończony sukcesem – plik wygenerowany: {output_path}")
     return "OK"
-
