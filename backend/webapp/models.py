@@ -22,6 +22,7 @@ class Job(models.Model):
     expires_at: models.DateTimeField = models.DateTimeField(default=default_expiration)
     status: models.TextField = models.TextField(choices=STATUS)
 
+
     def __str__(self) -> str:
         return str(self.job_name)
 
