@@ -4,9 +4,10 @@ from django.urls import path
 import api.views
 
 urlpatterns = [
-    path("ValidateRNA/", api.views.PostRnaValidation),
-    path("PostRequestData/", api.views.ProcessRequestData),
+    path("validateRNA/", api.views.PostRnaValidation),
+    path("postRequestData/", api.views.ProcessRequestData),
     path("hello/", api.views.hello_view),
     path("healthcheck/", api.views.healthcheck),
-    path("GetResults/", api.views.GetResults),
+    path("getResults/", api.views.GetResults),
+    path("testRequest/", api.views.TestRequest),
 ]

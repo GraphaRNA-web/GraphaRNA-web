@@ -148,6 +148,46 @@ def hello_view(request: Request) -> Response:
     name: str = request.GET.get("name", "Guest")
     return Response({"message": f"Cześć, {name}!"})
 
+@api_view(["POST"])
+def TestRequest(request: Request) -> Response:
+    rna: Optional[str] = request.data.get("RNA")
+    seed_raw = request.data.get("seed")
+    jobName: Optional[str] = request.data.get("job_name")
+    email: Optional[str] = request.data.get("email")
+    today_str = date.today().strftime("%Y%m%d")
+    count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
+
+    try:
+        seed: int = int(seed_raw)
+    except (TypeError, ValueError):
+        seed = random.randint(1, 1000000000)
+
+    if not RnaValidation(rna):
+        return Response(
+            {"success": False, "error": "Niepoprawna sekwencja RNA."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not ValidateEmailAddress(email):
+        return Response(
+            {"success": False, "error": "Niepoprawna forma emaila."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not jobName:
+        jobName = f"job-{today_str}-{count}"
+
+    job = Job.objects.create(
+
+        input_structure=rna,
+        seed=seed,
+        job_name=jobName,
+        email=email,
+        status="Q"
+    )
+
+    return Response({"success": True, "Job": job.job_name})
+
 
 @api_view(["GET"])
 def healthcheck(request: Request) -> Response:

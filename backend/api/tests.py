@@ -11,7 +11,7 @@ from django.utils import timezone
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = "/api/PostRequestData/"
+        self.url: str = "/api/testRequest/"
         self.valid_data: Dict[str, Any] = {
             "RNA": "AUGCUU",
             "email": "test@example.com",
