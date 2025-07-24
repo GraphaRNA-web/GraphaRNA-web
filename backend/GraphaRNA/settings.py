@@ -142,3 +142,6 @@ CELERY_RESULT_BACKEND = 'rpc://'
 # Module settings
 MODEL_NAME = os.getenv("MODEL_NAME")
 EPOCHS = int(os.getenv("MODEL_EPOCHS", 800))
+
+# testy
+TEST_RUNNER = "django.test.runner.DiscoverRunner"
