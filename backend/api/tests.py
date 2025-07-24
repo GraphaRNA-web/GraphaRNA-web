@@ -5,7 +5,6 @@ from rest_framework import status
 from typing import Dict, Any
 from webapp.models import Job, JobResults
 import uuid
-from datetime import timedelta
 from django.utils import timezone
 
 
