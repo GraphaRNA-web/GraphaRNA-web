@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.conf import settings
 from .models import Job, JobResults
 from time import sleep
 from uuid import UUID
@@ -23,11 +24,12 @@ def run_grapharna_task(uuid_param : UUID) -> str:
         return "Job not found"
     
     dotseq_data = db_data.input_structure
+    dotseq_data = ">" + db_data.job_name + "\n" + dotseq_data 
     seed = db_data.seed
     uuid_str = str(uuid_param)
 
     input_dir = "/shared/user_inputs"
-    output_dir = f"/shared/samples/grapharna-seed={seed}/800"
+    output_dir = f"/shared/samples/grapharna-seed={seed}/{settings.MODEL_EPOCHS}"
     input_filename = f"{uuid_str}.dotseq"
     output_filename = f"{uuid_str}.pdb"
     input_path = os.path.join(input_dir, input_filename)
@@ -69,7 +71,7 @@ def test_grapharna_run() -> str:
     seed = 42
 
     input_path = "/shared/user_inputs/test.dotseq"
-    output_path = f"/shared/samples/grapharna-seed={seed}/800/test.pdb"
+    output_path = f"/shared/samples/grapharna-seed={seed}/{settings.MODEL_EPOCHS}/test.pdb"
 
     os.makedirs(os.path.dirname(input_path), exist_ok=True)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

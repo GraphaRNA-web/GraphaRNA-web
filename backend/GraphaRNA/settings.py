@@ -138,3 +138,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Celery settings
 CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672//'
 CELERY_RESULT_BACKEND = 'rpc://'
+
+# Module settings
+MODEL_NAME = os.getenv("MODEL_NAME")
+EPOCHS = int(os.getenv("MODEL_EPOCHS"))
