@@ -13,6 +13,7 @@ class PostRnaDataTests(TestCase):
         self.client: APIClient = APIClient()
         self.url: str = "/api/testRequest/"
         self.valid_data: Dict[str, Any] = {
+            "bracket": "",
             "RNA": "AUGCUU",
             "email": "test@example.com",
             "seed": 12345,
@@ -67,7 +68,7 @@ class PostRnaDataTests(TestCase):
 class GetResultsTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = "/api/GetResults/"
+        self.url: str = "/api/getResults/"
 
         self.input_structure_file = SimpleUploadedFile(
             name="test.dotseq",

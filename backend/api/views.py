@@ -25,12 +25,20 @@ def ValidateEmailAddress(email: Optional[str]) -> bool:
 
 
 def RnaValidation(rna: Optional[str]) -> bool:
-    valid_chars = set("AUGC")
+    valid_chars = set("AUGC ")
     if rna is None or any(char not in valid_chars for char in rna.upper()):
         return False
     return True
 
-
+"""
+example post
+{
+  "bracket": "((((...(( ))...))))",
+  "RNA": "CGCGGAACG CGGGACGCG",
+  "seed": 123456,
+  "job_name": "my_rna_job",
+  "email": "user@example.com"
+}"""
 @api_view(["POST"])
 def PostRnaValidation(request: Request) -> Response:
     rna: Optional[str] = request.data.get("RNA")
@@ -55,6 +63,7 @@ def PostRnaValidation(request: Request) -> Response:
 
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
+    bracket: Optional[str] = request.data.get("bracket")
     rna: Optional[str] = request.data.get("RNA")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
@@ -91,7 +100,7 @@ def ProcessRequestData(request: Request) -> Response:
     input_filename: str = f"{str(job_uuid)}.dotseq"
     input_filepath: os.path = os.path.join(input_dir, input_filename)
 
-    dotseq_data: str = ">" + jobName + "\n" + rna 
+    dotseq_data: str = ">" + jobName + "\n" + rna + "\n" + bracket
     with open(input_filepath, "w") as f:
         f.write(dotseq_data)
     
