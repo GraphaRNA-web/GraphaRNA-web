@@ -23,24 +23,15 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     except Job.DoesNotExist:
         return "Job not found"
 
-    dotseq_data = db_data.input_structure
-    dotseq_data = ">" + db_data.job_name + "\n" + dotseq_data 
+    dotseq_data = db_data.input_structure.read().decode('utf-8') 
     seed = db_data.seed
     uuid_str = str(uuid_param)
 
-    input_dir = "/shared/user_inputs"
-    output_dir = f"/shared/samples/grapharna-seed={seed}/{settings.MODEL_EPOCHS}"
-    input_filename = f"{uuid_str}.dotseq"
+    output_dir = f"/shared/samples/grapharna-seed={seed}/{settings.EPOCHS}"
     output_filename = f"{uuid_str}.pdb"
-    input_path = os.path.join(input_dir, input_filename)
     output_path = os.path.join(output_dir, output_filename)
 
-    os.makedirs(input_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
-
-    # Save input file
-    with open(input_path, "w") as f:
-        f.write(dotseq_data)
 
     try:
 
@@ -53,17 +44,16 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         if response.status_code != 200:
             raise Exception(f"Grapharna API error: {response.text}")
 
-        with open(output_path, "r") as f:
-            result = f.read()
 
         db_data.status = "F"
         db_data.save()
+
+        relative_path = os.path.relpath(output_path, settings.MEDIA_ROOT)
         JobResults.objects.create(
-            job=db_data, result_structure=result, completed_at=timezone.now()
+            job=db_data, result_structure=relative_path, completed_at=timezone.now()
         )
 
     finally:
-        os.remove(input_path)
         if os.path.exists(output_path):
             os.remove(output_path)
         return "OK"
@@ -73,7 +63,7 @@ def test_grapharna_run() -> str:
     seed = 42
 
     input_path = "/shared/user_inputs/test.dotseq"
-    output_path = f"/shared/samples/grapharna-seed={seed}/{settings.MODEL_EPOCHS}/test.pdb"
+    output_path = f"/shared/samples/grapharna-seed={seed}/{settings.EPOCHS}/test.pdb"
 
     os.makedirs(os.path.dirname(input_path), exist_ok=True)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -96,9 +86,9 @@ def test_grapharna_run() -> str:
         content = f.read()
         assert content == tekst
 
-    os.remove(input_path)
+    """os.remove(input_path)
     if os.path.exists(output_path):
-        os.remove(output_path)
+        os.remove(output_path)"""
 
     print(f"Test zakończony sukcesem – plik wygenerowany: {output_path}")
     return "OK"

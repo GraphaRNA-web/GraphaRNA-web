@@ -6,7 +6,7 @@ from typing import Dict, Any
 from webapp.models import Job, JobResults
 import uuid
 from django.utils import timezone
-
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
@@ -68,8 +68,15 @@ class GetResultsTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
         self.url: str = "/api/GetResults/"
+
+        self.input_structure_file = SimpleUploadedFile(
+            name="test.dotseq",
+            content=b">Job\nACBC",
+            content_type="text/plain"
+        )
+
         self.job = Job.objects.create(
-            input_structure="ACBC",
+            input_structure=self.input_structure_file,
             seed=42,
             job_name="Job",
             email=None,

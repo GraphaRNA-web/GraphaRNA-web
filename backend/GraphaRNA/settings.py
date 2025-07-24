@@ -145,3 +145,6 @@ EPOCHS = int(os.getenv("MODEL_EPOCHS", 800))
 
 # testy
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
+
+#Folder na wyniki
+MEDIA_ROOT = '/shared/samples'
