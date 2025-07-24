@@ -4,7 +4,6 @@ from rest_framework.request import Request
 from rest_framework import status
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
-from django.core.exceptions import ObjectDoesNotExist
 from typing import Optional
 import random
 from datetime import date
@@ -105,7 +104,7 @@ def GetResults(request: Request) -> Response:
 
     try:
         job: Job = Job.objects.get(uid__exact=uid)
-    except:
+    except Job.DoesNotExist:
         return Response(
             {"success": False, "error": "Job doesn't exist"},
             status=status.HTTP_400_BAD_REQUEST,

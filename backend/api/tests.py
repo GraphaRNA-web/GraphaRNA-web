@@ -3,7 +3,7 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
 from typing import Dict, Any
-from webapp.models import Job, JobResults
+from webapp.models import Job
 
 
 class PostRnaDataTests(TestCase):
