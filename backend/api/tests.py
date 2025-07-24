@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework.response import Response
@@ -7,6 +8,7 @@ from webapp.models import Job, JobResults
 import uuid
 from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
+import os
 
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
@@ -19,6 +21,22 @@ class PostRnaDataTests(TestCase):
             "seed": 12345,
             "job_name": "job-test-1",
         }
+    def tearDown(self) -> None:
+        for job in Job.objects.all():
+            if job.input_structure and job.input_structure.name:
+                try:
+                    if os.path.isfile(job.input_structure.path):
+                        os.remove(job.input_structure.path)
+                except (ValueError, FileNotFoundError):
+                    pass
+
+        for result in JobResults.objects.all():
+            if result.result_structure and result.result_structure.name:
+                try:
+                    if os.path.isfile(result.result_structure.path):
+                        os.remove(result.result_structure.path)
+                except (ValueError, FileNotFoundError):
+                    pass
 
     def test_valid_post(self) -> None:
         response: Response = self.client.post(self.url, self.valid_data, format="json")
@@ -75,7 +93,11 @@ class GetResultsTests(TestCase):
             content=b">Job\nACBC",
             content_type="text/plain"
         )
-
+        self.result_structure_file = SimpleUploadedFile(
+            name="test.pdb",
+            content=b"HEADER RNA PDB",
+            content_type="text/plain"
+        )
         self.job = Job.objects.create(
             input_structure=self.input_structure_file,
             seed=42,
@@ -87,9 +109,25 @@ class GetResultsTests(TestCase):
         self.job_results = JobResults.objects.create(
             job=self.job,
             completed_at=timezone.now(),
-            result_structure="abac"
+            result_structure=self.result_structure_file
         )
+    def tearDown(self) -> None:
+        for job in Job.objects.all():
+            if job.input_structure and job.input_structure.name:
+                try:
+                    if os.path.isfile(job.input_structure.path):
+                        os.remove(job.input_structure.path)
+                except (ValueError, FileNotFoundError):
+                    pass
 
+        for result in JobResults.objects.all():
+            if result.result_structure and result.result_structure.name:
+                try:
+                    if os.path.isfile(result.result_structure.path):
+                        os.remove(result.result_structure.path)
+                except (ValueError, FileNotFoundError):
+                    pass
+                
     def test_valid_get_no_results(self) -> None:
         self.job_results.delete()
         response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
@@ -101,7 +139,7 @@ class GetResultsTests(TestCase):
         self.assertTrue(data["success"])
         self.assertEqual(data["status"], self.job.status)
         self.assertEqual(data["job_name"], self.job.job_name)
-        self.assertEqual(data["input_structure"], self.job.input_structure)
+        self.assertEqual(data["input_structure"], self.job.input_structure.read().decode('UTF-8'))
         self.assertEqual(data["seed"], self.job.seed)
         self.assertEqual(data["created_at"], self.job.created_at)
 
@@ -119,11 +157,11 @@ class GetResultsTests(TestCase):
         self.assertTrue(data["success"])
         self.assertEqual(data["status"], self.job.status)
         self.assertEqual(data["job_name"], self.job.job_name)
-        self.assertEqual(data["input_structure"], self.job.input_structure)
+        self.assertEqual(data["input_structure"], self.job.input_structure.read().decode('UTF-8'))
         self.assertEqual(data["seed"], self.job.seed)
         self.assertEqual(data["created_at"], self.job.created_at)
 
-        self.assertEqual(data["result_structure"], self.job_results.result_structure)
+        self.assertEqual(data["result_structure"], self.job_results.result_structure.read().decode('UTF-8'))
         self.assertEqual(data["completed_at"], self.job_results.completed_at)
         self.assertEqual(data["processing_time"], self.job_results.completed_at - self.job.created_at)
 

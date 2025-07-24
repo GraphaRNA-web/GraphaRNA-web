@@ -151,7 +151,7 @@ def GetResults(request: Request) -> Response:
                 "seed": job.seed,
                 "created_at": job.created_at,
                 "completed_at": job_results.completed_at,
-                "result_structure": job_results.result_structure,
+                "result_structure": job_results.result_structure.read().decode('UTF-8'),
                 "processing_time": job_results.completed_at - job.created_at,
             }
         )
