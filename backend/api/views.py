@@ -76,17 +76,18 @@ def ProcessRequestData(request: Request) -> Response:
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
 
-    if not RnaValidation(rna):
-        return Response(
-            {"success": False, "error": "Niepoprawna sekwencja RNA."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
 
-    if not ValidateEmailAddress(email):
-        return Response(
-            {"success": False, "error": "Niepoprawna forma emaila."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    # if not RnaValidation(rna):
+    #     return Response(
+    #         {"success": False, "error": "Niepoprawna sekwencja RNA."},
+    #         status=status.HTTP_400_BAD_REQUEST
+    #     )
+
+    # if not ValidateEmailAddress(email):
+    #     return Response(
+    #         {"success": False, "error": "Niepoprawna forma emaila."},
+    #         status=status.HTTP_400_BAD_REQUEST
+    #     )
 
     if not jobName:
         jobName = f"job-{today_str}-{count}"
