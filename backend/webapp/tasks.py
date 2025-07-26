@@ -23,11 +23,10 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     except Job.DoesNotExist:
         return "Job not found"
 
-    dotseq_data = db_data.input_structure.read().decode('utf-8') 
     seed = db_data.seed
     uuid_str = str(uuid_param)
 
-    output_dir = f"/shared/samples/grapharna-seed={seed}/{settings.EPOCHS}"
+    output_dir = "/shared/samples/engine_outputs"
     output_filename = f"{uuid_str}.pdb"
     output_path = os.path.join(output_dir, output_filename)
 
@@ -44,7 +43,6 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         if response.status_code != 200:
             raise Exception(f"Grapharna API error: {response.text}")
 
-
         db_data.status = "F"
         db_data.save()
 
@@ -60,10 +58,9 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
 
 def test_grapharna_run() -> str:
-    seed = 42
 
-    input_path = "/shared/user_inputs/test.dotseq"
-    output_path = f"/shared/samples/grapharna-seed={seed}/{settings.EPOCHS}/test.pdb"
+    input_path = "/shared/samples/engine_inputs/test.dotseq"
+    output_path = "/shared/samples/engine_outputs/test.pdb"
 
     os.makedirs(os.path.dirname(input_path), exist_ok=True)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -86,9 +83,9 @@ def test_grapharna_run() -> str:
         content = f.read()
         assert content == tekst
 
-    """os.remove(input_path)
+    os.remove(input_path)
     if os.path.exists(output_path):
-        os.remove(output_path)"""
+        os.remove(output_path)
 
     print(f"Test zakończony sukcesem – plik wygenerowany: {output_path}")
     return "OK"
