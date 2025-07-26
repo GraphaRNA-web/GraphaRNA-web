@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock, mock_open, patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework.response import Response
@@ -6,8 +7,6 @@ from typing import Dict, Any
 from webapp.models import Job, JobResults
 import uuid
 from django.utils import timezone
-from django.core.files.uploadedfile import SimpleUploadedFile
-import os
 
 
 class PostRnaDataTests(TestCase):
@@ -21,23 +20,19 @@ class PostRnaDataTests(TestCase):
             "seed": 12345,
             "job_name": "job-test-1",
         }
+        #Avoid file creation during api call
+        self.patcher_open = patch("builtins.open", mock_open())
+        self.patcher_makedirs = patch("os.makedirs")
+        self.patcher_relpath = patch("os.path.relpath", return_value="mocked/path/file.dotseq")
+
+        self.mock_open = self.patcher_open.start()
+        self.mock_makedirs = self.patcher_makedirs.start()
+        self.mock_relpath = self.patcher_relpath.start()
 
     def tearDown(self) -> None:
-        for job in Job.objects.all():
-            if job.input_structure and job.input_structure.name:
-                try:
-                    if os.path.isfile(job.input_structure.path):
-                        os.remove(job.input_structure.path)
-                except (ValueError, FileNotFoundError):
-                    pass
-
-        for result in JobResults.objects.all():
-            if result.result_structure and result.result_structure.name:
-                try:
-                    if os.path.isfile(result.result_structure.path):
-                        os.remove(result.result_structure.path)
-                except (ValueError, FileNotFoundError):
-                    pass
+        self.patcher_open.stop()
+        self.patcher_makedirs.stop()
+        self.patcher_relpath.stop()
 
     def test_valid_post(self) -> None:
         response: Response = self.client.post(self.url, self.valid_data, format="json")
@@ -87,53 +82,33 @@ class PostRnaDataTests(TestCase):
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-
 class GetResultsTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
         self.url: str = "/api/getResults/"
 
-        self.input_structure_file = SimpleUploadedFile(
-            name="test.dotseq", content=b">Job\nACBC", content_type="text/plain"
-        )
-        self.result_structure_file = SimpleUploadedFile(
-            name="test.pdb", content=b"HEADER RNA PDB", content_type="text/plain"
-        )
-        self.job = Job.objects.create(
-            input_structure=self.input_structure_file,
-            seed=42,
-            job_name="Job",
-            email=None,
-            status="Q",
-        )
-        self.job_results = JobResults.objects.create(
-            job=self.job,
-            completed_at=timezone.now(),
-            result_structure=self.result_structure_file,
-        )
+        
+        self.job = MagicMock()
+        self.job.uid = uuid.uuid4()
+        self.job.input_structure.read.return_value = b">Job\nACBC"
+        self.job.status = "Q"
+        self.job.job_name = "Job"
+        self.job.seed = 42
+        self.job.created_at = timezone.now()
 
-    def tearDown(self) -> None:
-        for job in Job.objects.all():
-            if job.input_structure and job.input_structure.name:
-                try:
-                    if os.path.isfile(job.input_structure.path):
-                        os.remove(job.input_structure.path)
-                except (ValueError, FileNotFoundError):
-                    pass
+        self.job_results = MagicMock()
+        self.job_results.job = self.job
+        self.job_results.completed_at = timezone.now()
+        self.job_results.result_structure.read.return_value = b"HEADER RNA PDB"
 
-        for result in JobResults.objects.all():
-            if result.result_structure and result.result_structure.name:
-                try:
-                    if os.path.isfile(result.result_structure.path):
-                        os.remove(result.result_structure.path)
-                except (ValueError, FileNotFoundError):
-                    pass
 
     def test_valid_get_no_results(self) -> None:
-        os.remove(self.job_results.result_structure.path)
-        self.job_results.delete()
-        response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+        
 
+        with patch("api.views.Job.objects.get", return_value=self.job), \
+         patch("api.views.JobResults.objects.get", side_effect=JobResults.DoesNotExist):
+
+            response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.data
@@ -152,7 +127,10 @@ class GetResultsTests(TestCase):
         self.assertNotIn("processing_time", data)
 
     def test_valid_get_with_results(self) -> None:
-        response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+        with patch("api.views.Job.objects.get", return_value=self.job), \
+         patch("api.views.JobResults.objects.get", return_value = self.job_results):
+
+            response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -194,3 +172,4 @@ class GetResultsTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
