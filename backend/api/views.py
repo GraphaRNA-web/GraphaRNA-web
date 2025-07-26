@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -9,7 +10,8 @@ import random
 from datetime import date
 from webapp.models import Job, JobResults
 from webapp.tasks import run_grapharna_task
-from uuid import UUID
+from uuid import UUID, uuid4
+import os
 
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
@@ -24,10 +26,21 @@ def ValidateEmailAddress(email: Optional[str]) -> bool:
 
 
 def RnaValidation(rna: Optional[str]) -> bool:
-    valid_chars = set("AUGC")
+    valid_chars = set("AUGC ")
     if rna is None or any(char not in valid_chars for char in rna.upper()):
         return False
     return True
+
+
+"""
+example post
+{
+  "bracket": "((((...(( ))...))))",
+  "RNA": "CGCGGAACG CGGGACGCG",
+  "seed": 123456,
+  "job_name": "my_rna_job",
+  "email": "user@example.com"
+}"""
 
 
 @api_view(["POST"])
@@ -54,6 +67,7 @@ def PostRnaValidation(request: Request) -> Response:
 
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
+    bracket: Optional[str] = request.data.get("bracket")
     rna: Optional[str] = request.data.get("RNA")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
@@ -81,13 +95,29 @@ def ProcessRequestData(request: Request) -> Response:
     if not jobName:
         jobName = f"job-{today_str}-{count}"
 
-    job = Job.objects.create(
+    # Manually create uuid (needed for file name before record creation)
+    job_uuid: UUID = uuid4()
 
-        input_structure=rna,
+    # Save rna to .dotseq file
+    input_dir: str = "/shared/samples/engine_inputs"
+    os.makedirs(input_dir, exist_ok=True)
+    input_filename: str = f"{str(job_uuid)}.dotseq"
+    input_filepath: str = os.path.join(input_dir, input_filename)
+
+    dotseq_data = f">{jobName}\n{rna}\n{bracket}"
+
+    with open(input_filepath, "w") as f:
+        f.write(dotseq_data)
+
+    relative_path = os.path.relpath(input_filepath, settings.MEDIA_ROOT)
+
+    job = Job.objects.create(
+        uid=job_uuid,
+        input_structure=relative_path,
         seed=seed,
         job_name=jobName,
         email=email,
-        status="Q"
+        status="Q",
     )
 
     run_grapharna_task.delay(job.uid)
@@ -122,11 +152,11 @@ def GetResults(request: Request) -> Response:
                 "success": True,
                 "status": job.status,
                 "job_name": job.job_name,
-                "input_structure": job.input_structure,
+                "input_structure": job.input_structure.read().decode("utf-8"),
                 "seed": job.seed,
                 "created_at": job.created_at,
                 "completed_at": job_results.completed_at,
-                "result_structure": job_results.result_structure,
+                "result_structure": job_results.result_structure.read().decode("UTF-8"),
                 "processing_time": job_results.completed_at - job.created_at,
             }
         )
@@ -136,7 +166,7 @@ def GetResults(request: Request) -> Response:
                 "success": True,
                 "status": job.status,
                 "job_name": job.job_name,
-                "input_structure": job.input_structure,
+                "input_structure": job.input_structure.read().decode("utf-8"),
                 "seed": job.seed,
                 "created_at": job.created_at,
             }
@@ -148,8 +178,10 @@ def hello_view(request: Request) -> Response:
     name: str = request.GET.get("name", "Guest")
     return Response({"message": f"Cześć, {name}!"})
 
+
 @api_view(["POST"])
 def TestRequest(request: Request) -> Response:
+    bracket: Optional[str] = request.data.get("bracket")
     rna: Optional[str] = request.data.get("RNA")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
@@ -177,13 +209,29 @@ def TestRequest(request: Request) -> Response:
     if not jobName:
         jobName = f"job-{today_str}-{count}"
 
-    job = Job.objects.create(
+    # Manually create uuid (needed for file name before record creation)
+    job_uuid: UUID = uuid4()
 
-        input_structure=rna,
+    # Save rna to .dotseq file
+    input_dir: str = "/shared/samples/engine_inputs"
+    os.makedirs(input_dir, exist_ok=True)
+    input_filename: str = f"{str(job_uuid)}.dotseq"
+    input_filepath: str = os.path.join(input_dir, input_filename)
+
+    dotseq_data = f">{jobName}\n{rna}\n{bracket}"
+
+    with open(input_filepath, "w") as f:
+        f.write(dotseq_data)
+
+    relative_path = os.path.relpath(input_filepath, settings.MEDIA_ROOT)
+
+    job = Job.objects.create(
+        uid=job_uuid,
+        input_structure=relative_path,
         seed=seed,
         job_name=jobName,
         email=email,
-        status="Q"
+        status="Q",
     )
 
     return Response({"success": True, "Job": job.job_name})

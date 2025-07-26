@@ -14,14 +14,13 @@ class Job(models.Model):
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
-    input_structure: models.CharField = models.CharField(max_length=255)
+    input_structure: models.FileField = models.FileField()
     seed: models.IntegerField = models.IntegerField()
     job_name: models.CharField = models.CharField(max_length=255)
     email: models.CharField = models.CharField(max_length=255, null=True, blank=True)
     created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
     expires_at: models.DateTimeField = models.DateTimeField(default=default_expiration)
     status: models.TextField = models.TextField(choices=STATUS)
-
 
     def __str__(self) -> str:
         return str(self.job_name)
@@ -32,7 +31,7 @@ class JobResults(models.Model):
     completed_at: models.DateTimeField = models.DateTimeField(
         default=timezone.now, null=True
     )
-    result_structure: models.CharField = models.CharField(max_length=255)
+    result_structure: models.FileField = models.FileField()
 
     def __str__(self) -> str:
         return str(self.result_structure)
