@@ -19,7 +19,7 @@ class Job(models.Model):
     job_name: models.CharField = models.CharField(max_length=255)
     email: models.CharField = models.CharField(max_length=255, null=True, blank=True)
     created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    expires_at: models.DateTimeField = models.DateTimeField(default=default_expiration)
+    expires_at: models.DateTimeField = models.DateTimeField(null=True)
     status: models.TextField = models.TextField(choices=STATUS)
 
     def __str__(self) -> str:
