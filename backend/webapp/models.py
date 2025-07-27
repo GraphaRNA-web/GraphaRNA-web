@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict, Tuple
 import uuid
 from datetime import timedelta, datetime
 from django.db import models
@@ -27,10 +28,10 @@ class Job(models.Model):
         return str(self.job_name)
     
     #Delete file associated with record 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args: Any, **kwargs: Any) -> Tuple[int, Dict[str, int]]:
         if self.input_structure and os.path.isfile(self.input_structure.path):
             self.input_structure.delete(save=False)
-        super().delete(*args, **kwargs)
+        return super().delete(*args, **kwargs)
 
 
 class JobResults(models.Model):
@@ -44,7 +45,7 @@ class JobResults(models.Model):
         return str(self.result_structure)
     
     #Delete files associated with record 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args: Any, **kwargs: Any) -> Tuple[int, Dict[str, int]]:
         if self.result_structure and os.path.isfile(self.result_structure.path):
             self.result_structure.delete(save=False)
-        super().delete(*args, **kwargs)
+        return super().delete(*args, **kwargs)
