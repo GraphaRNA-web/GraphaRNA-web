@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
 from .models import Job, JobResults
@@ -43,6 +44,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         if response.status_code != 200:
             raise Exception(f"Grapharna API error: {response.text}")
 
+        db_data.expires_at = timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
         db_data.status = "F"
         db_data.save()
 
