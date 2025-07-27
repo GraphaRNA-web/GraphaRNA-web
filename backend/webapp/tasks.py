@@ -13,7 +13,9 @@ import os
 def delete_expired_jobs() -> str:
     now = timezone.now()
     expired_jobs = Job.objects.filter(expires_at__lt=now)  # Expires at less then now
-    count, _ = expired_jobs.delete()
+    count = expired_jobs.count()
+    for job in expired_jobs:
+        job.delete() 
     return f"Deleted {count} expired jobs."
 
 
@@ -54,8 +56,6 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         )
 
     finally:
-        if os.path.exists(output_path):
-            os.remove(output_path)
         return "OK"
 
 
