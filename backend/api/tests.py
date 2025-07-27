@@ -1,3 +1,4 @@
+from datetime import date
 from unittest.mock import MagicMock, mock_open, patch
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -172,4 +173,33 @@ class GetResultsTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+class SuggestSeedAndJobNameTests(TestCase):
+    def setUp(self) -> None:
+        self.client: APIClient = APIClient()
+        self.url: str = "/api/getSuggestedSeedAndJobName/"
+    def test_valid_request(self) -> None:
+        response: Response = self.client.get(self.url)
+        data = response.data
 
+        today_str = date.today().strftime("%Y%m%d")
+        self.assertEqual(data["job_name"], f"job-{today_str}-0")
+        self.assertGreaterEqual(int(data["seed"]), 1)
+        self.assertLessEqual(int(data["seed"]), 100_000_000_0)
+    def test_incrementing_job_name_suffix(self):
+        today_str = date.today().strftime("%Y%m%d")
+        
+        mock_qs = MagicMock()
+        mock_qs.count.return_value = 1
+        #Patch and mock query set to simulate existance of a job with todays prefix
+        with patch("api.views.Job.objects.filter", return_value=mock_qs):
+            response = self.client.get(self.url)
+
+        data = response.data
+
+        self.assertEqual(data["job_name"], f"job-{today_str}-1")
+
+    def test_wrong_http_method_post(self) -> None:
+        response: Response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        
+    

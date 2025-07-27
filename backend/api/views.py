@@ -174,6 +174,20 @@ def GetResults(request: Request) -> Response:
 
 
 @api_view(["GET"])
+def GetSuggestedSeedAndJobName(request: Request) -> Response:
+
+    seed = random.randint(1, 100_000_000_0)
+    today_str = date.today().strftime("%Y%m%d")
+    count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
+    jobName = f"job-{today_str}-{count}"
+
+
+    return Response(
+        {"success": True, "seed": seed, "job_name": jobName},
+        status=status.HTTP_200_OK,
+    )
+
+@api_view(["GET"])
 def hello_view(request: Request) -> Response:
     name: str = request.GET.get("name", "Guest")
     return Response({"message": f"Cześć, {name}!"})
