@@ -23,12 +23,13 @@
   --primary1-lighten-10: #B7787C;
   --primary1-lighten-15: #E09DA2;
   --primary1-lighten-20: #FFC5C9;
+  --primary1-lighten-25: #F9E1E0;
 
   --primary2-base: #668D21;
   --primary2-darken-5: #4A7100;
   --primary2-darken-10: #2E5700;
   --primary2-darken-15: #183D00;
-
+  
   --submitted: #C45FF3;
   --waiting: #FFA500;
   --running: #007BFF;

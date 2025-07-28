@@ -1,8 +1,12 @@
+'use client';
+
+import Modal from '../components/Modal';
+import '../styles/jobs.css';
+
 export default function Jobs() {
   return (
-    <div>
-      <h1>Jobs Page</h1>
-      <p>This is the jobs page.</p>
+    <div className='jobs-page'>
+      <Modal />
     </div>
   );
 }

@@ -73,3 +73,22 @@
   font-weight: 300;
   color: var(--primary2-base);
 }
+
+@media (max-width: 768px) {
+  .home-container{
+    display: flex;
+    flex-direction: column;
+    padding-left: 87px;
+    width: 489px;
+  }
+
+  .home-buttons{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .home-description-text{
+    width: 489px;
+  }
+}

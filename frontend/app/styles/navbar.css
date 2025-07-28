@@ -55,3 +55,45 @@
   font-weight: 700;
 }
 
+/* Hamburger (☰ and ✕) */
+.navbar__hamburger {
+  display: none;
+  font-size: 30px;
+  cursor: pointer;
+  color: var(--brown-base);
+  z-index: 101;
+}
+
+/* MOBILE MENU - side drawer */
+@media (max-width: 768px) {
+  .navbar__hamburger {
+    display: block;
+    position: absolute;
+    right: 30px;
+  }
+
+  .navbar__right {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: -280px; /* hidden by default */
+    width: 280px;
+    height: 100vh;
+    background-color: rgba(255, 254, 250, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 80px 30px 30px 30px;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease;
+    z-index: 100;
+    gap: 50px;
+  }
+
+  .navbar__right.open {
+    right: 0; /* show menu */
+  }
+
+  .navbar__link {
+    font-size: 20px;
+  }
+}
