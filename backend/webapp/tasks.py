@@ -30,8 +30,11 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     uuid_str = str(uuid_param)
 
     output_dir = "/shared/samples/engine_outputs"
-    output_filename = f"{uuid_str}.pdb"
-    output_path = os.path.join(output_dir, output_filename)
+    output_filename = f"{uuid_str}"
+    
+    output_path_pdb = os.path.join(output_dir, output_filename + ".pdb")
+    output_path_json = os.path.join(output_dir, output_filename + ".json")
+    output_path_dot = os.path.join(output_dir, output_filename + ".dot")
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -45,12 +48,23 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
         if response.status_code != 200:
             raise Exception(f"Grapharna API error: {response.text}")
+        
+        if not os.path.exists(output_path_pdb):
+            raise Exception(f"Can't find {output_path_pdb}")
+            
+        if not os.path.exists(output_path_json):
+            raise Exception(f"Can't find {output_path_json}")
+            
+        if not os.path.exists(output_path_dot):
+            raise Exception(f"Can't find {output_path_dot}")
+        
+
 
         db_data.expires_at = timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
         db_data.status = "F"
         db_data.save()
 
-        relative_path = os.path.relpath(output_path, settings.MEDIA_ROOT)
+        relative_path = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
         JobResults.objects.create(
             job=db_data, result_structure=relative_path, completed_at=timezone.now()
         )
