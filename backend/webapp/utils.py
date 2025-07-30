@@ -143,16 +143,16 @@ def dotbracketToPairs(input : str) -> tuple[str, list, str, set[tuple[int, int]]
     corrected_brackets: str = ""
 
     
-
+    i : int
     for i in range(len(strand)):
-        letter = strand[i]
+        letter : str = strand[i]
         bracket = dotbracket[i]
         if bracket == ".":
             continue
         elif bracket not in dict_stacks and bracket in OPENING_BRACKETS:
-            dict_stacks[bracket] = [[i+1, letter]]
+            dict_stacks[bracket] = [(i+1, letter)]
         elif bracket in OPENING_BRACKETS:
-            dict_stacks[bracket].append([i+1, letter])
+            dict_stacks[bracket].append((i+1, letter))
         elif bracket in CLOSING_BRACKETS:
             opening = OPENING_BRACKETS[CLOSING_BRACKETS.find(bracket)]
             # safeguard so that we don't pop an empty list
