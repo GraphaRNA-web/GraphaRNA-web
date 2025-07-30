@@ -24,8 +24,8 @@ def parseFastaFile(filename : str) -> str:
     >test1.fasta\naGCGCCuGGACUUAAAGCCAUUGCACU CCGGCUUUAAGUUGACGAGGGCAGGGUUuAUCGAGACAUCGGCGGGUGCCCUGCGGUCUUCCUGCGACCGUUAGAGGACUGGuAAAACCACAGGCGACUGUGGCAUAGAGCAGUCCGGGCAGGAA\n..((((.((((((((((((........ ..)))))))))))..(((...[[[[[[...)))......)))))...]]]]]][[[[[.((((((]]]]].....((((((......((((((....)))))).......))))))..)))))). 
     """
 
-    VALID_LETTERS = set("ACGUacguTt")
-    VALID_BRACKETS = set(".()[]<>{}AaBbCcDd")
+    VALID_LETTERS = set("ACGUacguTt ")
+    VALID_BRACKETS = set(".()[]<>{}AaBbCcDd ")
 
     with open(filename, "r") as f:
         strands = []
