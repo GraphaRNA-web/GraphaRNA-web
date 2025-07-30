@@ -30,8 +30,8 @@ def parseFastaFile(filename : str) -> str:
     with open(filename, "r") as f:
         strands = []
         dotbrackets = []
-        current_seq = []
-        current_db = []
+        current_seq: list[str] = []
+        current_db: list[str] = []
 
         for line in f:
             line = line.strip()
@@ -104,18 +104,18 @@ def dotbracketToPairs(input : str) -> tuple[str, list, str, set[tuple[int, int]]
     VALID_CONNECTIONS = [["G", "C"], ["C", "G"], ["A", "U"], ["U", "A"], ["G", "U"], ["U", "G"]]
 
     dict_stacks = {}
-    pairs = set()
-    strand = None
+    pairs: set[tuple[int, int]] = set()
+    strand = ""
     dotbracket = ""
 
-    errors = []
-    warnings = []
+    errors : list[str] = []
+    warnings : list[str] = []
 
 
     for line in input.split("\n"):
         if line[0] in "#>":
             continue
-        if strand is None:
+        if strand == "":
             strand = line.strip().replace(" ", "")
         else:
             dotbracket = line.strip().replace(" ", "")
@@ -140,7 +140,7 @@ def dotbracketToPairs(input : str) -> tuple[str, list, str, set[tuple[int, int]]
 
     strand = strand.replace("T", "U").replace("t", "u").replace(" ", "")
     dotbracket = dotbracket.replace(" ", "")
-    corrected_brackets = ""
+    corrected_brackets: str = ""
 
     
 
@@ -150,9 +150,9 @@ def dotbracketToPairs(input : str) -> tuple[str, list, str, set[tuple[int, int]]
         if bracket == ".":
             continue
         elif bracket not in dict_stacks and bracket in OPENING_BRACKETS:
-            dict_stacks[bracket] = [[i+1, letter]]
+            dict_stacks[bracket] = [[int(i+1), str(letter)]]
         elif bracket in OPENING_BRACKETS:
-            dict_stacks[bracket].append([i+1, letter])
+            dict_stacks[bracket].append([int(i+1), str(letter)])
         elif bracket in CLOSING_BRACKETS:
             opening = OPENING_BRACKETS[CLOSING_BRACKETS.find(bracket)]
             # safeguard so that we don't pop an empty list
