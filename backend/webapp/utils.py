@@ -97,8 +97,8 @@ def dotbracketToPairs(input : str) -> tuple[str, list, str, set[tuple[int, int]]
     Return is in the following format: 
     "OK" / "WARNING" / "ERROR | list of Warnings / errors | corrected dotbracket (if warning) | set of pairs
     """
-    VALID_LETTERS = "ACGUacguTt"
-    VALID_BRACKETS = ".()[]<>{}AaBbCcDd"
+    VALID_LETTERS = "ACGUacguTt "
+    VALID_BRACKETS = ".()[]<>{}AaBbCcDd "
     OPENING_BRACKETS = "([<{ABCD"
     CLOSING_BRACKETS = ")]>}abcd"
     VALID_CONNECTIONS = [["G", "C"], ["C", "G"], ["A", "U"], ["U", "A"], ["G", "U"], ["U", "G"]]
@@ -116,31 +116,27 @@ def dotbracketToPairs(input : str) -> tuple[str, list, str, set[tuple[int, int]]
         if line[0] in "#>":
             continue
         if strand == "":
-            strand = line.strip().replace(" ", "")
+            strand = line.strip()
         else:
-            dotbracket = line.strip().replace(" ", "")
+            dotbracket = line.strip()
 
     if len(strand) != len(dotbracket):
-        # print("ERROR: strand and bracket length not equal")
         errors.append("ERROR: strand and bracket length not equal")
         return "ERROR", errors, "", pairs
             
     for i, letter in enumerate(strand):
         if letter not in VALID_LETTERS:
-            # print(f"ERROR: letter on {i+1} position is not valid")
             errors.append(f"ERROR: letter on position {i+1} is not valid")
     
     for i, bracket in enumerate(dotbracket):
         if bracket not in VALID_BRACKETS:
-            # print(f"ERROR: Bracket on {i+1} position is not valid")
             errors.append(f"ERROR: Bracket on position {i+1} is not valid")
 
     if len(errors) > 0:
         return "ERROR", errors, "", pairs
 
-    strand = strand.replace("T", "U").replace("t", "u").replace(" ", "")
-    dotbracket = dotbracket.replace(" ", "")
-    corrected_brackets: str = ""
+    strand = strand.replace("T", "U").replace("t", "u")
+    corrected_brackets: str = dotbracket
 
     
     for i in range(len(strand)):
@@ -156,15 +152,14 @@ def dotbracketToPairs(input : str) -> tuple[str, list, str, set[tuple[int, int]]
             opening = OPENING_BRACKETS[CLOSING_BRACKETS.find(bracket)]
             # safeguard so that we don't pop an empty list
             if opening not in dict_stacks or dict_stacks[opening] == []:
-                # print(f"WARNING: Bracket on {i+1} position does not have an opening bracket")
                 warnings.append(f"WARNING: Bracket on position {i+1} does not have an opening bracket")
-                corrected_brackets = dotbracket[:i] + "." + dotbracket[i+1:]
+                corrected_brackets = corrected_brackets[:i] + "." + corrected_brackets[i+1:]
             else:
                 starting_index, starting_letter = dict_stacks[opening].pop()
                 if [starting_letter, letter] not in VALID_CONNECTIONS:
                     warnings.append(f"WARNING: Brackets on {starting_index} and {i+1} are not valid connections")
                     # print(f"WARNING: Proteins on {starting_index}, {i+1} are connected, but shouldn't!")
-                    corrected_brackets = dotbracket[ : starting_index - 1] + "." + dotbracket[starting_index : i] + "." + dotbracket[i+1]
+                    corrected_brackets = corrected_brackets[ : starting_index - 1] + "." + corrected_brackets[starting_index : i] + "." + corrected_brackets[i+1: ]
                 else:
                     pairs.add((starting_index, i+1))
             
