@@ -10,5 +10,5 @@ class JobAdmin(admin.ModelAdmin):
 
 @admin.register(JobResults)
 class JobResultsAdmin(admin.ModelAdmin):
-    list_display = ("job", "completed_at", "result_structure")
-    search_fields = ("result_structure",)
+    list_display = ("job", "completed_at", "result_secondary_structure","result_tertiary_structure")
+    search_fields = ("result_tertiary_structure",)

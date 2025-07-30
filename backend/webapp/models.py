@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 def default_expiration() -> datetime:
     return timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
@@ -23,6 +23,9 @@ class Job(models.Model):
     created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
     expires_at: models.DateTimeField = models.DateTimeField(null=True)
     status: models.TextField = models.TextField(choices=STATUS)
+    alternative_conformations: models.IntegerField = models.IntegerField(
+        validators=[MinValueValidator(1, message="Value alternative_conformations can't be lower than 1")\
+                    , MaxValueValidator(5, message="Value alternative_conformations can't be higher than 5")])
 
     def __str__(self) -> str:
         return str(self.job_name)
@@ -35,17 +38,20 @@ class Job(models.Model):
 
 
 class JobResults(models.Model):
-    job: models.OneToOneField = models.OneToOneField(Job, on_delete=models.CASCADE)
+    job: models.ForeignKey = models.ForeignKey(Job, on_delete=models.CASCADE)
     completed_at: models.DateTimeField = models.DateTimeField(
         default=timezone.now, null=True
     )
-    result_structure: models.FileField = models.FileField()
-
+    result_secondary_structure: models.FileField = models.FileField(null=True)
+    result_tertiary_structure: models.FileField = models.FileField()
+    
     def __str__(self) -> str:
-        return str(self.result_structure)
+        return str(self.result_tertiary_structure)
     
     #Delete files associated with record 
     def delete(self, *args: Any, **kwargs: Any) -> Tuple[int, Dict[str, int]]:
-        if self.result_structure and os.path.isfile(self.result_structure.path):
-            self.result_structure.delete(save=False)
+        if self.result_tertiary_structure and os.path.isfile(self.result_tertiary_structure.path):
+            self.result_tertiary_structure.delete(save=False)
+        if self.result_secondary_structure and os.path.isfile(self.result_secondary_structure.path):
+            self.result_secondary_structure.delete(save=False)
         return super().delete(*args, **kwargs)
