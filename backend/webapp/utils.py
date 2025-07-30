@@ -143,9 +143,8 @@ def dotbracketToPairs(input : str) -> tuple[str, list, str, set[tuple[int, int]]
     corrected_brackets: str = ""
 
     
-    i : int
     for i in range(len(strand)):
-        letter : str = strand[i]
+        letter = strand[i]
         bracket = dotbracket[i]
         if bracket == ".":
             continue
