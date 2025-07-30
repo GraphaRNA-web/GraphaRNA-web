@@ -7,6 +7,7 @@ from uuid import UUID
 import requests
 from celery import shared_task
 import os
+import json
 
 
 @shared_task
@@ -47,17 +48,23 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         data = response.json()
         output_path_pdb = data.get("pdbFilePath")
         output_path_json = data.get("jsonFilePath")
-        output_path_dot = data.get("dotFilePath")
         
         if not os.path.exists(output_path_pdb):
             raise Exception(f"Can't find {output_path_pdb}")
             
         if not os.path.exists(output_path_json):
             raise Exception(f"Can't find {output_path_json}")
-            
-        if not os.path.exists(output_path_dot):
-            raise Exception(f"Can't find {output_path_dot}")
-        
+
+        with open(output_path_json, "r") as f:
+            json_data = json.load(f)
+
+        dot_bracket = json_data.get("dotBracket", "")
+        if dot_bracket:
+            dotbracket_path = os.path.join(output_dir, f"{uuid_str}.dotseq")
+            with open(dotbracket_path, "w") as dbn_file:
+                dbn_file.write(dot_bracket + "\n")
+        else:
+            print("No dotBracket structure found in JSON.")
 
 
         db_data.expires_at = timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
@@ -76,12 +83,12 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 def test_grapharna_run() -> str:
 
     input_path = "/shared/samples/engine_inputs/test.dotseq"
-    output_path = "/shared/samples/engine_outputs/test.pdb"
+    output_dir = "/shared/samples/engine_outputs"
 
     os.makedirs(os.path.dirname(input_path), exist_ok=True)
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
 
-    tekst = ">test_seq"
+    tekst = ">job-test\nCGCGGAACG CGGGACGCG\n((((...(( ))...))))"
     with open(input_path, "w") as f:
         f.write(tekst)
 
@@ -89,19 +96,26 @@ def test_grapharna_run() -> str:
         "http://grapharna-engine:8080/test",
     )
 
-    assert response.status_code == 200, f"Błąd: {response.text}"
+    assert response.status_code == 200, f"Error: {response.text}"
 
     sleep(1)
 
-    assert os.path.exists(output_path), f"Nie znaleziono pliku {output_path}"
+    data = response.json()
+    output_path_pdb = data.get("pdbFilePath")
+    output_path_json = data.get("jsonFilePath")
 
-    with open(output_path, "r") as f:
-        content = f.read()
-        assert content == tekst
+    assert (os.path.exists(output_path_pdb) and os.path.exists(output_path_json)), f"Couldn't find file"
 
-    os.remove(input_path)
-    if os.path.exists(output_path):
-        os.remove(output_path)
+    with open(output_path_json, "r") as f:
+            json_data = json.load(f)
 
-    print(f"Test zakończony sukcesem – plik wygenerowany: {output_path}")
+    dot_bracket = json_data.get("dotBracket", "")
+    if dot_bracket:
+        dotbracket_path = os.path.join(output_dir, f"test.dotseq")
+        with open(dotbracket_path, "w") as dbn_file:
+            dbn_file.write(dot_bracket + "\n")
+    else:
+        print("No dotBracket structure found in JSON.")
+
+    print(f"Test zakończony sukcesem – plik wygenerowany: {output_path_pdb}")
     return "OK"

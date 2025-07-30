@@ -9,7 +9,7 @@ from typing import Optional
 import random
 from datetime import date
 from webapp.models import Job, JobResults
-from webapp.tasks import run_grapharna_task
+from webapp.tasks import run_grapharna_task, test_grapharna_run
 from uuid import UUID, uuid4
 import os
 
@@ -254,3 +254,10 @@ def TestRequest(request: Request) -> Response:
 @api_view(["GET"])
 def healthcheck(request: Request) -> Response:
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def testEngineRun(request : Request) -> Response:
+    response = test_grapharna_run()
+    assert response == "OK"
+    return Response({"success": True})
