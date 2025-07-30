@@ -66,7 +66,7 @@ jobs:
           source backend/venv/bin/activate
           python backend/manage.py migrate --noinput
           python backend/manage.py test
-          python backend/manage.py test api.tests.PostRnaDataTests
+          python backend/manage.py test api.tests_api.PostRnaDataTests
 
       - name: Code audit
         run: |
