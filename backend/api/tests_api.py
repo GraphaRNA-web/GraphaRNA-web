@@ -5,7 +5,7 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
 from typing import Dict, Any
-from webapp.models import Job, JobResults
+from webapp.models import Job
 import uuid
 from django.utils import timezone
 
@@ -13,27 +13,32 @@ from django.utils import timezone
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = "/api/testRequest/"
+        self.url: str = "/api/postRequestData/"
         self.valid_data: Dict[str, Any] = {
             "bracket": "",
             "RNA": "AUGCUU",
             "email": "test@example.com",
             "seed": 12345,
             "job_name": "job-test-1",
+            "alternative_conformations": 1
         }
         #Avoid file creation during api call
         self.patcher_open = patch("builtins.open", mock_open())
         self.patcher_makedirs = patch("os.makedirs")
         self.patcher_relpath = patch("os.path.relpath", return_value="mocked/path/file.dotseq")
+        self.patcher_task = patch("webapp.tasks.run_grapharna_task.delay")
 
         self.mock_open = self.patcher_open.start()
         self.mock_makedirs = self.patcher_makedirs.start()
         self.mock_relpath = self.patcher_relpath.start()
+        self.mock_task = self.patcher_task.start()
 
     def tearDown(self) -> None:
         self.patcher_open.stop()
         self.patcher_makedirs.stop()
         self.patcher_relpath.stop()
+        self.patcher_task.stop()
+
 
     def test_valid_post(self) -> None:
         response: Response = self.client.post(self.url, self.valid_data, format="json")
@@ -67,6 +72,7 @@ class PostRnaDataTests(TestCase):
             "RNA": "AUGCUU",
             "email": "test@example.com",
             "bracket": "",
+            "alternative_conformations": 1
         }
         response: Response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -89,7 +95,7 @@ class GetResultsTests(TestCase):
         self.url: str = "/api/getResults/"
 
         
-        self.job = MagicMock()
+        self.job: MagicMock = MagicMock()
         self.job.uid = uuid.uuid4()
         self.job.input_structure.read.return_value = b">Job\nACBC"
         self.job.status = "Q"
@@ -97,17 +103,20 @@ class GetResultsTests(TestCase):
         self.job.seed = 42
         self.job.created_at = timezone.now()
 
-        self.job_results = MagicMock()
-        self.job_results.job = self.job
-        self.job_results.completed_at = timezone.now()
-        self.job_results.result_structure.read.return_value = b"HEADER RNA PDB"
+        self.job_results: list[MagicMock] = []
+        for i in range(5):
+            self.job_results.append(MagicMock())
+            self.job_results[i].job = self.job
+            self.job_results[i].completed_at = timezone.now()
+            self.job_results[i].result_structure.read.return_value = b"HEADER RNA PDB"
 
 
     def test_valid_get_no_results(self) -> None:
         
-
+        mock_empty_qs = MagicMock()
+        mock_empty_qs.__iter__.return_value = iter([])
         with patch("api.views.Job.objects.get", return_value=self.job), \
-         patch("api.views.JobResults.objects.get", side_effect=JobResults.DoesNotExist):
+            patch("api.views.JobResults.objects.filter", return_value=mock_empty_qs):
 
             response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -122,14 +131,15 @@ class GetResultsTests(TestCase):
         )
         self.assertEqual(data["seed"], self.job.seed)
         self.assertEqual(data["created_at"], self.job.created_at)
+        self.assertEqual(data["result_list"], [])
 
-        self.assertNotIn("result_structure", data)
-        self.assertNotIn("completed_at", data)
-        self.assertNotIn("processing_time", data)
 
     def test_valid_get_with_results(self) -> None:
+        mock_full_qs = MagicMock()
+        mock_full_qs.__iter__.return_value = iter(self.job_results)
+        mock_full_qs.count.return_value = len(self.job_results)
         with patch("api.views.Job.objects.get", return_value=self.job), \
-         patch("api.views.JobResults.objects.get", return_value = self.job_results):
+         patch("api.views.JobResults.objects.filter", return_value=mock_full_qs):
 
             response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
 
@@ -146,15 +156,15 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["seed"], self.job.seed)
         self.assertEqual(data["created_at"], self.job.created_at)
 
-        self.assertEqual(
-            data["result_structure"],
-            self.job_results.result_structure.read().decode("UTF-8"),
-        )
-        self.assertEqual(data["completed_at"], self.job_results.completed_at)
-        self.assertEqual(
-            data["processing_time"], self.job_results.completed_at - self.job.created_at
-        )
-
+        expected_results = []
+        for jr in self.job_results:
+            processing_time = jr.completed_at - self.job.created_at
+            expected_results.append({
+                "completed_at": jr.completed_at,
+                "result_structure": jr.result_structure.read().decode("UTF-8"),
+                "processing_time": processing_time,
+            })
+        self.assertEqual(data["result_list"], expected_results)
     def test_invalid_uid(self) -> None:
         response: Response = self.client.get(self.url, {"uid": "1234"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

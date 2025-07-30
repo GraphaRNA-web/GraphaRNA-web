@@ -12,6 +12,8 @@ from webapp.models import Job, JobResults
 from webapp.tasks import run_grapharna_task
 from uuid import UUID, uuid4
 import os
+from django.db.models.query import QuerySet
+
 
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
@@ -39,7 +41,8 @@ example post
   "RNA": "CGCGGAACG CGGGACGCG",
   "seed": 123456,
   "job_name": "my_rna_job",
-  "email": "user@example.com"
+  "email": "user@example.com",
+  "alternative_conformations": "2"
 }"""
 
 
@@ -72,6 +75,7 @@ def ProcessRequestData(request: Request) -> Response:
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
+    job_alternative_conformations = request.data.get("alternative_conformations")
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
@@ -118,6 +122,7 @@ def ProcessRequestData(request: Request) -> Response:
         job_name=jobName,
         email=email,
         status="Q",
+        alternative_conformations = job_alternative_conformations
     )
 
     run_grapharna_task.delay(job.uid)
@@ -145,32 +150,38 @@ def GetResults(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    try:
-        job_results: JobResults = JobResults.objects.get(job__exact=job)
-        return Response(
-            {
-                "success": True,
-                "status": job.status,
-                "job_name": job.job_name,
-                "input_structure": job.input_structure.read().decode("utf-8"),
-                "seed": job.seed,
-                "created_at": job.created_at,
-                "completed_at": job_results.completed_at,
-                "result_structure": job_results.result_structure.read().decode("UTF-8"),
-                "processing_time": job_results.completed_at - job.created_at,
-            }
-        )
-    except JobResults.DoesNotExist:
-        return Response(
-            {
-                "success": True,
-                "status": job.status,
-                "job_name": job.job_name,
-                "input_structure": job.input_structure.read().decode("utf-8"),
-                "seed": job.seed,
-                "created_at": job.created_at,
-            }
-        )
+    
+    job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
+
+    results_list = []
+    for result in job_results_qs:
+        try:
+            result_text = result.result_structure.read().decode("utf-8")
+            processing_time = result.completed_at - job.created_at
+            results_list.append({
+                "completed_at": result.completed_at,
+                "result_structure": result_text,
+                "processing_time": processing_time,
+            })
+        except Exception as e:
+            results_list.append({
+                "completed_at": None,
+                "result_structure": f"[Error reading file: {str(e)}]",
+                "processing_time": None,
+            })
+
+    return Response(
+        {
+            "success": True,
+            "status": job.status,
+            "job_name": job.job_name,
+            "input_structure": job.input_structure.read().decode("utf-8"),
+            "seed": job.seed,
+            "created_at": job.created_at,
+            "result_list": results_list
+        }
+    )
+
 
 
 @api_view(["GET"])

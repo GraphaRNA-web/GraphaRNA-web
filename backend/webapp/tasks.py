@@ -22,11 +22,11 @@ def delete_expired_jobs() -> str:
 @shared_task(queue="grapharna")
 def run_grapharna_task(uuid_param: UUID) -> str:
     try:
-        db_data = Job.objects.get(uid=uuid_param)
+        job_data = Job.objects.get(uid=uuid_param)
     except Job.DoesNotExist:
         return "Job not found"
 
-    seed = db_data.seed
+    seed = job_data.seed
     uuid_str = str(uuid_param)
 
     output_dir = "/shared/samples/engine_outputs"
@@ -35,39 +35,43 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
     try:
 
-        db_data.status = "P"
-        db_data.save()
-        response = requests.post(
-            "http://grapharna-engine:8080/run", data={"uuid": uuid_str, "seed": seed}
-        )
+        job_data.status = "P"
+        job_data.save()
 
-        if response.status_code != 200:
-            raise Exception(f"Grapharna API error: {response.text}")
-        
-        data = response.json()
-        output_path_pdb = data.get("pdbFilePath")
-        output_path_json = data.get("jsonFilePath")
-        output_path_dot = data.get("dotFilePath")
-        
-        if not os.path.exists(output_path_pdb):
-            raise Exception(f"Can't find {output_path_pdb}")
+        for i in range(job_data.alternative_conformations):
+            response = requests.post(
+                "http://grapharna-engine:8080/run", data={"uuid": uuid_str, "seed": seed + i}
+            )
+
+            if response.status_code != 200:
+                raise Exception(f"Grapharna API error: {response.text}")
             
-        if not os.path.exists(output_path_json):
-            raise Exception(f"Can't find {output_path_json}")
+            data = response.json()
+            output_path_pdb = data.get("pdbFilePath")
+            output_path_json = data.get("jsonFilePath")
+            output_path_dot = data.get("dotFilePath")
             
-        if not os.path.exists(output_path_dot):
-            raise Exception(f"Can't find {output_path_dot}")
+            if not os.path.exists(output_path_pdb):
+                raise Exception(f"Can't find {output_path_pdb}")
+                
+            if not os.path.exists(output_path_json):
+                raise Exception(f"Can't find {output_path_json}")
+                
+            if not os.path.exists(output_path_dot):
+                raise Exception(f"Can't find {output_path_dot}")
+            
+            relative_path = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
+            JobResults.objects.create(
+                job=job_data, result_structure=relative_path, completed_at=timezone.now()
+            )
         
 
 
-        db_data.expires_at = timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
-        db_data.status = "F"
-        db_data.save()
+        job_data.expires_at = timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
+        job_data.status = "F"
+        job_data.save()
 
-        relative_path = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
-        JobResults.objects.create(
-            job=db_data, result_structure=relative_path, completed_at=timezone.now()
-        )
+        
 
     finally:
         return "OK"
