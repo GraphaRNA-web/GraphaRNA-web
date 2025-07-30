@@ -67,7 +67,6 @@ jobs:
           python backend/manage.py migrate --noinput
           python backend/manage.py test
           python backend/manage.py test api.tests.PostRnaDataTests
-          python backend/manage.py test webapp.tests.UtilsFunctionTests
 
       - name: Code audit
         run: |
