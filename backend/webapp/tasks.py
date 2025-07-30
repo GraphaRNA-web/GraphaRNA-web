@@ -30,11 +30,6 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     uuid_str = str(uuid_param)
 
     output_dir = "/shared/samples/engine_outputs"
-    output_filename = f"{uuid_str}"
-    
-    output_path_pdb = os.path.join(output_dir, output_filename + ".pdb")
-    output_path_json = os.path.join(output_dir, output_filename + ".json")
-    output_path_dot = os.path.join(output_dir, output_filename + ".dot")
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -48,6 +43,11 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
         if response.status_code != 200:
             raise Exception(f"Grapharna API error: {response.text}")
+        
+        data = response.json()
+        output_path_pdb = data.get("pdbFilePath")
+        output_path_json = data.get("jsonFilePath")
+        output_path_dot = data.get("dotFilePath")
         
         if not os.path.exists(output_path_pdb):
             raise Exception(f"Can't find {output_path_pdb}")
