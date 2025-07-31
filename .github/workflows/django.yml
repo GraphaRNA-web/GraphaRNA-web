@@ -53,6 +53,11 @@ jobs:
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
+      - name: Install R
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y r-base r-base-dev
+
       - name: Wait for PostgreSQL
         run: |
           for i in {1..10}; do
