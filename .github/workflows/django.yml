@@ -58,6 +58,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y r-base r-base-dev
 
+      - name: Set R_HOME
+        run: echo "R_HOME=/usr/lib/R" >> $GITHUB_ENV
+
       - name: Wait for PostgreSQL
         run: |
           for i in {1..10}; do
