@@ -10,8 +10,8 @@ celery==5.3.4
 djangorestframework==3.16.0
 requests
 types-requests
-rpy2==3.5.15
 varnaapi
+matplotlib
 
 # linters and formatters
 pylama==8.4.1
