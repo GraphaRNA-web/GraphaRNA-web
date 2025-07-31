@@ -1,5 +1,49 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+import varnaapi
+
+varnaapi.set_VARNA("VARNAv3-93.jar")
+
+def draw_VARNA_graph(filepath : str) -> str:
+    """
+    This function takes a .dotseq file and reads its secondary structure.
+    Then it uses VARNA in order to generate the 2D graph and saves it under the input filepath in .svg format
+    """
+
+    VALID_LETTERS = set("ACGUacguTt ")
+    VALID_BRACKETS = set(".()[]<>{}AaBbCcDd ")
+
+    if not os.path.exists(filepath):
+        return "ERROR: Input file does not exist"
+    
+    dotbracket : str = ""
+    seq : str = ""
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.strip().replace(" ", "")
+            if not line or line[0] in ">#":
+                continue
+            chars = set(line)
+            if chars <= VALID_LETTERS:
+                seq += line
+            if chars <= VALID_BRACKETS:
+                dotbracket += line
+    
+    if not seq:
+        return "ERROR: Could not find sequence in file"
+    if not dotbracket:
+        return "ERROR: Could not find structure in file"
+    
+    output_path : str = filepath.replace(".dotseq", ".svg")
+    
+    v = varnaapi.Structure(sequence = seq, structure = dotbracket)
+    v.savefig(f"{output_path}")
+
+    return f"OK: File at: {output_path}"
+
+draw_VARNA_graph("test_varna.dotseq")
 
 
 def getPairs(dotbracket : str) -> tuple[str, set[tuple[int, int]]]:
@@ -151,4 +195,5 @@ def generateRchieDiagram(dotbracket_input : str, dotbracket_output : str, output
     fig.savefig(output_img_path, dpi=150, bbox_inches="tight", pad_inches=0.1)
     plt.close(fig)
     return output_img_path
+
 

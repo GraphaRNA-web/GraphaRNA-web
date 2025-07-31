@@ -2,52 +2,13 @@ from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
 from .models import Job, JobResults
+from tools import rchie_double_helix
 from time import sleep
 from uuid import UUID
 import requests
 from celery import shared_task
 import os
 import json
-import varnaapi
-
-varnaapi.set_VARNA("/tools/VARNAv3-93.jar")
-
-def draw_VARNA_graph(filepath : str) -> str:
-    """
-    This function takes a .dotseq file and reads its secondary structure.
-    Then it uses VARNA in order to generate the 2D graph and saves it under the input filepath in .svg format
-    """
-
-    VALID_LETTERS = set("ACGUacguTt ")
-    VALID_BRACKETS = set(".()[]<>{}AaBbCcDd ")
-
-    if not os.path.exists(filepath):
-        return "ERROR: Input file does not exist"
-    
-    dotbracket : str = ""
-    seq : str = ""
-    with open(filepath, "r") as f:
-        for line in f:
-            line = line.strip().replace(" ", "")
-            if not line or line[0] in ">#":
-                continue
-            chars = set(line)
-            if chars <= VALID_LETTERS:
-                seq += line
-            if chars <= VALID_BRACKETS:
-                dotbracket += line
-    
-    if not seq:
-        return "ERROR: Could not find sequence in file"
-    if not dotbracket:
-        return "ERROR: Could not find structure in file"
-    
-    output_path : str = filepath.replace(".dotseq", ".svg")
-    
-    v = varnaapi.Structure(sequence = seq, structure = dotbracket)
-    v.savefig(f"{output_path}")
-
-    return f"OK: File at: {output_path}"
 
 
 @shared_task

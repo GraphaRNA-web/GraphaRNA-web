@@ -7,3 +7,5 @@ db.sqlite3
 .idea/
 .venv/
 celerybeat-schedule
+.mypy_cache/
+.ruff_cache/
