@@ -2,7 +2,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
 from .models import Job, JobResults
-from tools import rchie_double_helix
+# from tools import rchie_double_helix add later for VARNA integration with task
 from time import sleep
 from uuid import UUID
 import requests
