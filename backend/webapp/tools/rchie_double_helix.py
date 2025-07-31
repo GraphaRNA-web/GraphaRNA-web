@@ -43,8 +43,6 @@ def draw_VARNA_graph(filepath : str) -> str:
 
     return f"OK: File at: {output_path}"
 
-draw_VARNA_graph("test_varna.dotseq")
-
 
 def getPairs(dotbracket : str) -> tuple[str, set[tuple[int, int]]]:
     """
