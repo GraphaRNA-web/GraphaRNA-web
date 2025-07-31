@@ -80,7 +80,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                     job=job_data, result_secondary_structure=relative_path_db, result_tertiary_structure=relative_path_pdb, completed_at=timezone.now()
                 )
             except Exception as e:
-                print("Adding to DataBase didn't work {e}")
+                print(f"Adding to DataBase didn't work {e}")
 
 
         job_data.expires_at = timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
@@ -117,14 +117,14 @@ def test_grapharna_run() -> str:
     output_path_pdb = data.get("pdbFilePath")
     output_path_json = data.get("jsonFilePath")
 
-    assert (os.path.exists(output_path_pdb) and os.path.exists(output_path_json)), f"Couldn't find file"
+    assert (os.path.exists(output_path_pdb) and os.path.exists(output_path_json)), "Couldn't find file"
 
     with open(output_path_json, "r") as f:
             json_data = json.load(f)
 
     dot_bracket = json_data.get("dotBracket", "")
     if dot_bracket:
-        dotbracket_path = os.path.join(output_dir, f"test.dotseq")
+        dotbracket_path = os.path.join(output_dir, "test.dotseq")
         with open(dotbracket_path, "w") as dbn_file:
             dbn_file.write(dot_bracket + "\n")
     else:
