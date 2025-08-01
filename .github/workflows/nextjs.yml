@@ -2,7 +2,13 @@ name: Build Next.js site
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - '**'
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches:
+      - 'main'
   workflow_dispatch:
 
 permissions:
