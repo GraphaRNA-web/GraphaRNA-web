@@ -9,7 +9,7 @@ varnaapi.set_VARNA("VARNAv3-93.jar")
 def draw_VARNA_graph(filepath : str) -> str:
     """
     This function takes a .dotseq file and reads its secondary structure.
-    Then it uses VARNA in order to generate the 2D graph and saves it under the input filepath in .svg format
+    Then it uses VARNA in order to generate the 2D graph and saves it under the input as {filepath}_VARNA.svg
     """
 
     VALID_LETTERS = set("ACGUacguTt ")
@@ -36,7 +36,8 @@ def draw_VARNA_graph(filepath : str) -> str:
     if not dotbracket:
         return "ERROR: Could not find structure in file"
     
-    output_path : str = filepath.replace(".dotseq", ".svg")
+    output_path : str = filepath.replace(".dotseq", "")
+    output_path += "_VARNA.svg"
     
     v = varnaapi.Structure(sequence = seq, structure = dotbracket)
     v.savefig(f"{output_path}")
