@@ -1,0 +1,20 @@
+{{- if .Values.frontend.pvcEnabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.frontend.pvc }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.frontend.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+spec:
+  resources:
+    requests:
+      storage: {{ .Values.frontend.storage }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+{{- end }}
