@@ -4,9 +4,20 @@ import os
 
 import varnaapi
 
-varnaapi.set_VARNA("VARNAv3-93.jar")
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+varna_path = os.path.join(CURRENT_DIR, "VARNAv3-93.jar")
 
-def draw_VARNA_graph(filepath : str) -> str:
+def log_to_file(message: str):
+    with open("/shared/celery_debug.log", "a") as f:
+        f.write(message + "\n")
+
+if not os.path.exists(varna_path):
+    print("FILE NOT FOUND")
+    raise FileNotFoundError(f"VARNA JAR not found at: {varna_path}")
+
+varnaapi.set_VARNA(varna_path)
+
+def drawVARNAgraph(filepath : str) -> str:
     """
     This function takes a .dotseq file and reads its secondary structure.
     Then it uses VARNA in order to generate the 2D graph and saves it under the input as {filepath}_VARNA.svg
@@ -83,11 +94,31 @@ def getPairs(dotbracket : str) -> tuple[str, set[tuple[int, int]]]:
                 starting_index = dict_stacks[opening].pop()
                 pairs.add((starting_index, i+1))
 
-    for value in dict_stacks.values():
-        if len(value) > 0:
-            return ("ERROR: The number of opening brackets doesnt match closing brackets", pairs)
     
     return ("OK", pairs)
+
+def getDotbracketFromDotseq(filepath : str) -> str:
+    VALID_LETTERS = set("ACGUacguTt ")
+    VALID_BRACKETS = set(".()[]<>{}AaBbCcDd ")
+
+    if not os.path.exists(filepath):
+        return "ERROR: Input file does not exist"
+    
+    dotbracket : str = ""
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.strip().replace(" ", "")
+            if not line or line[0] in ">#":
+                continue
+            chars = set(line)
+            if chars <= VALID_LETTERS:
+                continue
+            if chars <= VALID_BRACKETS:
+                dotbracket += line
+    
+    if not dotbracket:
+        return "ERROR: Could not find structure in file"
+    return dotbracket
 
 
 def generateRchieDiagram(dotbracket_input : str, dotbracket_output : str, output_img_path : str, grid_step: int = 20) -> str:
@@ -116,6 +147,12 @@ def generateRchieDiagram(dotbracket_input : str, dotbracket_output : str, output
     common_pairs  = input_pairs  & output_pairs
     missing_pairs = input_pairs  - common_pairs
     added_pairs   = output_pairs - common_pairs
+
+    # log_to_file(f"Input pairs: {sorted(input_pairs)}")
+    # log_to_file(f"Output pairs: {sorted(output_pairs)}")
+    # log_to_file(f"Common: {sorted(common_pairs)}")
+    # log_to_file(f"Missing: {sorted(missing_pairs)}")
+    # log_to_file(f"Added: {sorted(added_pairs)}")
 
     n = max(len(dotbracket_input), len(dotbracket_output))
     all_pairs = input_pairs | output_pairs

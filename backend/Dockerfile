@@ -5,7 +5,8 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apt-get update \
+RUN --mount=type=cache,target=/root/.cache/apt \
+    apt-get update \
     && apt-get install -y \
         gcc libpq-dev \
         openjdk-17-jre-headless \

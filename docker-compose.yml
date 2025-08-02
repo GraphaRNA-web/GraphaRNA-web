@@ -97,8 +97,10 @@ services:
     container_name: grapha_celery
     command: celery -A GraphaRNA worker --loglevel=info
     volumes:
-      - ./backend:/app
       - shared_volume:/shared
+      - ./backend:/app
+    env_file:
+     - ./backend/.env
     depends_on:
       - backend
       - rabbitmq
@@ -111,8 +113,10 @@ services:
     container_name: grapha_celery_grapharna
     command: celery -A GraphaRNA worker -Q grapharna --concurrency=1 --loglevel=info
     volumes:
-      - ./backend:/app
       - shared_volume:/shared
+      - ./backend:/app
+    env_file:
+     - ./backend/.env
     depends_on:
       - backend
       - rabbitmq
@@ -125,8 +129,10 @@ services:
     container_name: grapha_celery_beat
     command: celery -A GraphaRNA beat --loglevel=info
     volumes:
-      - ./backend:/app
       - shared_volume:/shared
+      - ./backend:/app
+    env_file:
+     - ./backend/.env
     depends_on:
       - backend
       - rabbitmq
