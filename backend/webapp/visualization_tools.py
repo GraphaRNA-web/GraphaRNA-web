@@ -148,12 +148,6 @@ def generateRchieDiagram(dotbracket_input : str, dotbracket_output : str, output
     missing_pairs = input_pairs  - common_pairs
     added_pairs   = output_pairs - common_pairs
 
-    # log_to_file(f"Input pairs: {sorted(input_pairs)}")
-    # log_to_file(f"Output pairs: {sorted(output_pairs)}")
-    # log_to_file(f"Common: {sorted(common_pairs)}")
-    # log_to_file(f"Missing: {sorted(missing_pairs)}")
-    # log_to_file(f"Added: {sorted(added_pairs)}")
-
     n = max(len(dotbracket_input), len(dotbracket_output))
     all_pairs = input_pairs | output_pairs
     max_span  = max((j - i) for (i, j) in all_pairs) if all_pairs else 1
