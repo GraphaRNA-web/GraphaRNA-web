@@ -28,16 +28,33 @@ def DownloadZipFile(request:Request)->HttpResponse:
         job = Job.objects.get(pk=uuid)
     except Job.DoesNotExist:
         return HttpResponse("Job not found", status=404)
-    filePath=f"/shared/samples/engine_outputs/{job.job_name}-result_file.pdb"   ###TUTAJ SCIEZKA ORAZ NAZWA PLIKU!!!!!!!!
-    if not os.path.exists(filePath):
+    
+    if job.status != "F":
+        return HttpResponse("Job is not finished", status=400)
+    instance = JobResults.objects.get(job=job)  # lub inny sposób pobrania instancji
+    filePathSecondary = instance.result_secondary_structure.path
+    filePathTertiary = instance.result_tertiary_structure.path
+    # print(path)
+
+    # filePath=f"/shared/samples/engine_outputs/{job.job_name}-result_file.pdb"   ###TUTAJ SCIEZKA ORAZ NAZWA PLIKU!!!!!!!!
+    if not os.path.exists(filePathSecondary):
+        return HttpResponse("File does not exist", status=404)
+    if not os.path.exists(filePathTertiary):
         return HttpResponse("File does not exist", status=404)
 
+
+    
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        with open(filePath, "rb") as f:
-            zip_file.writestr(f"{job.job_name}-results_file.pdb", f.read())
+        with open(filePathSecondary, "rb") as f:
+            zip_file.writestr(instance.result_secondary_structure.name, f.read())
+        with open(filePathTertiary, "rb") as f:
+            zip_file.writestr(instance.result_tertiary_structure.name, f.read())
     # with open(filePath, "rb") as f: wystaczy ze zdublujesz i podasz odpowiedni plik zeby dodac do zipa
     #             zip_file.writestr(f"{job.job_name}-results_file.pdb", f.read())
+
+    #     result_secondary_structure: models.FileField = models.FileField(null=True)
+    # result_tertiary_structure: models.FileField = models.FileField()
     zip_buffer.seek(0)
 
     response = HttpResponse(zip_buffer.read(), content_type="application/zip")
