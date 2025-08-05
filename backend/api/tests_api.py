@@ -15,13 +15,14 @@ class PostRnaDataTests(TestCase):
         self.client: APIClient = APIClient()
         self.url: str = "/api/postRequestData/"
         self.valid_data: Dict[str, Any] = {
-            "bracket": "",
+            "bracket": "(())",
             "RNA": "AUGCUU",
             "email": "test@example.com",
             "seed": 12345,
             "job_name": "job-test-1",
             "alternative_conformations": 1
         }
+
         #Avoid file creation during api call
         self.patcher_open = patch("builtins.open", mock_open())
         self.patcher_makedirs = patch("os.makedirs")
@@ -71,7 +72,7 @@ class PostRnaDataTests(TestCase):
         data: Dict[str, Any] = {
             "RNA": "AUGCUU",
             "email": "test@example.com",
-            "bracket": "",
+            "bracket": "((.))",
             "alternative_conformations": 1
         }
         response: Response = self.client.post(self.url, data, format="json")
@@ -88,11 +89,47 @@ class PostRnaDataTests(TestCase):
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+    def test_empty_bracket(self) -> None:
+        data = self.valid_data.copy()
+        data["bracket"] = ""
+        response: Response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
+
+    def test_missing_bracket(self) -> None:
+        data = self.valid_data.copy()
+        del data["bracket"]
+        response: Response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
+
+    def test_invalid_bracket(self) -> None:
+        data = self.valid_data.copy()
+        data["bracket"] = "jfeoew"
+        response: Response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)
+
+    def test_valid_bracket(self) -> None:
+        data = self.valid_data.copy()
+        data["RNA"] = "AUGCUU"
+        data["bracket"] = "((..))"
+        response: Response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("Job", response.data)
 
 class GetResultsTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
         self.url: str = "/api/getResults/"
+        # self.valid_data: Dict[str, Any] = {
+        #     "bracket": "(())",
+        #     "RNA": "AUGCUU",
+        #     "email": "test@example.com",
+        #     "seed": 12345,
+        #     "job_name": "job-test-1",
+        #     "alternative_conformations": 1
+        # }
 
         
         self.job: MagicMock = MagicMock()
@@ -183,6 +220,12 @@ class GetResultsTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+
+
+
+
 class SuggestSeedAndJobNameTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
@@ -211,5 +254,5 @@ class SuggestSeedAndJobNameTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-        
-    
+
+

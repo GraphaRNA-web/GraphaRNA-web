@@ -13,8 +13,36 @@ from webapp.tasks import run_grapharna_task, test_grapharna_run
 from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
+from django.core.files import File
+import zipfile
+import io
+from django.http import HttpResponse
 
 
+@api_view(["GET"])
+def DownloadZipFile(request:Request)->HttpResponse:
+    uuid = request.query_params.get("uuid")
+    if not uuid:
+        return HttpResponse("UUID error", status=400)
+    try:
+        job = Job.objects.get(pk=uuid)
+    except Job.DoesNotExist:
+        return HttpResponse("Job not found", status=404)
+    filePath=f"shared/samples/engine_outputs/{job.job_name}-result_file.pdb"   ###TUTAJ SCIEZKA ORAZ NAZWA PLIKU!!!!!!!!
+    if not os.path.exists(filePath):
+        return HttpResponse("File does not exist", status=404)
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        with open(filePath, "rb") as f:
+            zip_file.writestr(f"{job.job_name}-results_file.pdb", f.read())
+    # with open(filePath, "rb") as f: wystaczy ze zdublujesz i podasz odpowiedni plik zeby dodac do zipa
+    #             zip_file.writestr(f"{job.job_name}-results_file.pdb", f.read())
+    zip_buffer.seek(0)
+
+    response = HttpResponse(zip_buffer.read(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{job.job_name}-result.zip"'
+    return response
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
@@ -27,9 +55,12 @@ def ValidateEmailAddress(email: Optional[str]) -> bool:
         return False
 
 
-def RnaValidation(rna: Optional[str]) -> bool:
+def RnaValidation(rna: Optional[str], brackets: Optional[str]) -> bool:
     valid_chars = set("AUGC ")
     if rna is None or any(char not in valid_chars for char in rna.upper()):
+        return False
+    valid_brackets = set("(). ")
+    if brackets is None or any(char not in valid_brackets for char in brackets) or brackets.strip() == "":
         return False
     return True
 
@@ -46,24 +77,29 @@ example post
 }"""
 
 
+
+
+
+
 @api_view(["POST"])
 def PostRnaValidation(request: Request) -> Response:
     rna: Optional[str] = request.data.get("RNA")
+    brackets: Optional[str] = request.data.get("brackets")
 
     if not rna:
         return Response(
-            {"success": False, "error": "Brak danych RNA."},
+            {"success": False, "error": "No data."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if not RnaValidation(rna):
+    if not RnaValidation(rna,brackets):
         return Response(
-            {"success": False, "error": "Niepoprawna sekwencja RNA."},
+            {"success": False, "error": "Invalid RNA sequence."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     return Response(
-        {"success": True, "message": "Sekwencja RNA jest poprawna."},
+        {"success": True, "message": "RNA sequence is valid."},
         status=status.HTTP_200_OK,
     )
 
@@ -78,21 +114,39 @@ def ProcessRequestData(request: Request) -> Response:
     job_alternative_conformations = request.data.get("alternative_conformations")
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
+    rnaFile: Optional[File] = request.FILES.get('file')
+
+    if not rnaFile and not rna:
+        return Response({'error': 'Invalid request. Please send text or file.'}, status=status.HTTP_400_BAD_REQUEST)
+    if rnaFile and (rna or bracket):
+        return Response({'error': 'Invalid request. Please dont send file and text'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if rnaFile is not None:
+        if not rnaFile.name or not rnaFile.name.endswith('.fasta'):
+            raise ValidationError("File have to be .fasta")
+        content = rnaFile.read().decode()
+        lines = content.strip().splitlines()
+        if len(lines) > 2:
+            return Response({'error': f'Invalid .fasta format {lines} {content}'}, status=status.HTTP_400_BAD_REQUEST)
+        rna = lines[0].strip()
+        bracket = lines[1].strip()
+    
+
 
     try:
         seed: int = int(seed_raw)
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
 
-    if not RnaValidation(rna):
+    if not RnaValidation(rna,bracket):
         return Response(
-            {"success": False, "error": "Niepoprawna sekwencja RNA."},
+            {"success": False, "error": "Invalid RNA sequence or brackets."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     if not ValidateEmailAddress(email):
         return Response(
-            {"success": False, "error": "Niepoprawna forma emaila."},
+            {"success": False, "error": "Invalid email."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 

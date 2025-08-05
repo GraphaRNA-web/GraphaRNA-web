@@ -10,6 +10,7 @@ urlpatterns = [
     path("healthcheck/", api.views.healthcheck),
     path("getResults/", api.views.GetResults),
     path("testRequest/", api.views.TestRequest),
+    path("downloadZip/", api.views.DownloadZipFile),
     path("getSuggestedSeedAndJobName/", api.views.GetSuggestedSeedAndJobName),
     path("testEngineRun/", api.views.testEngineRun),
 ]
