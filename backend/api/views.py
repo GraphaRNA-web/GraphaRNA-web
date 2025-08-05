@@ -28,7 +28,7 @@ def DownloadZipFile(request:Request)->HttpResponse:
         job = Job.objects.get(pk=uuid)
     except Job.DoesNotExist:
         return HttpResponse("Job not found", status=404)
-    filePath=f"shared/samples/engine_outputs/{job.job_name}-result_file.pdb"   ###TUTAJ SCIEZKA ORAZ NAZWA PLIKU!!!!!!!!
+    filePath=f"/shared/samples/engine_outputs/{job.job_name}-result_file.pdb"   ###TUTAJ SCIEZKA ORAZ NAZWA PLIKU!!!!!!!!
     if not os.path.exists(filePath):
         return HttpResponse("File does not exist", status=404)
 
@@ -273,7 +273,7 @@ def TestRequest(request: Request) -> Response:
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
 
-    if not RnaValidation(rna):
+    if not RnaValidation(rna,bracket):
         return Response(
             {"success": False, "error": "Niepoprawna sekwencja RNA."},
             status=status.HTTP_400_BAD_REQUEST,
