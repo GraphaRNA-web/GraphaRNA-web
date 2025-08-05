@@ -78,5 +78,5 @@ jobs:
       - name: Code audit
         run: |
           source backend/venv/bin/activate
-          mypy backend/ --config-file backend/mypy_ci.ini
+          mypy backend/ --config-file backend/mypy.ini
           ruff check backend/

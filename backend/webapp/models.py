@@ -12,7 +12,7 @@ def default_expiration() -> datetime:
 
 
 class Job(models.Model):
-    STATUS = {"Q": "Queued", "P": "Processing", "F": "Finished", "E": "Error"}
+    STATUS = {"Q": "Queued", "P": "Processing", "F": "Finished"}
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
@@ -44,8 +44,6 @@ class JobResults(models.Model):
     )
     result_secondary_structure: models.FileField = models.FileField(null=True)
     result_tertiary_structure: models.FileField = models.FileField()
-    result_VARNA_graph: models.FileField = models.FileField(null=True)
-    result_Rchie_graph: models.FileField = models.FileField(null=True)
     
     def __str__(self) -> str:
         return str(self.result_tertiary_structure)
@@ -56,8 +54,4 @@ class JobResults(models.Model):
             self.result_tertiary_structure.delete(save=False)
         if self.result_secondary_structure and os.path.isfile(self.result_secondary_structure.path):
             self.result_secondary_structure.delete(save=False)
-        if self.result_VARNA_graph and os.path.isfile(self.result_VARNA_graph.path):
-            self.result_VARNA_graph.delete(save=False)
-        if self.result_Rchie_graph and os.path.isfile(self.result_Rchie_graph.path):
-            self.result_Rchie_graph.delete(save=False)
         return super().delete(*args, **kwargs)
