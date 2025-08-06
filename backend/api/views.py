@@ -44,7 +44,16 @@ example post
   "email": "user@example.com",
   "alternative_conformations": "2"
 }"""
-
+"""
+example post
+{
+  "bracket": "(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
+  "RNA": "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA",
+  "seed": 123456,
+  "job_name": "my_rna_job",
+  "email": "user@example.com",
+  "alternative_conformations": "2"
+}"""
 
 @api_view(["POST"])
 def PostRnaValidation(request: Request) -> Response:

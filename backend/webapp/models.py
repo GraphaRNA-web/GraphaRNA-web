@@ -42,9 +42,10 @@ class JobResults(models.Model):
     completed_at: models.DateTimeField = models.DateTimeField(
         default=timezone.now, null=True
     )
-    result_secondary_structure: models.FileField = models.FileField(null=True)
+    result_secondary_structure_dotseq: models.FileField = models.FileField(null=True)
+    result_secondary_structure_svg: models.FileField = models.FileField(null=True)
     result_tertiary_structure: models.FileField = models.FileField()
-    
+    result_arc_diagram: models.FileField = models.FileField(null=True)
     def __str__(self) -> str:
         return str(self.result_tertiary_structure)
     

@@ -8,6 +8,7 @@ import requests
 from celery import shared_task
 import os
 import json
+from webapp.visualization_tools import drawVARNAgraph, generateRchieDiagram
 
 def log_to_file(message: str) -> None:
     ts = datetime.now().isoformat()
@@ -72,10 +73,6 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             else:
                 print("No dotBracket structure found in JSON.")
 
-            # try:
-            #     os.remove(output_path_json)
-            # except Exception as e:
-            #     print("JSON file delete error {e}")
             
             relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
             relative_path_db = os.path.relpath(dotbracket_path, settings.MEDIA_ROOT)
