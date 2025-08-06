@@ -53,11 +53,20 @@ jobs:
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..10}; do
+            nc -z 127.0.0.1 5432 && echo "Postgres is up" && break
+            echo "Waiting for postgres..."
+            sleep 3
+          done
+
       - name: Run tests
         run: |
           source backend/venv/bin/activate
           python backend/manage.py migrate --noinput
           python backend/manage.py test
+          python backend/manage.py test api.tests_api.PostRnaDataTests
 
       - name: Code audit
         run: |
