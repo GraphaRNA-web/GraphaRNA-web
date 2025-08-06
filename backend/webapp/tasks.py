@@ -20,22 +20,19 @@ def log_to_file(message: str) -> None:
 @shared_task
 def delete_expired_jobs() -> str:
     now = timezone.now()
-    expired_jobs = Job.objects.filter(expires_at__lt=now)  # Expires at less then now
+    expired_jobs = Job.objects.filter(expires_at__lt=now)
     count = expired_jobs.count()
 
     for job in expired_jobs:
-        results = job.jobresults_set.all()
+        results = JobResults.objects.filter(job=job)
         for result in results:
-            if result.result_tertiary_structure:
-                result.result_tertiary_structure.delete(save=False)
-            if result.result_secondary_structure_dotseq:
-                result.result_secondary_structure_dotseq.delete(save=False)
-            if result.result_secondary_structure_svg:
-                result.result_secondary_structure_svg.delete(save=False)
-            if result.result_arc_diagram:
-                result.result_arc_diagram.delete(save=False)
-            result.delete()  
-        job.delete() 
+            result.delete()
+        
+        if job.input_structure:
+            job.input_structure.delete(save=False)
+            
+        job.delete()
+
     return f"Deleted {count} expired jobs."
 
 @shared_task(queue="grapharna")
@@ -133,7 +130,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         relative_path_svg = os.path.relpath(secondary_structure_svg_path, settings.MEDIA_ROOT)
         relative_path_arc = os.path.relpath(arc_diagram_path, settings.MEDIA_ROOT)  
         try:
-            result = JobResults.objects.create(
+            JobResults.objects.create(
                 job=job_data,
                 result_tertiary_structure=relative_path_pdb,
                 result_secondary_structure_dotseq=relative_path_dotseq,
