@@ -52,7 +52,7 @@ example post
   "seed": 123456,
   "job_name": "my_rna_job",
   "email": "user@example.com",
-  "alternative_conformations": "2"
+  "alternative_conformations": "1"
 }"""
 
 @api_view(["POST"])

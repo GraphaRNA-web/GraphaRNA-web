@@ -56,6 +56,10 @@ def drawVARNAgraph(input_filepath : str, output_path : str) -> str:
     return f"OK: File at: {output_path}"
 
 
+def getDotBracket(path: str) -> str:
+    with open(path, "r") as f:
+        return f.readlines()[2]
+
 def getPairs(dotbracket : str) -> tuple[str, set[tuple[int, int]]]:
     """
     This function takes input as a single dotbracket sequence from a .dotseq file. 

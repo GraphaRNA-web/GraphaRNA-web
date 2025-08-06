@@ -53,6 +53,10 @@ class JobResults(models.Model):
     def delete(self, *args: Any, **kwargs: Any) -> Tuple[int, Dict[str, int]]:
         if self.result_tertiary_structure and os.path.isfile(self.result_tertiary_structure.path):
             self.result_tertiary_structure.delete(save=False)
-        if self.result_secondary_structure and os.path.isfile(self.result_secondary_structure.path):
-            self.result_secondary_structure.delete(save=False)
+        if self.result_secondary_structure_dotseq and os.path.isfile(self.result_secondary_structure_dotseq.path):
+            self.result_secondary_structure_dotseq.delete(save=False)
+        if self.result_secondary_structure_svg and os.path.isfile(self.result_secondary_structure_svg.path):
+            self.result_secondary_structure_svg.delete(save=False)
+        if self.result_arc_diagram and os.path.isfile(self.result_arc_diagram.path):
+            self.result_arc_diagram.delete(save=False)
         return super().delete(*args, **kwargs)
