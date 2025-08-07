@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.frontend.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.frontend.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.frontend.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.frontend.name }}
+    spec:
+      containers:
+        - name: {{ .Values.frontend.name }}
+          image: {{ .Values.frontend.image }}
+          imagePullPolicy: {{ .Values.frontend.pullPolicy }}
+
+          ports:
+            - containerPort: {{ .Values.frontend.port }}
+
+          volumeMounts:
+            - name: frontend-storage
+              mountPath: /app
+
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.frontend.livenessPath }}
+              port: {{ .Values.frontend.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.frontend.readinessPath }}
+              port: {{ .Values.frontend.port }}
+            initialDelaySeconds: 5  
+            periodSeconds: 5
+
+          resources:
+            requests:
+              cpu: {{ .Values.frontend.resources.requests.cpu }}
+              memory: {{ .Values.frontend.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.frontend.resources.limit.cpu }}
+              memory: {{ .Values.frontend.resources.limit.memory }}
+
+    volumes: 
+      - name: frontend-storage
+        persistentVolumeClaim:
+          claimName: {{ .Values.frontend.pvc }}

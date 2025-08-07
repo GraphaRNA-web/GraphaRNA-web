@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.utils import timezone
 from django.conf import settings
 from .models import Job, JobResults
@@ -9,6 +9,10 @@ from celery import shared_task
 import os
 import json
 
+def log_to_file(message: str) -> None:
+    ts = datetime.now().isoformat()
+    with open("/shared/celery_debug.log", "a") as f:
+        f.write(f"[{ts}] {message}\n")
 
 @shared_task
 def delete_expired_jobs() -> str:
@@ -132,3 +136,4 @@ def test_grapharna_run() -> str:
 
     print(f"Test zakończony sukcesem – plik wygenerowany: {output_path_pdb}")
     return "OK"
+

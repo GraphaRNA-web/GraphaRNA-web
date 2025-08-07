@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - '**'
+    paths:
+      - 'backend/**'
   pull_request:
     branches: [ main ]
 
@@ -46,6 +48,12 @@ jobs:
         with:
           python-version: 3.11
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+
       - name: Install dependencies
         run: |
           python -m venv backend/venv
@@ -65,11 +73,10 @@ jobs:
         run: |
           source backend/venv/bin/activate
           python backend/manage.py migrate --noinput
-          python backend/manage.py test
-          python backend/manage.py test api.tests_api.PostRnaDataTests
+          python backend/manage.py test webapp api
 
       - name: Code audit
         run: |
           source backend/venv/bin/activate
-          mypy backend/ --config-file backend/mypy_ci.ini
+          mypy backend/ --config-file backend/mypy.ini
           ruff check backend/
