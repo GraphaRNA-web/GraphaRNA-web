@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - przygotowanie-migracji-82
   pull_request:
     branches:
       - main
@@ -56,6 +55,6 @@ jobs:
       - name: Scan Helm chart with Checkov
         uses: bridgecrewio/checkov-action@master
         with:
-            directory: ./charts/grapharna-web-main-chart
+            directory: ./GraphaRNA-web/Chart.yml
 
 
