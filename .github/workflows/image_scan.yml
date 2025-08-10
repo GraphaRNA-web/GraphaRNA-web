@@ -58,4 +58,7 @@ jobs:
         with:
             directory: ./GraphaRNA-web/Chart.yaml
 
+      - name: Show Checkov results
+        run: cat results.sarif
+
 
