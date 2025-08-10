@@ -27,7 +27,7 @@ jobs:
         run: docker build -f ./frontend/Dockerfile.dev -t grapha_frontend ./frontend
 
       - name: Build engine image
-        run: docker build -t grapharna-engine ./GraphaRNA
+        run: docker build -t grapharna-engine -f GraphaRNA/Dockerfile GraphaRNA
 
       - name: Build celery worker image
         run: docker build -t grapha_celery ./backend
