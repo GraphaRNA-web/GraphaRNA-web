@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.celery.beat.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.celery.beat.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: celery
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: {{ .Values.celery.beat.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.celery.beat.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.celery.beat.name }}
+    spec:
+      containers:
+        - name: celery-beat
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: {{ .Values.backend.pullPolicy }}
+          command: ["celery", "-A", "GraphaRNA", "beat", "--loglevel=info"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /shared
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.backend.pvc }}
+    

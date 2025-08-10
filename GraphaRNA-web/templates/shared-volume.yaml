@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-volume
+  labels:
+    app.kubernetes.io/name: shared-volume
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: grapharna-web
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

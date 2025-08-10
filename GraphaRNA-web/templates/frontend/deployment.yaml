@@ -27,10 +27,6 @@ spec:
           ports:
             - containerPort: {{ .Values.frontend.port }}
 
-          volumeMounts:
-            - name: frontend-storage
-              mountPath: /app
-
           livenessProbe:
             httpGet:
               path: {{ .Values.frontend.livenessPath }}
@@ -52,8 +48,3 @@ spec:
             limits:
               cpu: {{ .Values.frontend.resources.limit.cpu }}
               memory: {{ .Values.frontend.resources.limit.memory }}
-
-    volumes: 
-      - name: frontend-storage
-        persistentVolumeClaim:
-          claimName: {{ .Values.frontend.pvc }}

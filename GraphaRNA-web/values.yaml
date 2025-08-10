@@ -19,11 +19,114 @@ frontend:
       cpu: "500m"
       memory: "256Mi"
 
-  # Persistent Volume Claim
-  pvcEnabled: true
-  pvc: frontend-pvc
-  storage: 1Gi
-
   # Ingress
   ingressEnabled: true
-  ingressHost: 127.0.0.1
+  ingressHost: frontend.local
+
+backend:
+  name: backend
+  image: images/backend:latest
+  pullPolicy: Never
+  port: 8000
+
+  replicas: 1
+
+  # Probes
+  livenessPath: /api/healthcheck/
+  readinessPath: /api/healthcheck/
+
+  # Resources
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "2048Mi"
+    limit:
+      cpu: "500m"
+      memory: "4096Mi"
+
+  # Persistent Volume Claim
+  pvc: shared-volume
+  storage: 5Gi
+
+celery:
+  # worker:
+  #   name: celery-worker
+  #   replicas: 1
+
+  grapharna:
+    name: celery-grapharna
+    replicas: 1
+
+  beat:
+    name: celery-beat
+    replicas: 1
+
+engine:
+  name: grapharna-engine
+  image: images/grapharna-engine:latest
+  pullPolicy: Never
+  port: 8080
+
+  replicas: 1
+
+  # Probes
+  livenessPath: /
+  readinessPath: /
+
+  # Resources
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1024Mi"
+    limit:
+      cpu: "650m"
+      memory: "2048Mi"
+
+  # Persistent Volume Claim
+  pvc: shared-volume
+  storage: 5Gi
+
+
+postgres:
+  name: db
+  image: postgres:15
+  pullPolicy: IfNotPresent
+  port: 5432
+
+  replicas: 1
+
+  # Resources
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "2048Mi"
+    limit:
+      cpu: "250m"
+      memory: "4096Mi"
+
+  livenessCommand: ["pg_isready", "-U", "postgres"]
+  readinessCommand: ["pg_isready", "-U", "postgres"]
+
+  # Persistent Volume Claim
+  pvc: postgres-volume
+  storage: 5Gi
+
+rabbitmq:
+  name: rabbitmq
+  image: rabbitmq:3-management
+  pullPolicy: IfNotPresent
+  port: 5672
+  uiPort: 15672
+
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "250m"
+      memory: "512Mi"
+
+  pvc: rabbitmq-volume
+  storage: 2Gi

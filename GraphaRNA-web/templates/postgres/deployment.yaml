@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.postgres.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.postgres.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: {{ .Values.postgres.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.postgres.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.postgres.name }}
+    spec:
+      containers:
+        - name: {{ .Values.postgres.name }}
+          image: {{ .Values.postgres.image }}
+          imagePullPolicy: {{ .Values.postgres.pullPolicy }}
+
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+
+          ports:
+            - containerPort: {{ .Values.postgres.port }}
+
+          volumeMounts:
+            - name: postgres-volume
+              mountPath: /var/lib/postgresql/data
+          
+          livenessProbe:
+            exec:
+              command: {{ toJson .Values.postgres.livenessCommand }}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+
+          readinessProbe:
+            exec:
+              command: {{ toJson .Values.postgres.readinessCommand }}
+            initialDelaySeconds: 5
+            periodSeconds: 30
+
+          resources:
+            requests:
+              cpu: {{ .Values.postgres.resources.requests.cpu }}
+              memory: {{ .Values.postgres.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.postgres.resources.limit.cpu }}
+              memory: {{ .Values.postgres.resources.limit.memory }}
+
+      volumes: 
+        - name: postgres-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.postgres.pvc }}

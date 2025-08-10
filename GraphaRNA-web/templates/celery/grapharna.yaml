@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.celery.grapharna.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.celery.grapharna.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: celery
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: {{ .Values.celery.grapharna.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.celery.grapharna.name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.celery.grapharna.name }}
+    spec:
+      containers:
+        - name: celery-grapharna
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: {{ .Values.backend.pullPolicy }}
+          command: ["celery", "-A", "GraphaRNA", "worker", "-Q", "grapharna", "--concurrency=1", "--loglevel=info"]
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /shared
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.backend.pvc }}
