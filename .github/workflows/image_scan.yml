@@ -26,9 +26,6 @@ jobs:
       - name: Build frontend image
         run: docker build -f ./frontend/Dockerfile.dev -t grapha_frontend ./frontend
 
-      - name: Build engine image
-        run: docker build -t grapharna-engine -f GraphaRNA/Dockerfile GraphaRNA
-
       - name: Build celery worker image
         run: docker build -t grapha_celery ./backend
 
@@ -44,14 +41,6 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: grapha_frontend
-          scan-type: image
-          format: table
-          severity: HIGH,CRITICAL
-
-      - name: Scan engine image
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: grapharna-engine
           scan-type: image
           format: table
           severity: HIGH,CRITICAL
