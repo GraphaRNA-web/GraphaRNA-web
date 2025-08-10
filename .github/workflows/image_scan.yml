@@ -56,6 +56,6 @@ jobs:
       - name: Scan Helm chart with Checkov
         uses: bridgecrewio/checkov-action@master
         with:
-            directory: ./GraphaRNA-web/Chart.yml
+            directory: ./GraphaRNA-web/Chart.yaml
 
 
