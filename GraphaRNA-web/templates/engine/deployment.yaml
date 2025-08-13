@@ -19,6 +19,11 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.engine.name }}
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+
       containers:
         - name: {{ .Values.engine.name }}
           image: {{ .Values.engine.image }}
@@ -52,6 +57,14 @@ spec:
             limits:
               cpu: {{ .Values.engine.resources.limit.cpu }}
               memory: {{ .Values.engine.resources.limit.memory }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
 
       volumes: 
         - name: shared-volume

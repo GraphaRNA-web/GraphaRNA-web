@@ -2,5 +2,8 @@ dependencies:
 - name: ingress-nginx
   repository: https://kubernetes.github.io/ingress-nginx
   version: 4.9.0
-digest: sha256:4aa7e58444b227f76617ed265a90079b133700d04c8abdf26a2025381188e148
-generated: "2025-08-06T11:46:16.223935+02:00"
+- name: linkerd-control-plane
+  repository: https://helm.linkerd.io/stable
+  version: 1.16.11
+digest: sha256:f25e460ec32520130b65a7651c5041e70127d4a4170eb80edca833a118fc7037
+generated: "2025-08-13T19:02:24.6104519+02:00"

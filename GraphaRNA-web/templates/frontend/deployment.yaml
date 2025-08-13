@@ -19,6 +19,10 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.frontend.name }}
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
       containers:
         - name: {{ .Values.frontend.name }}
           image: {{ .Values.frontend.image }}
@@ -48,3 +52,11 @@ spec:
             limits:
               cpu: {{ .Values.frontend.resources.limit.cpu }}
               memory: {{ .Values.frontend.resources.limit.memory }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL

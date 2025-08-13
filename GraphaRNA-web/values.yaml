@@ -23,6 +23,9 @@ frontend:
   ingressEnabled: true
   ingressHost: frontend.local
 
+linkerd:
+  enabled: true
+
 backend:
   name: backend
   image: images/backend:latest
@@ -104,8 +107,8 @@ postgres:
       cpu: "250m"
       memory: "4096Mi"
 
-  livenessCommand: ["pg_isready", "-U", "postgres"]
-  readinessCommand: ["pg_isready", "-U", "postgres"]
+  livenessCommand: ["pg_isready", "-U", "dbuser", "-d", "dockerdjango"]
+  readinessCommand: ["pg_isready", "-U", "dbuser", "-d", "dockerdjango"]
 
   # Persistent Volume Claim
   pvc: postgres-volume

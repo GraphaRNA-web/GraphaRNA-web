@@ -19,6 +19,7 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.postgres.name }}
     spec:
+      securityContext:
       containers:
         - name: {{ .Values.postgres.name }}
           image: {{ .Values.postgres.image }}
@@ -34,7 +35,7 @@ spec:
           volumeMounts:
             - name: postgres-volume
               mountPath: /var/lib/postgresql/data
-          
+
           livenessProbe:
             exec:
               command: {{ toJson .Values.postgres.livenessCommand }}
@@ -55,7 +56,8 @@ spec:
               cpu: {{ .Values.postgres.resources.limit.cpu }}
               memory: {{ .Values.postgres.resources.limit.memory }}
 
-      volumes: 
+          securityContext:
+      volumes:
         - name: postgres-volume
           persistentVolumeClaim:
             claimName: {{ .Values.postgres.pvc }}

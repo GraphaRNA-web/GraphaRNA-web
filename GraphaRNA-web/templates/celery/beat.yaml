@@ -19,11 +19,15 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.celery.beat.name }}
     spec:
+      securityContext:
+          runAsUser: 1000
+          runAsGroup: 3000
+          fsGroup: 2000
       containers:
         - name: celery-beat
           image: {{ .Values.backend.image }}
           imagePullPolicy: {{ .Values.backend.pullPolicy }}
-          command: ["celery", "-A", "GraphaRNA", "beat", "--loglevel=info"]
+          command: ["/bin/sh", "-c", "mkdir -p /shared/beat && celery -A GraphaRNA beat --loglevel=info --schedule=/shared/beat/celerybeat-schedule"]
           envFrom:
             - configMapRef:
                 name: backend-config
@@ -32,6 +36,8 @@ spec:
           volumeMounts:
             - name: shared-volume
               mountPath: /shared
+            - name: tmp-dir
+              mountPath: /tmp
           resources:
             requests:
               cpu: "50m"
@@ -39,8 +45,17 @@ spec:
             limits:
               cpu: "100m"
               memory: "128Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
       volumes:
         - name: shared-volume
           persistentVolumeClaim:
             claimName: {{ .Values.backend.pvc }}
+        - name: tmp-dir
+          emptyDir: {}
     

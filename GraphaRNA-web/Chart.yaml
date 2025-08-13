@@ -11,7 +11,7 @@ dependencies:
     version: 4.9.0
     repository: https://kubernetes.github.io/ingress-nginx
     alias: nginxingress
-    condition: Values.ingressEnabled
+    condition: Values.frontend.ingressEnabled
 maintainers:
   - name: Pawel Kelar
     email: pawel.kelar@student.put.poznan.pl
