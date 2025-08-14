@@ -9,7 +9,7 @@ RUN --mount=type=cache,target=/root/.cache/apt \
     apt-get update \
     && apt-get install -y \
         gcc libpq-dev \
-        openjdk-17-jre-headless \
+        openjdk-21-jre-headless \
         libcurl4-openssl-dev libssl-dev libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
