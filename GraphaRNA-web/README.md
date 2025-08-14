@@ -8,23 +8,36 @@ This docs explains how to install GraphaRNA-web in Kubernetes cluster using Helm
 - Kubernetes cluster (np. Minikube, Kind, AKS, GKE, Docker)
 - Helm v3+
 - kubectl
-- Linkerd CLI (`linkerd`)
-- Docker (jeśli budujesz obraz lokalnie)
+- Linkerd CLI (`linkerd`) [repo adress](https://github.com/linkerd/linkerd2/releases/tag/edge-25.7.4)
+- Docker
+- step
 
 ---
 
 ## Commands
 In /GraphaRNA-web subfolder. Requires having built Docker images of backend frontend and engine.
 ```bash
+# Add repos
 helm repo add linkerd https://helm.linkerd.io/stable
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
+
+# Create linkerd certificates
 step certificate create root.linkerd.cluster.local ca.crt ca.key --profile root-ca --no-password --insecure
 step certificate create identity.linkerd.cluster.local issuer.crt issuer.key --profile intermediate-ca --not-after 8760h --no-password --insecure --ca ca.crt --ca-key ca.key
+
+# Install linkerd
 helm install linkerd-crds linkerd/linkerd-crds -n linkerd --create-namespace
 helm install linkerd-control-plane -n linkerd --set-file identityTrustAnchorsPEM=ca.crt --set-file identity.issuer.tls.crtPEM=issuer.crt --set-file identity.issuer.tls.keyPEM=issuer.key linkerd/linkerd-control-plane
+# Install linkerd observation pane (OPTIONAL)
+helm install linkerd-viz linkerd/linkerd-viz -n linkerd
+
+# Install monitoring tools (and set the password)
+helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --set grafana.adminPassword='admin' --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false
+
+# Install the GraphaRNA-web app
 helm upgrade --install grapharna-web .
-helm install linkerd-viz linkerd/linkerd-viz -n linkerd #optional
 ```
 To check if the app works use `kubectl get all`
 

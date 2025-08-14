@@ -1,3 +1,6 @@
+monitoring:
+  enabled: true
+  
 frontend:
   name: frontend
   image: images/frontend:latest
@@ -22,9 +25,6 @@ frontend:
   # Ingress
   ingressEnabled: true
   ingressHost: frontend.local
-
-linkerd:
-  enabled: true
 
 backend:
   name: backend

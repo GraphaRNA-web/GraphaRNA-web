@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/component: frontend
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    linkerd.io/inject: enabled
 spec:
   replicas: {{ .Values.frontend.replicas }}
   selector:

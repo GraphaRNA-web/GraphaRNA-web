@@ -10,9 +10,8 @@ metadata:
     app.kubernetes.io/component: frontend
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    kubernetes.io/ingress.class: nginx
 spec:
+  ingressClassName: nginx
   rules:
   - host: {{ .Values.frontend.ingressHost }}
     http:
