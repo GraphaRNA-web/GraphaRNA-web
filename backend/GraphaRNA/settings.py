@@ -14,7 +14,6 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from kombu import Queue
-from celery.schedules import crontab
 
 # Load .env variables
 load_dotenv()
