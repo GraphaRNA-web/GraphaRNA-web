@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - przygotowanie-migracji-82
   pull_request:
     branches:
       - main
@@ -60,5 +59,6 @@ jobs:
 
       - name: Show Checkov results
         run: cat results.sarif
+
 
 
