@@ -2,3 +2,5 @@
 .env
 celerybeat-schedule
 ./backend/celerybeat-schedule
+*.crt
+*.key
