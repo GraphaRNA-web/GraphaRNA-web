@@ -37,9 +37,12 @@ helm install linkerd-viz linkerd/linkerd-viz -n linkerd
 helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --set grafana.adminPassword='admin' --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false
 
 # Install the GraphaRNA-web app
-helm upgrade --install grapharna-web .
+helm upgrade --install grapharna-web . -n grapharna
 ```
 To check if the app works use `kubectl get all`
+
+Later to install certificates it will be necessery to get:
+`helm install cert-manager oci://quay.io/jetstack/charts/cert-manager --version v1.18.2 --namespace cert-manager --create-namespace --set crds.enabled=true`
 
 ## Example Secrets & Configmap files
 ### Backend

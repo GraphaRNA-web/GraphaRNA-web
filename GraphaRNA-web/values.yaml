@@ -3,8 +3,8 @@ monitoring:
   
 frontend:
   name: frontend
-  image: images/frontend:latest
-  pullPolicy: Never
+  image: pwlklr/grapharna:frontend
+  pullPolicy: IfNotPresent
   port: 3000
 
   replicas: 1
@@ -28,8 +28,8 @@ frontend:
 
 backend:
   name: backend
-  image: images/backend:latest
-  pullPolicy: Never
+  image: pwlklr/grapharna:backend
+  pullPolicy: IfNotPresent
   port: 8000
 
   replicas: 1
@@ -63,11 +63,13 @@ celery:
   beat:
     name: celery-beat
     replicas: 1
+    pvc: beat-volume
+    storage: 1Gi
 
 engine:
   name: grapharna-engine
-  image: images/grapharna-engine:latest
-  pullPolicy: Never
+  image: pwlklr/grapharna:engine
+  pullPolicy: IfNotPresent
   port: 8080
 
   replicas: 1

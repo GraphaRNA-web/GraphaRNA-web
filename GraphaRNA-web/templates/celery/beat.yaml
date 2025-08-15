@@ -29,15 +29,22 @@ spec:
         - name: celery-beat
           image: {{ .Values.backend.image }}
           imagePullPolicy: {{ .Values.backend.pullPolicy }}
-          command: ["/bin/sh", "-c", "mkdir -p /shared/beat && celery -A GraphaRNA beat --loglevel=info --schedule=/shared/beat/celerybeat-schedule"]
+          command:
+            - /bin/sh
+            - -c
+            - >
+              rm -f /shared/beat/celerybeat-schedule &&
+              mkdir -p /shared/beat &&
+              celery -A GraphaRNA beat --loglevel=info
+              --schedule=/shared/beat/celerybeat-schedule
           envFrom:
             - configMapRef:
                 name: backend-config
             - secretRef:
                 name: backend-secret
           volumeMounts:
-            - name: shared-volume
-              mountPath: /shared
+            - name: beat-storage
+              mountPath: /shared/beat
             - name: tmp-dir
               mountPath: /tmp
           resources:
@@ -55,9 +62,9 @@ spec:
               drop:
                 - ALL
       volumes:
-        - name: shared-volume
+        - name: beat-storage
           persistentVolumeClaim:
-            claimName: {{ .Values.backend.pvc }}
+            claimName: {{ .Values.celery.beat.pvc }}
         - name: tmp-dir
           emptyDir: {}
     
