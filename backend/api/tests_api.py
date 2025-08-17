@@ -15,8 +15,7 @@ class PostRnaDataTests(TestCase):
         self.client: APIClient = APIClient()
         self.url: str = "/api/postRequestData/"
         self.valid_data: Dict[str, Any] = {
-            "bracket": "",
-            "RNA": "AUGCUU",
+            "fasta_raw": "((((...(( ))...))))\nCGCGGAACG CGGGACGCG",
             "email": "test@example.com",
             "seed": 12345,
             "job_name": "job-test-1",
@@ -48,7 +47,7 @@ class PostRnaDataTests(TestCase):
 
     def test_missing_rna(self) -> None:
         data = self.valid_data.copy()
-        del data["RNA"]
+        del data["fasta_raw"]
         response: Response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
@@ -69,9 +68,8 @@ class PostRnaDataTests(TestCase):
 
     def test_missing_optional_seed_and_job_name(self) -> None:
         data: Dict[str, Any] = {
-            "RNA": "AUGCUU",
+            "fasta_raw": "((((...(( ))...))))\nCGCGGAACG CGGGACGCG",
             "email": "test@example.com",
-            "bracket": "",
             "alternative_conformations": 1
         }
         response: Response = self.client.post(self.url, data, format="json")
@@ -212,4 +210,61 @@ class SuggestSeedAndJobNameTests(TestCase):
         response: Response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         
-    
+class PostRnaValidationTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.url = "/api/validateRNA/"
+
+    def test_missing_rna_field(self):
+        response = self.client.post(self.url, {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "Brak danych RNA.")
+
+    def test_valid_rna_and_dotbracket(self):
+        rna_input = ">example1\nAGC UUU\n(.. ..)"
+        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(response.data["success"])
+        self.assertIn("Correct validation", response.data["error"])
+        self.assertEqual(response.data["invalid_characters"], "")
+        self.assertEqual(response.data["invalid_brackets"], "")
+        self.assertEqual(response.data["mismatching_brackets"], [])
+        self.assertEqual(response.data["incorrect_pairs"], [])
+
+    def test_invalid_nucleotide(self):
+        rna_input = ">example1\nAGC TXG\n(.. ..)"
+        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "RNA contains invalid characters")
+        self.assertIn("X", response.data["invalid_characters"])
+
+    def test_invalid_dotbracket(self):
+        rna_input = ">example1\nAGC UUG\n(.. .X)"
+        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertEqual(response.data["error"], "DotBracket contains invalid brackets")
+        self.assertIn("X", response.data["invalid_brackets"])
+
+    def test_mismatched_brackets(self):
+        rna_input = ">example1\nAGC UUG\n(.. .))"
+        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["error"], "Fix suggested")
+        self.assertEqual(response.data["mismatching_brackets"], [6])
+        self.assertEqual(response.data["incorrect_pairs"], [])
+
+    def test_incorrect_rna_pairs(self):
+        rna_input = ">example1\nUGC UUU\n(.. ..)"
+        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["error"], "Fix suggested")
+        self.assertEqual(response.data["mismatching_brackets"], [])
+        self.assertEqual(response.data["incorrect_pairs"], [(0, 6)])
+    def test_wrong_http_method_get(self) -> None:
+        response: Response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
