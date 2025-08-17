@@ -32,16 +32,19 @@ example post
 {
 "RNA": ">example1\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA",
 }"""
+
+
 @api_view(["POST"])
 def PostRnaValidation(request: Request) -> Response:
-    rna: Optional[str] = request.data.get("RNA")
-    if not rna:
+    rna = request.data.get("RNA")
+    if rna is None:
         return Response(
             {"success": False, "error": "Brak danych RNA."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    
-    validationResults = RnaValidation(FastaFileParse(rna))
+
+    rna_str: str = rna
+    validationResults = RnaValidation(FastaFileParse(rna_str))
 
     return Response(
         {
@@ -77,6 +80,8 @@ example post
   "email": "user@example.com",
   "alternative_conformations": "1"
 }"""
+
+
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
     fasta_raw: Optional[str] = request.data.get("fasta_raw")
@@ -99,7 +104,7 @@ def ProcessRequestData(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    #Pytanie czy powinnismy walidowac, mimo ze mamy osobny endpoint do walidacni
+    # Pytanie czy powinnismy walidowac, mimo ze mamy osobny endpoint do walidacni
     """if not RnaValidation(fasta_parsed):
         return Response(
             {"success": False, "error": "Niepoprawna sekwencja RNA."},
@@ -138,7 +143,7 @@ def ProcessRequestData(request: Request) -> Response:
         job_name=jobName,
         email=email,
         status="Q",
-        alternative_conformations = job_alternative_conformations
+        alternative_conformations=job_alternative_conformations,
     )
 
     run_grapharna_task.delay(job.uid)
@@ -166,7 +171,6 @@ def GetResults(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    
     job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
 
     results_list = []
@@ -174,17 +178,21 @@ def GetResults(request: Request) -> Response:
         try:
             result_text = result.result_tetriary_structure.read().decode("utf-8")
             processing_time = result.completed_at - job.created_at
-            results_list.append({
-                "completed_at": result.completed_at,
-                "result_tetriary_structure": result_text,
-                "processing_time": processing_time,
-            })
+            results_list.append(
+                {
+                    "completed_at": result.completed_at,
+                    "result_tetriary_structure": result_text,
+                    "processing_time": processing_time,
+                }
+            )
         except Exception as e:
-            results_list.append({
-                "completed_at": None,
-                "result_tetriary_structure": f"[Error reading file: {str(e)}]",
-                "processing_time": None,
-            })
+            results_list.append(
+                {
+                    "completed_at": None,
+                    "result_tetriary_structure": f"[Error reading file: {str(e)}]",
+                    "processing_time": None,
+                }
+            )
 
     return Response(
         {
@@ -194,10 +202,9 @@ def GetResults(request: Request) -> Response:
             "input_structure": job.input_structure.read().decode("utf-8"),
             "seed": job.seed,
             "created_at": job.created_at,
-            "result_list": results_list
+            "result_list": results_list,
         }
     )
-
 
 
 @api_view(["GET"])
@@ -208,11 +215,11 @@ def GetSuggestedSeedAndJobName(request: Request) -> Response:
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
     jobName = f"job-{today_str}-{count}"
 
-
     return Response(
         {"success": True, "seed": seed, "job_name": jobName},
         status=status.HTTP_200_OK,
     )
+
 
 @api_view(["GET"])
 def hello_view(request: Request) -> Response:
@@ -235,11 +242,11 @@ def TestRequest(request: Request) -> Response:
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
 
-    if not RnaValidation(rna):
+    """if not RnaValidation(rna):
         return Response(
             {"success": False, "error": "Niepoprawna sekwencja RNA."},
             status=status.HTTP_400_BAD_REQUEST,
-        )
+        )"""
 
     if not ValidateEmailAddress(email):
         return Response(
@@ -284,7 +291,7 @@ def healthcheck(request: Request) -> Response:
 
 
 @api_view(["POST"])
-def testEngineRun(request : Request) -> Response:
+def testEngineRun(request: Request) -> Response:
     response = test_grapharna_run()
     assert response == "OK"
     return Response({"success": True})

@@ -19,12 +19,14 @@ class PostRnaDataTests(TestCase):
             "email": "test@example.com",
             "seed": 12345,
             "job_name": "job-test-1",
-            "alternative_conformations": 1
+            "alternative_conformations": 1,
         }
-        #Avoid file creation during api call
+        # Avoid file creation during api call
         self.patcher_open = patch("builtins.open", mock_open())
         self.patcher_makedirs = patch("os.makedirs")
-        self.patcher_relpath = patch("os.path.relpath", return_value="mocked/path/file.dotseq")
+        self.patcher_relpath = patch(
+            "os.path.relpath", return_value="mocked/path/file.dotseq"
+        )
         self.patcher_task = patch("webapp.tasks.run_grapharna_task.delay")
 
         self.mock_open = self.patcher_open.start()
@@ -37,7 +39,6 @@ class PostRnaDataTests(TestCase):
         self.patcher_makedirs.stop()
         self.patcher_relpath.stop()
         self.patcher_task.stop()
-
 
     def test_valid_post(self) -> None:
         response: Response = self.client.post(self.url, self.valid_data, format="json")
@@ -70,7 +71,7 @@ class PostRnaDataTests(TestCase):
         data: Dict[str, Any] = {
             "fasta_raw": "((((...(( ))...))))\nCGCGGAACG CGGGACGCG",
             "email": "test@example.com",
-            "alternative_conformations": 1
+            "alternative_conformations": 1,
         }
         response: Response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -87,12 +88,12 @@ class PostRnaDataTests(TestCase):
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
+
 class GetResultsTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
         self.url: str = "/api/getResults/"
 
-        
         self.job: MagicMock = MagicMock()
         self.job.uid = uuid.uuid4()
         self.job.input_structure.read.return_value = b">Job\nACBC"
@@ -106,15 +107,17 @@ class GetResultsTests(TestCase):
             self.job_results.append(MagicMock())
             self.job_results[i].job = self.job
             self.job_results[i].completed_at = timezone.now()
-            self.job_results[i].result_tetriary_structure.read.return_value = b"HEADER RNA PDB"
-
+            self.job_results[i].result_tetriary_structure.read.return_value = (
+                b"HEADER RNA PDB"
+            )
 
     def test_valid_get_no_results(self) -> None:
-        
+
         mock_empty_qs = MagicMock()
         mock_empty_qs.__iter__.return_value = iter([])
-        with patch("api.views.Job.objects.get", return_value=self.job), \
-            patch("api.views.JobResults.objects.filter", return_value=mock_empty_qs):
+        with patch("api.views.Job.objects.get", return_value=self.job), patch(
+            "api.views.JobResults.objects.filter", return_value=mock_empty_qs
+        ):
 
             response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -131,13 +134,13 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["created_at"], self.job.created_at)
         self.assertEqual(data["result_list"], [])
 
-
     def test_valid_get_with_results(self) -> None:
         mock_full_qs = MagicMock()
         mock_full_qs.__iter__.return_value = iter(self.job_results)
         mock_full_qs.count.return_value = len(self.job_results)
-        with patch("api.views.Job.objects.get", return_value=self.job), \
-         patch("api.views.JobResults.objects.filter", return_value=mock_full_qs):
+        with patch("api.views.Job.objects.get", return_value=self.job), patch(
+            "api.views.JobResults.objects.filter", return_value=mock_full_qs
+        ):
 
             response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
 
@@ -157,12 +160,17 @@ class GetResultsTests(TestCase):
         expected_results = []
         for jr in self.job_results:
             processing_time = jr.completed_at - self.job.created_at
-            expected_results.append({
-                "completed_at": jr.completed_at,
-                "result_tetriary_structure": jr.result_tetriary_structure.read().decode("UTF-8"),
-                "processing_time": processing_time,
-            })
+            expected_results.append(
+                {
+                    "completed_at": jr.completed_at,
+                    "result_tetriary_structure": jr.result_tetriary_structure.read().decode(
+                        "UTF-8"
+                    ),
+                    "processing_time": processing_time,
+                }
+            )
         self.assertEqual(data["result_list"], expected_results)
+
     def test_invalid_uid(self) -> None:
         response: Response = self.client.get(self.url, {"uid": "1234"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -181,10 +189,13 @@ class GetResultsTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
 class SuggestSeedAndJobNameTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
         self.url: str = "/api/getSuggestedSeedAndJobName/"
+
     def test_valid_request(self) -> None:
         response: Response = self.client.get(self.url)
         data = response.data
@@ -193,12 +204,13 @@ class SuggestSeedAndJobNameTests(TestCase):
         self.assertEqual(data["job_name"], f"job-{today_str}-0")
         self.assertGreaterEqual(int(data["seed"]), 1)
         self.assertLessEqual(int(data["seed"]), 100_000_000_0)
+
     def test_incrementing_job_name_suffix(self):
         today_str = date.today().strftime("%Y%m%d")
-        
+
         mock_qs = MagicMock()
         mock_qs.count.return_value = 1
-        #Patch and mock query set to simulate existance of a job with todays prefix
+        # Patch and mock query set to simulate existance of a job with todays prefix
         with patch("api.views.Job.objects.filter", return_value=mock_qs):
             response = self.client.get(self.url)
 
@@ -209,21 +221,22 @@ class SuggestSeedAndJobNameTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-        
+
+
 class PostRnaValidationTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.url = "/api/validateRNA/"
 
     def test_missing_rna_field(self):
-        response = self.client.post(self.url, {}, format='json')
+        response = self.client.post(self.url, {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["success"])
         self.assertEqual(response.data["error"], "Brak danych RNA.")
 
     def test_valid_rna_and_dotbracket(self):
         rna_input = ">example1\nAGC UUU\n(.. ..)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(response.data["success"])
         self.assertIn("Correct validation", response.data["error"])
@@ -232,9 +245,20 @@ class PostRnaValidationTests(TestCase):
         self.assertEqual(response.data["mismatching_brackets"], [])
         self.assertEqual(response.data["incorrect_pairs"], [])
 
+    def test_empty_rna_data(self):
+        rna_input = ""
+        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(response.data["success"])
+        self.assertIn("Invalid data", response.data["error"])
+        self.assertEqual(response.data["invalid_characters"], "")
+        self.assertEqual(response.data["invalid_brackets"], "")
+        self.assertEqual(response.data["mismatching_brackets"], [])
+        self.assertEqual(response.data["incorrect_pairs"], [])
+
     def test_invalid_nucleotide(self):
         rna_input = ">example1\nAGC TXG\n(.. ..)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["success"])
         self.assertEqual(response.data["error"], "RNA contains invalid characters")
@@ -242,7 +266,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_invalid_dotbracket(self):
         rna_input = ">example1\nAGC UUG\n(.. .X)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["success"])
         self.assertEqual(response.data["error"], "DotBracket contains invalid brackets")
@@ -250,7 +274,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_mismatched_brackets(self):
         rna_input = ">example1\nAGC UUG\n(.. .))"
-        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(response.data["success"])
         self.assertEqual(response.data["error"], "Fix suggested")
@@ -259,12 +283,13 @@ class PostRnaValidationTests(TestCase):
 
     def test_incorrect_rna_pairs(self):
         rna_input = ">example1\nUGC UUU\n(.. ..)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format='json')
+        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(response.data["success"])
         self.assertEqual(response.data["error"], "Fix suggested")
         self.assertEqual(response.data["mismatching_brackets"], [])
         self.assertEqual(response.data["incorrect_pairs"], [(0, 6)])
+
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)

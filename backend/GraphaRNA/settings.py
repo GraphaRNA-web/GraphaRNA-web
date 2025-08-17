@@ -184,9 +184,9 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        "webapp.tasks": {  
+        "webapp.tasks": {
             "handlers": ["console"],
-            "level": "DEBUG",  
+            "level": "DEBUG",
             "propagate": False,
         },
     },

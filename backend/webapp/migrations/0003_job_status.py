@@ -6,14 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('webapp', '0002_alter_jobresults_completed_at'),
+        ("webapp", "0002_alter_jobresults_completed_at"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='job',
-            name='status',
-            field=models.TextField(choices=[('Q', 'Queued'), ('P', 'Processing'), ('F', 'Finished')], default='test'),
+            model_name="job",
+            name="status",
+            field=models.TextField(
+                choices=[("Q", "Queued"), ("P", "Processing"), ("F", "Finished")],
+                default="test",
+            ),
             preserve_default=False,
         ),
     ]
