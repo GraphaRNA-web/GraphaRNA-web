@@ -154,9 +154,3 @@ def RnaValidation(
         )
 
 
-print(FastaFileParse(">id"))
-
-# print(FastaFileParse(">example1\nAGC\n((.\n>example2\nUUG\n.))"))
-# print(RnaValidation(FastaFileParse(">example1\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....")))
-# print(RnaValidation(FastaFileParse(">example1\nAGC UUG\n(.. .))")))
-# print(RnaValidation(FastaFileParse(">example1\ngggggCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n()Aa(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....")))
