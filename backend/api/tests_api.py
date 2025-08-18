@@ -8,12 +8,13 @@ from typing import Dict, Any
 from webapp.models import Job
 import uuid
 from django.utils import timezone
+from django.urls import reverse
 
 
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = "/api/postRequestData/"
+        self.url: str = reverse("postRequestData")
         self.valid_data: Dict[str, Any] = {
             "fasta_raw": ">example1\nAGC UUU\n(.. ..)",
             "email": "test@example.com",
@@ -226,7 +227,7 @@ class SuggestSeedAndJobNameTests(TestCase):
 class PostRnaValidationTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.url = "/api/validateRNA/"
+        self.url = reverse("validateRNA")
 
     def test_missing_rna_field(self):
         response = self.client.post(self.url, {}, format="json")
