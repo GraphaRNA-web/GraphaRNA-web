@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.backend.name }}-network-policy
+  labels:
+    app.kubernetes.io/name: {{ .Values.backend.name }}-network-policy
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: network
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.backend.name }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.frontend.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.backend.port }}
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.postgres.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgres.port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.rabbitmq.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.rabbitmq.port }}

@@ -1,0 +1,64 @@
+name: Docker Image Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        run: docker build -t grapha_backend ./backend
+
+      - name: Build frontend image
+        run: docker build -f ./frontend/Dockerfile.dev -t grapha_frontend ./frontend
+
+      - name: Build celery worker image
+        run: docker build -t grapha_celery ./backend
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: grapha_backend
+          scan-type: image
+          format: table
+          severity: HIGH,CRITICAL
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: grapha_frontend
+          scan-type: image
+          format: table
+          severity: HIGH,CRITICAL
+
+      - name: Scan celery image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: grapha_celery
+          scan-type: image
+          format: table
+          severity: HIGH,CRITICAL
+
+      - name: Scan Helm chart with Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+            directory: ./GraphaRNA-web/Chart.yaml
+
+      - name: Show Checkov results
+        run: cat results.sarif
+
+
+

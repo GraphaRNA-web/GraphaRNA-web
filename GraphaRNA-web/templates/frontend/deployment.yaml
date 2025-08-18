@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/component: frontend
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    linkerd.io/inject: enabled
 spec:
   replicas: {{ .Values.frontend.replicas }}
   selector:
@@ -19,6 +21,10 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.frontend.name }}
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
       containers:
         - name: {{ .Values.frontend.name }}
           image: {{ .Values.frontend.image }}
@@ -26,10 +32,6 @@ spec:
 
           ports:
             - containerPort: {{ .Values.frontend.port }}
-
-          volumeMounts:
-            - name: frontend-storage
-              mountPath: /app
 
           livenessProbe:
             httpGet:
@@ -53,7 +55,10 @@ spec:
               cpu: {{ .Values.frontend.resources.limit.cpu }}
               memory: {{ .Values.frontend.resources.limit.memory }}
 
-    volumes: 
-      - name: frontend-storage
-        persistentVolumeClaim:
-          claimName: {{ .Values.frontend.pvc }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL

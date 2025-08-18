@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.backend.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.backend.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    linkerd.io/inject: enabled
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.backend.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.backend.name }}
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+      containers:
+        - name: {{ .Values.backend.name }}
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: {{ .Values.backend.pullPolicy }}
+
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+
+          ports:
+            - containerPort: {{ .Values.backend.port }}
+
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /shared
+
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.backend.livenessPath }}
+              port: {{ .Values.backend.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.backend.readinessPath }}
+              port: {{ .Values.backend.port }}
+            initialDelaySeconds: 5  
+            periodSeconds: 5
+
+          resources:
+            requests:
+              cpu: {{ .Values.backend.resources.requests.cpu }}
+              memory: {{ .Values.backend.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.backend.resources.limit.cpu }}
+              memory: {{ .Values.backend.resources.limit.memory }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+
+      volumes: 
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.backend.pvc }}

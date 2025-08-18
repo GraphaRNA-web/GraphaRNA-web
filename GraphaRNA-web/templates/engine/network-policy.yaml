@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.engine.name }}-network-policy
+  labels:
+    app.kubernetes.io/name: {{ .Values.engine.name }}-network-policy
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: network
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.engine.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.celery.grapharna.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.engine.port }}

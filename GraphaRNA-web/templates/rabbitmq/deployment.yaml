@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.rabbitmq.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.rabbitmq.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: rabbitmq
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    linkerd.io/inject: enabled
+spec:
+  replicas: {{ .Values.rabbitmq.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.rabbitmq.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.rabbitmq.name }}
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+        - name: {{ .Values.rabbitmq.name }}
+          image: {{ .Values.rabbitmq.image }}
+          imagePullPolicy: {{ .Values.rabbitmq.pullPolicy }}
+
+          ports:
+            - containerPort: {{ .Values.rabbitmq.port }}
+            - containerPort: {{ .Values.rabbitmq.uiPort }}
+
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: USER
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: PASSWORD
+
+
+          volumeMounts:
+            - name: rabbitmq-storage
+              mountPath: /var/lib/rabbitmq
+
+          resources:
+            requests:
+              cpu: {{ .Values.rabbitmq.resources.requests.cpu }}
+              memory: {{ .Values.rabbitmq.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.rabbitmq.resources.limits.cpu }}
+              memory: {{ .Values.rabbitmq.resources.limits.memory }}
+          
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+
+      volumes:
+        - name: rabbitmq-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.rabbitmq.pvc }}

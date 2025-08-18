@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.celery.beat.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.celery.beat.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: celery
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    linkerd.io/inject: enabled
+spec:
+  replicas: {{ .Values.celery.beat.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.celery.beat.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.celery.beat.name }}
+    spec:
+      securityContext:
+          runAsUser: 1000
+          runAsGroup: 3000
+          fsGroup: 2000
+      containers:
+        - name: celery-beat
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: {{ .Values.backend.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - >
+              rm -f /shared/beat/celerybeat-schedule &&
+              mkdir -p /shared/beat &&
+              celery -A GraphaRNA beat --loglevel=info
+              --schedule=/shared/beat/celerybeat-schedule
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+          volumeMounts:
+            - name: beat-storage
+              mountPath: /shared/beat
+            - name: tmp-dir
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: beat-storage
+          persistentVolumeClaim:
+            claimName: {{ .Values.celery.beat.pvc }}
+        - name: tmp-dir
+          emptyDir: {}
+    

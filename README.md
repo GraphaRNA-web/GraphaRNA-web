@@ -47,7 +47,7 @@ You should make migrations before starting the application:
 To store some configuration variables use```.env``` file. It should be located in /.env
 The format of the .env file in the .backend folder should match the following example:
 ```
-DJANGO_SECRET_KEY= 
+DJANGO_SECRET_KEY=django-insecure-l_nyz6vaakzlajt&vp+6vh727b2baq=o(!z34rbzmx!r%i9b3_
 DEBUG=True
 DJANGO_ALLOWED_HOSTS=127.0.0.1, localhost
 
@@ -57,6 +57,8 @@ DATABASE_USERNAME=dbuser
 DATABASE_PASSWORD=dbpassword
 DATABASE_HOST=db
 DATABASE_PORT=5432
+
+CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
 
 JOB_EXPIRATION_WEEKS=2
 
