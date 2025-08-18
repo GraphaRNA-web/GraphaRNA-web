@@ -13,7 +13,7 @@ from webapp.tasks import run_grapharna_task, test_grapharna_run
 from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
-from api.validation_tools import RnaValidation, FastaFileParse
+from api.validation_tools import RnaValidator
 
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
@@ -30,7 +30,7 @@ def ValidateEmailAddress(email: Optional[str]) -> bool:
 """
 example post
 {
-"RNA": ">example1\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA",
+"RNA": ">example1\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
 }"""
 
 
@@ -44,20 +44,20 @@ def PostRnaValidation(request: Request) -> Response:
         )
 
     rna_str: str = rna
-    validationResults = RnaValidation(FastaFileParse(rna_str))
+    validator: RnaValidator = RnaValidator(rna_str)
+    results: dict = validator.ValidateRna()
 
-    return Response(
-        {
-            "success": validationResults[0],
-            "error": validationResults[1],
-            "suggested_fix": validationResults[2],
-            "invalid_characters": validationResults[3],
-            "invalid_brackets": validationResults[4],
-            "mismatching_brackets": validationResults[5],
-            "incorrect_pairs": validationResults[6],
-        },
-        status=status.HTTP_400_BAD_REQUEST,
-    )
+    if results["Validation Result"]:
+
+        return Response(
+            results,
+            status=status.HTTP_200_OK,
+        )
+    else:
+        return Response(
+            results,
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
 
 
 """
@@ -84,7 +84,7 @@ example post
 
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
-    fasta_raw: Optional[str] = request.data.get("fasta_raw")
+    fasta_raw: str = request.data.get("fasta_raw")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
@@ -92,24 +92,25 @@ def ProcessRequestData(request: Request) -> Response:
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
+    if fasta_raw is None:
+        return Response(
+            {"success": False, "error": "Brak danych RNA."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     try:
         seed: int = int(seed_raw)
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
-    if fasta_raw:
-        fasta_parsed: str = FastaFileParse(fasta_raw)
-    else:
-        return Response(
-            {"success": False, "error": "Missing Fasta Data"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
 
-    # Pytanie czy powinnismy walidowac, mimo ze mamy osobny endpoint do walidacni
-    """if not RnaValidation(fasta_parsed):
+    validator: RnaValidator = RnaValidator(fasta_raw)
+    validationResult = validator.ValidateRna()
+
+    if not validationResult["Validation Result"]:
         return Response(
-            {"success": False, "error": "Niepoprawna sekwencja RNA."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )"""
+            validationResult,
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
 
     if not ValidateEmailAddress(email):
         return Response(
@@ -129,7 +130,7 @@ def ProcessRequestData(request: Request) -> Response:
     input_filename: str = f"{str(job_uuid)}.dotseq"
     input_filepath: str = os.path.join(input_dir, input_filename)
 
-    dotseq_data = f">{jobName}\n{fasta_parsed}"
+    dotseq_data = f">{jobName}\n{validationResult['Validated RNA']}"
 
     with open(input_filepath, "w") as f:
         f.write(dotseq_data)
