@@ -240,7 +240,7 @@ class PostRnaValidationTests(TestCase):
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
-        self.assertNotIn("Fix suggested", response.data["Error List"] + [""])
+        self.assertFalse(response.data["Fix Suggested"])
         self.assertEqual(response.data["Mismatching Brackets"], [])
         self.assertEqual(response.data["Incorrect Pairs"], [])
         self.assertEqual(response.data["Validated RNA"], "AGC UUU\n(.. ..)")
@@ -250,7 +250,7 @@ class PostRnaValidationTests(TestCase):
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
-        self.assertNotIn("Fix suggested", response.data["Error List"] + [""])
+        self.assertFalse(response.data["Fix Suggested"])
         self.assertEqual(response.data["Mismatching Brackets"], [])
         self.assertEqual(response.data["Incorrect Pairs"], [])
         self.assertEqual(response.data["Validated RNA"], "AGC UUU\n(.. ..)")
@@ -260,7 +260,7 @@ class PostRnaValidationTests(TestCase):
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
-        self.assertNotIn("Fix suggested", response.data["Error List"] + [""])
+        self.assertFalse(response.data["Fix Suggested"])
         self.assertEqual(response.data["Mismatching Brackets"], [])
         self.assertEqual(response.data["Incorrect Pairs"], [])
         self.assertEqual(
@@ -303,7 +303,7 @@ class PostRnaValidationTests(TestCase):
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
-        self.assertIn("Fix suggested", response.data["Error List"])
+        self.assertTrue(response.data["Fix Suggested"])
         self.assertEqual(response.data["Incorrect Pairs"], [(0, 6)])
 
     def test_wrong_http_method_get(self) -> None:

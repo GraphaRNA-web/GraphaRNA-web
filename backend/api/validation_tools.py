@@ -58,6 +58,7 @@ class RnaValidator:
         errorList: list[str] = []
         validatedRna: str = ""
         validationResult: bool = False
+        fixSuggested: bool = False
 
         # length check
         if len(rna) == 0:
@@ -70,7 +71,7 @@ class RnaValidator:
 
         # character check
         invalidCharacters: set = set(
-            char for char in rna.upper() if char not in set(self.validNucleotides)
+            char for char in rna if char not in set(self.validNucleotides)
         )
         if len(invalidCharacters) > 0:
             sortedInvalidCharacters = "".join(sorted(invalidCharacters))
@@ -140,6 +141,7 @@ class RnaValidator:
                 suggestedDotBracketFixList[bracket] = "."
         if "".join(suggestedDotBracketFixList) != dotBracket:
             validationResult = True
+            fixSuggested = True
             errorList.append("Fix suggested")
             validatedRna = rna + "\n" + "".join(suggestedDotBracketFixList)
         else:
@@ -151,8 +153,5 @@ class RnaValidator:
             "Validated RNA": validatedRna,
             "Mismatching Brackets": mismatchingBrackets,
             "Incorrect Pairs": incorrectPairs,
+            "Fix Suggested": fixSuggested,
         }
-
-
-x = RnaValidator(">example1\ntGC UUU\n(.. ..)")
-print(x.ValidateRna())
