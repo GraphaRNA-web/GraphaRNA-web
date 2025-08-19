@@ -142,7 +142,6 @@ class RnaValidator:
         if "".join(suggestedDotBracketFixList) != dotBracket:
             validationResult = True
             fixSuggested = True
-            errorList.append("Fix suggested")
             validatedRna = rna + "\n" + "".join(suggestedDotBracketFixList)
         else:
             validationResult = True
