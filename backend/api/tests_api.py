@@ -295,7 +295,7 @@ class PostRnaValidationTests(TestCase):
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
-        self.assertIn("Fix suggested", response.data["Error List"])
+        self.assertTrue(response.data["Fix Suggested"])
         self.assertEqual(response.data["Mismatching Brackets"], [6])
 
     def test_incorrect_rna_pairs(self):
