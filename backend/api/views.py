@@ -13,7 +13,7 @@ from webapp.tasks import run_grapharna_task, test_grapharna_run
 from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
-
+from api.validation_tools import RnaValidator
 
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
@@ -27,11 +27,37 @@ def ValidateEmailAddress(email: Optional[str]) -> bool:
         return False
 
 
-def RnaValidation(rna: Optional[str]) -> bool:
-    valid_chars = set("AUGC ")
-    if rna is None or any(char not in valid_chars for char in rna.upper()):
-        return False
-    return True
+"""
+example post
+{
+"RNA": ">example1\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
+}"""
+
+
+@api_view(["POST"])
+def PostRnaValidation(request: Request) -> Response:
+    rna = request.data.get("RNA")
+    if rna is None:
+        return Response(
+            {"success": False, "error": "Brak danych RNA."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    rna_str: str = rna
+    validator: RnaValidator = RnaValidator(rna_str)
+    results: dict = validator.ValidateRna()
+
+    if results["Validation Result"]:
+
+        return Response(
+            results,
+            status=status.HTTP_200_OK,
+        )
+    else:
+        return Response(
+            results,
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
 
 
 """
@@ -55,32 +81,10 @@ example post
   "alternative_conformations": "1"
 }"""
 
-@api_view(["POST"])
-def PostRnaValidation(request: Request) -> Response:
-    rna: Optional[str] = request.data.get("RNA")
-
-    if not rna:
-        return Response(
-            {"success": False, "error": "Brak danych RNA."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if not RnaValidation(rna):
-        return Response(
-            {"success": False, "error": "Niepoprawna sekwencja RNA."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    return Response(
-        {"success": True, "message": "Sekwencja RNA jest poprawna."},
-        status=status.HTTP_200_OK,
-    )
-
 
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
-    bracket: Optional[str] = request.data.get("bracket")
-    rna: Optional[str] = request.data.get("RNA")
+    fasta_raw: str = request.data.get("fasta_raw")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
@@ -88,15 +92,24 @@ def ProcessRequestData(request: Request) -> Response:
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
+    if fasta_raw is None:
+        return Response(
+            {"success": False, "error": "Brak danych RNA."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     try:
         seed: int = int(seed_raw)
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
 
-    if not RnaValidation(rna):
+    validator: RnaValidator = RnaValidator(fasta_raw)
+    validationResult = validator.ValidateRna()
+
+    if not validationResult["Validation Result"]:
         return Response(
-            {"success": False, "error": "Niepoprawna sekwencja RNA."},
-            status=status.HTTP_400_BAD_REQUEST,
+            validationResult,
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
 
     if not ValidateEmailAddress(email):
@@ -117,7 +130,7 @@ def ProcessRequestData(request: Request) -> Response:
     input_filename: str = f"{str(job_uuid)}.dotseq"
     input_filepath: str = os.path.join(input_dir, input_filename)
 
-    dotseq_data = f">{jobName}\n{rna}\n{bracket}"
+    dotseq_data = f">{jobName}\n{validationResult['Validated RNA']}"
 
     with open(input_filepath, "w") as f:
         f.write(dotseq_data)
@@ -131,7 +144,7 @@ def ProcessRequestData(request: Request) -> Response:
         job_name=jobName,
         email=email,
         status="Q",
-        alternative_conformations = job_alternative_conformations
+        alternative_conformations=job_alternative_conformations,
     )
 
     run_grapharna_task.delay(job.uid)
@@ -159,7 +172,6 @@ def GetResults(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    
     job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
 
     results_list = []
@@ -167,17 +179,21 @@ def GetResults(request: Request) -> Response:
         try:
             result_text = result.result_tetriary_structure.read().decode("utf-8")
             processing_time = result.completed_at - job.created_at
-            results_list.append({
-                "completed_at": result.completed_at,
-                "result_tetriary_structure": result_text,
-                "processing_time": processing_time,
-            })
+            results_list.append(
+                {
+                    "completed_at": result.completed_at,
+                    "result_tetriary_structure": result_text,
+                    "processing_time": processing_time,
+                }
+            )
         except Exception as e:
-            results_list.append({
-                "completed_at": None,
-                "result_tetriary_structure": f"[Error reading file: {str(e)}]",
-                "processing_time": None,
-            })
+            results_list.append(
+                {
+                    "completed_at": None,
+                    "result_tetriary_structure": f"[Error reading file: {str(e)}]",
+                    "processing_time": None,
+                }
+            )
 
     return Response(
         {
@@ -187,10 +203,9 @@ def GetResults(request: Request) -> Response:
             "input_structure": job.input_structure.read().decode("utf-8"),
             "seed": job.seed,
             "created_at": job.created_at,
-            "result_list": results_list
+            "result_list": results_list,
         }
     )
-
 
 
 @api_view(["GET"])
@@ -201,11 +216,11 @@ def GetSuggestedSeedAndJobName(request: Request) -> Response:
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
     jobName = f"job-{today_str}-{count}"
 
-
     return Response(
         {"success": True, "seed": seed, "job_name": jobName},
         status=status.HTTP_200_OK,
     )
+
 
 @api_view(["GET"])
 def hello_view(request: Request) -> Response:
@@ -228,11 +243,11 @@ def TestRequest(request: Request) -> Response:
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
 
-    if not RnaValidation(rna):
+    """if not RnaValidation(rna):
         return Response(
             {"success": False, "error": "Niepoprawna sekwencja RNA."},
             status=status.HTTP_400_BAD_REQUEST,
-        )
+        )"""
 
     if not ValidateEmailAddress(email):
         return Response(
@@ -277,7 +292,7 @@ def healthcheck(request: Request) -> Response:
 
 
 @api_view(["POST"])
-def testEngineRun(request : Request) -> Response:
+def testEngineRun(request: Request) -> Response:
     response = test_grapharna_run()
     assert response == "OK"
     return Response({"success": True})

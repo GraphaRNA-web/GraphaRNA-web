@@ -23,6 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 JOB_EXPIRATION_WEEKS = int(os.getenv("JOB_EXPIRATION_WEEKS", 2))
 
+VALID_BRACKETS = os.getenv("VALID_BRACKETS", "()<>[]{}AaBbCcDd.")
+
+VALID_NUCLEOTIDES = os.getenv("VALID_NUCLEOTIDES", "AUGC")
+
+VALID_PAIRS = os.getenv("VALID_PAIRS", "GCCGAUUAGUUG")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -191,9 +196,9 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
-        "webapp.tasks": {  
+        "webapp.tasks": {
             "handlers": ["console"],
-            "level": "DEBUG",  
+            "level": "DEBUG",
             "propagate": False,
         },
     },

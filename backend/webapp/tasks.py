@@ -8,7 +8,11 @@ import requests
 from celery import shared_task
 import os
 import json
-from webapp.visualization_tools import drawVARNAgraph, generateRchieDiagram, getDotBracket
+from webapp.visualization_tools import (
+    drawVARNAgraph,
+    generateRchieDiagram,
+    getDotBracket,
+)
 from celery.utils.log import get_task_logger
 
 
@@ -16,6 +20,7 @@ def log_to_file(message: str) -> None:
     ts = datetime.now().isoformat()
     with open("/shared/celery_debug.log", "a") as f:
         f.write(f"[{ts}] {message}\n")
+
 
 @shared_task
 def delete_expired_jobs() -> str:
@@ -27,20 +32,20 @@ def delete_expired_jobs() -> str:
         results = JobResults.objects.filter(job=job)
         for result in results:
             result.delete()
-        
+
         if job.input_structure:
             job.input_structure.delete(save=False)
-            
+
         job.delete()
 
     return f"Deleted {count} expired jobs."
+
 
 @shared_task(queue="grapharna")
 def run_grapharna_task(uuid_param: UUID) -> str:
 
     logger = get_task_logger(__name__)
 
- 
     try:
         job_data = Job.objects.get(uid=uuid_param)
     except Job.DoesNotExist:
@@ -68,33 +73,36 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
     for i in range(job_data.alternative_conformations):
         response = requests.post(
-            "http://grapharna-engine:8080/test", data={"uuid": uuid_str, "seed": seed + i}
+            "http://grapharna-engine:8080/test",
+            data={"uuid": uuid_str, "seed": seed + i},
         )
-        logger.info(f"Grapharna response status: {response.status_code}, body: {response.text}")
+        logger.info(
+            f"Grapharna response status: {response.status_code}, body: {response.text}"
+        )
 
         if response.status_code != 200:
             logger.error(f"Grapharna API error: {response.text}")
-            raise 
-        
+            raise
+
         data = response.json()
         output_path_pdb = data.get("pdbFilePath")
         output_path_json = data.get("jsonFilePath")
-        
+
         if not os.path.exists(output_path_pdb):
             logger.error(f"Can't find {output_path_pdb}")
-            raise 
-            
+            raise
+
         if not os.path.exists(output_path_json):
             logger.error(f"Can't find {output_path_json}")
-            raise 
-            
+            raise
+
         try:
             with open(output_path_json, "r") as f:
                 json_data = json.load(f)
-            
+
             dotbracket_from_annotator = json_data.get("dotBracket", "")
             dotbracket_path = os.path.join(output_dir, f"{uuid_str}_{seed}.dotseq")
-            
+
             if dotbracket_from_annotator:
                 with open(dotbracket_path, "w") as dbn_file:
                     dbn_file.write(dotbracket_from_annotator + "\n")
@@ -104,14 +112,15 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             logger.exception(f"Error processing JSON data: {e}")
             raise
         os.remove(output_path_json)
-        
-        secondary_structure_svg_path = os.path.join(output_dir, f"{uuid_str}_{seed + i}.svg")
+
+        secondary_structure_svg_path = os.path.join(
+            output_dir, f"{uuid_str}_{seed + i}.svg"
+        )
         try:
             drawVARNAgraph(dotbracket_path, secondary_structure_svg_path)
         except Exception as e:
             logger.error(f"Failed to generate secondary structure: {e}")
             raise
-        
 
         arc_diagram_path = os.path.join(output_dir, f"{uuid_str}_{seed + i}_arc.svg")
         logger.info(f"{job_data.input_structure}")
@@ -123,12 +132,12 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             logger.error(f"Error generating arc diagram{e}")
             raise
 
-
-
         relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
         relative_path_dotseq = os.path.relpath(dotbracket_path, settings.MEDIA_ROOT)
-        relative_path_svg = os.path.relpath(secondary_structure_svg_path, settings.MEDIA_ROOT)
-        relative_path_arc = os.path.relpath(arc_diagram_path, settings.MEDIA_ROOT)  
+        relative_path_svg = os.path.relpath(
+            secondary_structure_svg_path, settings.MEDIA_ROOT
+        )
+        relative_path_arc = os.path.relpath(arc_diagram_path, settings.MEDIA_ROOT)
         try:
             JobResults.objects.create(
                 job=job_data,
@@ -136,17 +145,17 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 result_secondary_structure_dotseq=relative_path_dotseq,
                 result_secondary_structure_svg=relative_path_svg,
                 result_arc_diagram=relative_path_arc,
-                completed_at=timezone.now()
+                completed_at=timezone.now(),
             )
         except Exception as e:
             logger.exception(f"Failed to create JobResults: {str(e)}")
             raise
 
-    job_data.expires_at = timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
+    job_data.expires_at = timezone.now() + timedelta(
+        weeks=settings.JOB_EXPIRATION_WEEKS
+    )
     job_data.status = "F"
     job_data.save()
-
-    
 
     return "OK"
 
@@ -157,7 +166,6 @@ def test_grapharna_run() -> str:
     output_dir = "/shared/samples/engine_outputs"
 
     os.makedirs(os.path.dirname(input_path), exist_ok=True)
-    
 
     tekst = ">job-test\nCGCGGAACG CGGGACGCG\n((((...(( ))...))))"
     with open(input_path, "w") as f:
@@ -175,10 +183,12 @@ def test_grapharna_run() -> str:
     output_path_pdb = data.get("pdbFilePath")
     output_path_json = data.get("jsonFilePath")
 
-    assert (os.path.exists(output_path_pdb) and os.path.exists(output_path_json)), "Couldn't find file"
+    assert os.path.exists(output_path_pdb) and os.path.exists(
+        output_path_json
+    ), "Couldn't find file"
 
     with open(output_path_json, "r") as f:
-            json_data = json.load(f)
+        json_data = json.load(f)
 
     dot_bracket = json_data.get("dotBracket", "")
     if dot_bracket:
@@ -190,4 +200,3 @@ def test_grapharna_run() -> str:
 
     print(f"Test zakończony sukcesem – plik wygenerowany: {output_path_pdb}")
     return "OK"
-
