@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import '../styles/button.css';
 
@@ -14,6 +12,7 @@ type ButtonProps = {
   type?: 'button' | 'submit' | 'reset';
   action?: React.MouseEventHandler<HTMLButtonElement>;
   id?: string;
+  icon?: React.ReactNode;
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -27,6 +26,7 @@ const Button: React.FC<ButtonProps> = ({
   type = 'button',
   action,
   id,
+  icon, // <--- destrukturyzujemy
 }) => {
   const variantClass = `button--${color}-${variant}`;
   const disabledClass = disabled ? 'button--disabled' : '';
@@ -38,8 +38,9 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       onClick={action}
       className={`button ${variantClass} ${disabledClass}`}
-      style={{ width, height, fontSize }}
+      style={{ width, height, fontSize, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} // flex dla ikony + label
     >
+      {icon && <span className="button-icon">{icon}</span>}
       {label}
     </button>
   );

@@ -3,6 +3,7 @@
 import React from 'react';
 import './styles/home.css';
 import Button from './components/Button';
+import Link from 'next/link'
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
           </div>
         </div>
         <div className='home-buttons'>
+            <Link href="/jobs">
               <Button
                 id="home-start-button"
                 color="primary"
@@ -31,9 +33,10 @@ export default function Home() {
                 fontSize='20px'
                 width="392px"
                 height="48px"
-                action={() => alert("Klik!")}
                 disabled={false}
               />
+            </Link>
+            <Link href="/guide">
               <Button
                 id="home-guide-button"
                 color="primary"
@@ -42,9 +45,9 @@ export default function Home() {
                 fontSize='20px'
                 width="214px"
                 height="48px"
-                action={() => alert("Klik!")}
                 disabled={false}
               />
+            </Link>
         </div>
       </div>
     </div>

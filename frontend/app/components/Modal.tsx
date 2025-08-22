@@ -73,7 +73,17 @@ const Modal: React.FC = () => {
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)}>Upload File</button>
+      <Button
+        color="primary"
+        variant="filled"
+        fontSize="20px"
+        width="305px"
+        height="50px"
+        action={() => setIsOpen(true)}
+        icon={<img src="white_upload.svg" alt="Upload Icon" style={{ height: 24, width: 24 }} />}
+        label="Upload File"
+      />
+
 
       {isOpen && (
         <div className="modal-backdrop">
