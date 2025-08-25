@@ -71,9 +71,11 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         logger.exception(f"Failed to update job status: {str(e)}")
         raise
 
+    engine_url = settings.ENGINE_URL
+
     for i in range(job_data.alternative_conformations):
         response = requests.post(
-            "http://grapharna-engine:8080/test",
+            engine_url,
             data={"uuid": uuid_str, "seed": seed + i},
         )
         logger.info(
@@ -171,8 +173,10 @@ def test_grapharna_run() -> str:
     with open(input_path, "w") as f:
         f.write(tekst)
 
+    engine_test_url = settings.ENGINE_TEST_URL
+
     response = requests.post(
-        "http://grapharna-engine:8080/test",
+        engine_test_url,
     )
 
     assert response.status_code == 200, f"Error: {response.text}"
