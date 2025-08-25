@@ -12,34 +12,69 @@ class RnaValidator:
             settings.VALID_PAIRS[i : i + 2]
             for i in range(0, len(settings.VALID_PAIRS), 2)
         ]
+        self.parsingResult: bool = True
+        self.errorList: list[str] = []
 
-        """
-        for debugging purpose
-        self.validBrackets: str = "()<>[]{}AaBbCcDd." + " "
+        # for debugging purpose
+        """self.validBrackets: str = "()<>[]{}AaBbCcDd." + " "
         self.validNucleotides: str = "AUGC" + " "
-        self.validPairs: list[str] = ["GC", "CG", "AU", "UA", "GU", "UG"]"""
-
+        self.validPairs: list[str] = ["GC", "CG", "AU", "UA", "GU", "UG"]
+"""
         self.FastaFileParse()
 
     def FastaFileParse(self) -> None:
         """
         Converts strands to uppercase, replaces T with U, and joins them with spaces
         """
+        nucleotides: str = ""
+        dotBracket: str = ""
+
         inputStructureSplit: list[str] = [
             item for item in self.fasta_raw.split("\n") if item != ""
         ]  # remove empty lines
-        nucleotides: str = ""
-        dotBracket: str = ""
-        for i in range(len(inputStructureSplit)):
-            try:
-                if inputStructureSplit[i][0] == ">":
-                    nucleotides += inputStructureSplit[i + 1]
+
+        potentialNameLines: list[str] = inputStructureSplit[0:-1:3]
+        areNameLines: list[bool] = [i[0] == ">" for i in potentialNameLines]
+        if all(areNameLines):  # check if all input lines contains strand names
+            containsStrandNames: bool = True
+        elif any(areNameLines):  # check if any input lines contains strand names
+            self.parsingResult = False
+            self.errorList.append("Parsing error: Inconsistent strand naming")
+            return None
+        else:
+            containsStrandNames = False
+
+        if containsStrandNames:
+            for i in range(0, len(inputStructureSplit), 3):
+                currentStrand: list[str] = inputStructureSplit[i : i + 3]
+                if not any(
+                    i in self.validBrackets for i in currentStrand[2]
+                ):  # verify order of lines in a strand by checking checking characters in dotbracket line
+                    self.parsingResult = False
+                    self.errorList.append("Parsing error: Wrong line order")
+                    break
+                else:
+                    nucleotides += currentStrand[1]
                     nucleotides += " "
 
-                    dotBracket += inputStructureSplit[i + 2]
+                    dotBracket += currentStrand[2]
                     dotBracket += " "
-            except Exception:
-                pass
+        else:  # no strand names
+            for i in range(0, len(inputStructureSplit), 2):
+                currentStrand = inputStructureSplit[i : i + 2]
+                if not any(
+                    i in self.validBrackets for i in currentStrand[1]
+                ):  # verify order of lines in a strand by checking checking characters in dotbracket line
+                    self.parsingResult = False
+                    self.errorList.append("Parsing error: Wrong line order")
+                    break
+                else:
+                    nucleotides += currentStrand[0]
+                    nucleotides += " "
+
+                    dotBracket += currentStrand[1]
+                    dotBracket += " "
+
         self.parsedStructure: str = (
             nucleotides.strip().upper().replace("T", "U") + "\n" + dotBracket.strip()
         )
@@ -50,23 +85,26 @@ class RnaValidator:
         """
         Validates rna and returns a fix if needed
         """
+        if not self.parsingResult:  # check for parsing errors
+            validationResult: bool = False
+            return {"Validation Result": validationResult, "Error List": self.errorList}
+
         inputStr = self.parsedStructure
         rnaSplit: list[str] = inputStr.split("\n")
         rna: str = rnaSplit[0]
         dotBracket: str = rnaSplit[1]
 
-        errorList: list[str] = []
         validatedRna: str = ""
-        validationResult: bool = False
+        validationResult = False
         fixSuggested: bool = False
 
         # length check
         if len(rna) == 0:
-            errorList.append("Invalid data")
+            self.errorList.append("Invalid data")
             validationResult = False
-            return {"Validation Result": validationResult, "Error List": errorList}
+            return {"Validation Result": validationResult, "Error List": self.errorList}
         if len(rna) != len(dotBracket):
-            errorList.append("RNA and DotBracket not of equal lengths")
+            self.errorList.append("RNA and DotBracket not of equal lengths")
             validationResult = False
 
         # character check
@@ -75,7 +113,7 @@ class RnaValidator:
         )
         if len(invalidCharacters) > 0:
             sortedInvalidCharacters = "".join(sorted(invalidCharacters))
-            errorList.append(
+            self.errorList.append(
                 f"RNA contains invalid characters: {sortedInvalidCharacters}"
             )
             validationResult = False
@@ -86,14 +124,14 @@ class RnaValidator:
         )
         if len(invalidBrackets) > 0:
             sortedInvalidBrackets = "".join(sorted(invalidBrackets))
-            errorList.append(
+            self.errorList.append(
                 f"DotBracket contains invalid brackets: {sortedInvalidBrackets}"
             )
             validationResult = False
 
         # return before stack check if rna invalid
-        if len(errorList) > 0:
-            return {"Validation Result": validationResult, "Error List": errorList}
+        if len(self.errorList) > 0:
+            return {"Validation Result": validationResult, "Error List": self.errorList}
 
         # stack check
         bracketStacks: dict[str, deque[int]] = {
@@ -148,7 +186,7 @@ class RnaValidator:
             validatedRna = self.parsedStructure
         return {
             "Validation Result": validationResult,
-            "Error List": errorList,
+            "Error List": self.errorList,
             "Validated RNA": validatedRna,
             "Mismatching Brackets": mismatchingBrackets,
             "Incorrect Pairs": incorrectPairs,
