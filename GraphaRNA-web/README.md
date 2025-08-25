@@ -1,4 +1,4 @@
-# GraphaRNA-web — Deploy na Kubernetes
+```# GraphaRNA-web — Deploy na Kubernetes
 
 This docs explains how to install GraphaRNA-web in Kubernetes cluster using Helm, Linkerd and Ingress NGINX.
 ---
@@ -18,7 +18,7 @@ This docs explains how to install GraphaRNA-web in Kubernetes cluster using Helm
 In /GraphaRNA-web subfolder. Requires having built Docker images of backend frontend and engine.
 ```bash
 # Add repos
-helm repo add linkerd https://helm.linkerd.io/stable
+helm repo add linkerd-edge https://helm.linkerd.io/edge
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
@@ -28,21 +28,31 @@ step certificate create root.linkerd.cluster.local ca.crt ca.key --profile root-
 step certificate create identity.linkerd.cluster.local issuer.crt issuer.key --profile intermediate-ca --not-after 8760h --no-password --insecure --ca ca.crt --ca-key ca.key
 
 # Install linkerd
-helm install linkerd-crds linkerd/linkerd-crds -n linkerd --create-namespace
-helm install linkerd-control-plane -n linkerd --set-file identityTrustAnchorsPEM=ca.crt --set-file identity.issuer.tls.crtPEM=issuer.crt --set-file identity.issuer.tls.keyPEM=issuer.key linkerd/linkerd-control-plane
+linkerd check --pre
+helm upgrade --install linkerd-crds linkerd-edge/linkerd-crds -n linkerd --create-namespace --force
+helm upgrade --install linkerd-control-plane linkerd-edge/linkerd-control-plane -n linkerd --set-file identityTrustAnchorsPEM=ca.crt --set-file identity.issuer.tls.crtPEM=issuer.crt --set-file identity.issuer.tls.keyPEM=issuer.key --set proxyInit.runAsRoot=true
 # Install linkerd observation pane (OPTIONAL)
-helm install linkerd-viz linkerd/linkerd-viz -n linkerd
+helm upgrade --install linkerd-viz linkerd-edge/linkerd-viz -n linkerd
+linkerd check
+# (optional if errors)
+linkerd upgrade --crds | kubectl apply -f -
 
 # Install monitoring tools (and set the password)
-helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --set grafana.adminPassword='admin' --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --set grafana.adminPassword='admin' --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false
 
 # Install the GraphaRNA-web app
-helm upgrade --install grapharna-web . -n grapharna
+helm upgrade --install grapharna-web . -n grapharna --create-namespace
+
+# To insert linkerd:
+kubectl annotate namespace grapharna linkerd.io/inject=enabled --overwrite
+kubectl rollout restart deployment -n grapharna
 ```
-To check if the app works use `kubectl get all`
+To check if the app works use `kubectl get all`, `linkerd check`
+To uninstall linkered use: `linkerd uninstall | kubectl delete -f - `, `kubectl delete namespace linkerd`
 
 Later to install certificates it will be necessery to get:
 `helm install cert-manager oci://quay.io/jetstack/charts/cert-manager --version v1.18.2 --namespace cert-manager --create-namespace --set crds.enabled=true`
+
 
 ## Example Secrets & Configmap files
 ### Backend
@@ -98,4 +108,4 @@ type: Opaque
 stringData:
   USER: guest
   PASSWORD: guest
-```
+``````
