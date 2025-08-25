@@ -28,6 +28,11 @@ VALID_BRACKETS = os.getenv("VALID_BRACKETS", "()<>[]{}AaBbCcDd.")
 VALID_NUCLEOTIDES = os.getenv("VALID_NUCLEOTIDES", "AUGC")
 
 VALID_PAIRS = os.getenv("VALID_PAIRS", "GCCGAUUAGUUG")
+
+ENGINE_TEST_URL = os.getenv("ENGINE_TEST_URL", "http://grapharna-engine:8080/test")
+
+ENGINE_URL = os.getenv("ENGINE_URL", "http://grapharna-engine:8080/run")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -144,9 +149,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Celery settings
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://guest:guest@rabbitmq:5672//")
 CELERY_RESULT_BACKEND = "rpc://"
-CELERY_TASK_QUEUES = (
-    Queue("grapharna", durable=True),
-)
+CELERY_TASK_QUEUES = (Queue("grapharna", durable=True),)
 
 CELERY_TASK_DEFAULT_QUEUE = "grapharna"
 CELERY_TASK_DEFAULT_DELIVERY_MODE = "persistent"

@@ -73,8 +73,7 @@ example post
 """
 example post
 {
-  "bracket": "(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
-  "RNA": "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA",
+  "fasta_raw": ">job\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
   "seed": 123456,
   "job_name": "my_rna_job",
   "email": "user@example.com",
