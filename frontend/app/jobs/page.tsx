@@ -207,7 +207,7 @@ const handleNext = async () => {
       setCurrentStep((prev) => prev + 1);
 
       try {
-        const data = await getSuggestedData(text);
+        const data = await getSuggestedData();
         if (typeof data?.seed === "number") setSeed(data.seed);
         if (data?.job_name) setJobname(data.job_name);
         setAutoSeed(true);
