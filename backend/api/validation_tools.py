@@ -30,8 +30,8 @@ class RnaValidator:
         dotBracket: str = ""
 
         inputStructureSplit: list[str] = [
-            item for item in self.fasta_raw.split("\n") if item != ""
-        ]  # remove empty lines
+            item for item in self.fasta_raw.split("\n") if (item != "" and item[0] != "#")
+        ]  # remove empty lines and comments
 
         potentialNameLines: list[str] = inputStructureSplit[0:-1:3]
         areNameLines: list[bool] = [i[0] == ">" for i in potentialNameLines]
@@ -192,3 +192,4 @@ class RnaValidator:
             "Incorrect Pairs": incorrectPairs,
             "Fix Suggested": fixSuggested,
         }
+
