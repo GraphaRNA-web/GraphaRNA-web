@@ -1,0 +1,287 @@
+.jobs-page{
+    padding-top: 100px;
+}
+
+.jp-content{
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px;
+    padding-bottom: 60px;
+    padding-left: 150px;
+    padding-right: 150px;
+    gap: 60px;
+}
+
+.jp-header{
+    display: flex;
+    flex-direction: column;
+    gap: 42px;
+}
+
+.jp-header-top{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.jp-header-title{
+    color: var(--brown-lighten-10);
+    font-size: 30px;
+    font-weight: 200;
+    font-family: "Raleway";
+}
+
+.jp-toggle-button{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    font-size: 20px;
+    color: var(--primary2-base);
+    align-items: center;
+}
+
+.jp-toggle-icon{
+    width: 20px;
+    height: 20px;
+}
+
+.jp-buttons-section{
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+}
+
+.jp-format-select{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 100px;
+    padding-right: 100px;
+    padding-top: 20px;
+}
+
+.jp-format-select-left{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.jp-format-top{
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--brown-lighten-15);
+    font-family: "Raleway";
+}
+
+.jp-format-bottom{
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--brown-base);
+    font-family: "Inter";
+}
+
+.jp-line-sep{
+    width: 604px;
+    height: 0px;
+    border: 1px solid var(--background-darken-10);
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.jp-format{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-left: 100px;
+    padding-right: 100px;
+}
+
+.jp-format-info{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.jp-format-info-1{
+    font-family: Raleway;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.jp-format-info-2{
+    font-family: Inter;
+    font-weight: 300;
+    font-size: 14px;
+}
+
+.jp-step-0{
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+}
+
+.jp-text-input-section{
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-darken-5);
+    border-radius: 20px;
+    min-height: 433px;
+    padding: 80px 100px;
+    gap: 50px;
+}
+
+.jp-text-input-section--error {
+  height: 500px;
+}
+
+.jp-text-input-examples{
+    height: 34px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.jp-examples-left{
+    width: 257px;
+    font-size: 14px;
+    font-weight: 300;
+    font-family: Inter;
+}
+
+.jp-examples-right{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 545px;
+}
+
+.jp-input-area{
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+    font-size: 18px;
+    font-weight: 600;
+    font-family: Inter;
+    color: var(--brown-base)
+}
+
+.jp-opt-params{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.jp-opt-params-1{
+    font-family: Raleway;
+    font-weight: 700;
+    font-size: 22px;
+}
+
+.jp-opt-params-2{
+    font-family: Inter;
+    font-weight: 300;
+    font-size: 16px;
+}
+
+.jp-params-fields{
+    margin-top: 83px;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    border-radius: 30px;
+    padding: 80px 100px;
+    background-color: var(--background-darken-5);
+    margin-bottom: 83px;
+}
+
+.jp-seed-name-param{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-family: Inter;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--brown-base);
+}
+
+.jp-params-fields span{
+    font-family: Inter;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brown-lighten-20);
+    padding-left: 10px;
+}
+
+.jp-alt-param{
+    display: flex;
+    flex-direction: column;
+    font-family: Inter;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--brown-base);
+    gap: 10px;
+}
+
+.jp-email-param{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: Inter;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--brown-base);
+    gap: 10px
+}
+
+.jp-format-info-2{
+    font-family: Inter;
+    font-weight: 300;
+    font-size: 14px;
+    color: var(--brown-base)
+}
+
+.jp-structures-section{
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-darken-5);
+    border-radius: 20px;
+    min-height: 433px;
+    padding: 80px 100px;
+    gap: 20px;
+}
+
+.jp-structures-title{
+    color: var(--brown-base);
+    font-size: 18px;
+    font-weight: 600;
+    font-family: Inter;
+}
+
+.jp-structures-subtitle{
+    color: var(--brown-lighten-15);
+    font-size: 18px;
+    font-weight: 400;
+    font-family: Inter;
+    padding-left: 5px;
+}
+
+.jp-add-structure{
+    border-radius: 10px;
+    border: 2px solid var(--primary2-base);
+    color: var(--primary2-base);
+    height: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.jp-add-structure p{
+    font-size: 20px;
+}
+
+.jp-step1-buttons{
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+}

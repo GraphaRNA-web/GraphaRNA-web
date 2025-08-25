@@ -1,0 +1,142 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal {
+  background-color: var(--background-base);
+  border-radius: 20px;
+  width: 960px;
+  height: 648px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  padding-left: 100px;
+  padding-right: 100px;
+  box-shadow: 0 2px 7px rgba(191, 194, 192, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  position: relative;
+}
+
+.modal-close-icon {
+  position: absolute;
+  top: 40px;
+  right: 30px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.modal-top-text{
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  height: 74px;
+  width: 794px;
+  gap: 10px;
+}
+
+.modal-title{
+  font-family: Raleway;
+  font-weight: 400;
+  font-size: 26px;
+  color: var(--brown-base);
+}
+
+.modal-subtitle{
+  font-family: Inter;
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--brown-base);
+  margin-top: 0px;
+}
+
+.file-dropzone {
+  background-color: var(--background-lighten-5);
+  border: 1px solid var(--background-darken-15);
+  border-radius: 10px;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  padding-left: 50px;
+  padding-right: 50px;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  width: 760px;
+  height: 297px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-dropzone:hover {
+  border-color: #999;
+}
+
+.dropzone-instruction{
+  font-family: Raleway;
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--brown-lighten-5);
+}
+
+.dropzone-instruction-2{
+  font-family: Inter;
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--brown-lighten-5);
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 20px;
+  height: 41px;
+  width: 760px;
+}
+
+.uploaded-file {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-name {
+  font-family: Inter;
+  font-weight: 400;;
+  font-size: 16px;
+  color: var(--brown-lighten-15);
+  text-align: center;
+}
+
+.error-message{
+  background-color: var(--primary1-lighten-25);
+  width: 760px;
+  height: 46px;
+  border-radius: 20px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  padding-left: 40px;
+  padding-right: 40px;
+  gap: 15px;
+  font-family: Inter;
+  font-weight: 400;
+  font-size: 16px;
+  color: #8D2521;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}

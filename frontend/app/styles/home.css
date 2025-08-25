@@ -1,0 +1,94 @@
+.home-background {
+  min-height: 100vh;
+  background-image: url('/bg_home.png');
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: auto 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 70px;
+}
+
+.home-container{
+  display: flex;
+  flex-direction: column;
+  width: 626px;
+  height: 310px;
+  padding-left: 166px;
+  gap: 40px;
+}
+
+.home-buttons{
+  display: flex;
+  justify-content: space-between;
+  height: 48px;
+  width: 626px;
+}
+
+.home-header{
+  width: 626px;
+  height: 222px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.home-intro-text{
+  font-family: Inter;
+  font-size: 40px;
+  color: var(--brown-base);
+  line-height: 1.2;
+  height: 144px;
+  margin: 0px;
+}
+
+.home-description-text{
+  font-family: Inter;
+  font-weight: 300;
+  font-size: 20px;
+  height: 48px;
+  color: var(--brown-lighten-10);
+  margin: 0px;
+}
+
+.intro-explore{
+  font-weight: 300;
+}
+
+.intro-world{
+  font-weight: 600;
+}
+
+.intro-with{
+  font-weight: 300;
+}
+
+.intro-grapha{
+  font-weight: 600;
+  color: var(--primary2-base);
+}
+
+.intro-rna-web{
+  font-weight: 300;
+  color: var(--primary2-base);
+}
+
+@media (max-width: 768px) {
+  .home-container{
+    display: flex;
+    flex-direction: column;
+    padding-left: 87px;
+    width: 489px;
+  }
+
+  .home-buttons{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .home-description-text{
+    width: 489px;
+  }
+}

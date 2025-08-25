@@ -1,0 +1,71 @@
+@import './globals.css';
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: background-color 0.2s, color 0.2s;
+  outline: none;
+  cursor: pointer;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+
+}
+
+/* Primary filled*/
+.button--primary-filled {
+  background-color: var(--brown-lighten-5);
+  color: var(--background-base);
+}
+.button--primary-filled:hover {
+  background-color: black;
+}
+
+/* Primary outlined*/
+.button--primary-outlined {
+  border: 2px solid var(--brown-lighten-5);
+  color: var(--gray-500);
+  background-color: transparent;
+}
+.button--primary-outlined:hover {
+  background-color: black;
+  color: var(--background-base)
+}
+
+/* Green1 filled*/
+.button--green1-filled{  
+  background-color: var(--primary2-base);
+  color: var(--background-base);
+}
+.button--green1-filled:hover {
+  background-color: black;
+}
+
+/* Green2 filled*/
+.button--green2-filled{  
+  background-color: var(--primary2-darken-5);
+  color: var(--background-base);
+}
+.button--green2-filled:hover {
+  background-color: black;
+}
+
+/* Green3 filled*/
+.button--green3-filled{  
+  background-color: var(--primary2-darken-10);
+  color: var(--background-base);
+}
+.button--green3-filled:hover {
+  background-color: black;
+}
+
+.button-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
