@@ -13,7 +13,7 @@ export async function validateRNA(rna: string) {
 }
 
 
-export type SuggestedData = { seed: number; name: string };
+export type SuggestedData = { seed: number; job_name: string };
 
 export async function getSuggestedData(): Promise<SuggestedData> {
   const res = await fetch("/api/getSuggestedData", {
