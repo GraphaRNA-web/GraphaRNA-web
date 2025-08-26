@@ -27,7 +27,7 @@ helm repo update
 step certificate create root.linkerd.cluster.local ca.crt ca.key --profile root-ca --no-password --insecure
 step certificate create identity.linkerd.cluster.local issuer.crt issuer.key --profile intermediate-ca --not-after 8760h --no-password --insecure --ca ca.crt --ca-key ca.key
 
-# Install linkerd
+# Install linkerdW
 linkerd check --pre
 helm upgrade --install linkerd-crds linkerd-edge/linkerd-crds -n linkerd --create-namespace --force
 helm upgrade --install linkerd-control-plane linkerd-edge/linkerd-control-plane -n linkerd --set-file identityTrustAnchorsPEM=ca.crt --set-file identity.issuer.tls.crtPEM=issuer.crt --set-file identity.issuer.tls.keyPEM=issuer.key --set proxyInit.runAsRoot=true
