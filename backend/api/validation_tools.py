@@ -33,7 +33,7 @@ class RnaValidator:
             item for item in self.fasta_raw.split("\n") if (item != "" and item[0] != "#")
         ]  # remove empty lines and comments
 
-        potentialNameLines: list[str] = inputStructureSplit[0:-1:3]
+        potentialNameLines: list[str] = inputStructureSplit[::3]
         areNameLines: list[bool] = [i[0] == ">" for i in potentialNameLines]
         if all(areNameLines):  # check if all input lines contains strand names
             containsStrandNames: bool = True
@@ -192,4 +192,5 @@ class RnaValidator:
             "Incorrect Pairs": incorrectPairs,
             "Fix Suggested": fixSuggested,
         }
+
 
