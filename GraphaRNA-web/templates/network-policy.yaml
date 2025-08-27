@@ -17,7 +17,7 @@ spec:
   ingress: []
   egress:
     - to:
-        - namespaceSelector: {}
+      - namespaceSelector: {}
       ports:
         - protocol: UDP
           port: 53
