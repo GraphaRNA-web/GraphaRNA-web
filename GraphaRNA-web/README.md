@@ -1,4 +1,4 @@
-```# GraphaRNA-web — Deploy na Kubernetes
+# GraphaRNA-web — Deploy na Kubernetes
 
 This docs explains how to install GraphaRNA-web in Kubernetes cluster using Helm, Linkerd and Ingress NGINX.
 ---
@@ -21,13 +21,14 @@ In /GraphaRNA-web subfolder. Requires having built Docker images of backend fron
 helm repo add linkerd-edge https://helm.linkerd.io/edge
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 
 # Create linkerd certificates
 step certificate create root.linkerd.cluster.local ca.crt ca.key --profile root-ca --no-password --insecure
 step certificate create identity.linkerd.cluster.local issuer.crt issuer.key --profile intermediate-ca --not-after 8760h --no-password --insecure --ca ca.crt --ca-key ca.key
 
-# Install linkerdW
+# Install linkerd
 linkerd check --pre
 helm upgrade --install linkerd-crds linkerd-edge/linkerd-crds -n linkerd --create-namespace --force
 helm upgrade --install linkerd-control-plane linkerd-edge/linkerd-control-plane -n linkerd --set-file identityTrustAnchorsPEM=ca.crt --set-file identity.issuer.tls.crtPEM=issuer.crt --set-file identity.issuer.tls.keyPEM=issuer.key --set proxyInit.runAsRoot=true
@@ -37,8 +38,11 @@ linkerd check
 # (optional if errors)
 linkerd upgrade --crds | kubectl apply -f -
 
-# Install monitoring tools (and set the password)
+# Install monitoring tools (and set the password) kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --set grafana.adminPassword='admin' --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false
+
+# Loki + promtail (agent to get logs from pods): you can add it in dashboard and set http://loki-stack.monitoring.svc.cluster.local:3100
+helm upgrade --install loki-stack grafana/loki-stack -n monitoring --set grafana.enabled=false
 
 # Install the GraphaRNA-web app
 helm upgrade --install grapharna-web . -n grapharna --create-namespace
@@ -48,7 +52,12 @@ kubectl annotate namespace grapharna linkerd.io/inject=enabled --overwrite
 kubectl rollout restart deployment -n grapharna
 ```
 To check if the app works use `kubectl get all`, `linkerd check`
+
 To uninstall linkered use: `linkerd uninstall | kubectl delete -f - `, `kubectl delete namespace linkerd`
+
+Remember to apply migrations in backend: `kubectl exec -n grapharna -it backend-6778d7c699-4vnzs -c backend -- bash`
+
+When having service mesh enabled remember to add the `-c <container_name>` arg
 
 Later to install certificates it will be necessery to get:
 `helm install cert-manager oci://quay.io/jetstack/charts/cert-manager --version v1.18.2 --namespace cert-manager --create-namespace --set crds.enabled=true`
