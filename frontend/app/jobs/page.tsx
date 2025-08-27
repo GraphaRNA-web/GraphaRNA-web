@@ -1,15 +1,16 @@
 'use client';
 
-import {useState } from 'react';
+import { useState } from 'react';
+import { validateRNA, getSuggestedData, submitJobRequest } from "@/lib/api";
 import Modal from '../components/Modal';
 import Slider from '../components/Slider';
 import '../styles/jobs.css';
 import Button from '../components/Button';
 import StepsIndicator from '../components/StepsIndicator';
-import ErrorBox from '../components/ErrorBox';
 import TextArea from '../components/TextArea';
 import CustomCheckbox from '../components/CustomCheckbox';
 import IntegerField from '../components/IntegerField';
+import MessageBox from '../components/MessageBox';
 
 
 export default function Jobs() {
@@ -18,18 +19,20 @@ export default function Jobs() {
   const [currentStep, setCurrentStep] = useState(0);
   const [text, setText] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
-  const [autoSeed, setAutoSeed] = useState(false);
-  const [autoName, setAutoName] = useState(false);
-  const [seed, setSeed] = useState(25318);
-  const [jobname, setJobname] = useState("job-150625");
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [approves, setApproves] = useState<string[]>([]);
+  const [autoSeed, setAutoSeed] = useState(true);
+  const [autoName, setAutoName] = useState(true);
+  const [seed, setSeed] = useState(0);
+  const [jobname, setJobname] = useState("");
   const [email, setEmail] = useState("");
+  const [alternativeConformations, setAlternativeConformations] = useState(1);
 
 
   const allowedCharacters = /^[ACGUacgu(.)\s\n]*$/;
 
-  const dynamicHeight = 500 + 50 * errors.length
+  const dynamicHeight = 500 + 50 * errors.length + 50 * warnings.length + 50 * approves.length
 
-  const rnaValidator = (val: string) => /^[ACGUacgu(.)\s\n]*$/.test(val);
   const emailValidator = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
   const [structures, setStructures] = useState<string[]>([""]);
@@ -41,9 +44,7 @@ const validateStructures = (): boolean => {
     const trimmed = s.trim();
     if (trimmed === '') {
       newErrors.push(`Structure ${idx + 1} cannot be empty.`);
-    } else if (!allowedCharacters.test(trimmed)) {
-      newErrors.push(`Structure ${idx + 1} contains invalid characters.`);
-    }
+    } 
   });
 
   setErrors(newErrors);
@@ -62,51 +63,190 @@ const addStructure = () => {
 };
 
 
-const validateStructure = (): boolean => {
+const validateStructure = async (): Promise<boolean> => {
   if (inputFormat === "Text") {
-    const trimmedText = text.trim();
+    const trimmedText = text;
+    console.log("[validateStructure] start", { inputFormat, text });
+
+    // reset old communicates
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
 
     if (trimmedText === '') {
       setErrors(["Input cannot be empty."]);
       return false;
-    } else if (!allowedCharacters.test(trimmedText)) {
-      setErrors([
-        "Input contains invalid characters. Only A, C, G, U, spaces, dots, brackets and line breaks are allowed."
-      ]);
-      return false;
-    } else {
-      setErrors([]);
-      return true;
     }
-  } else if (inputFormat === "Interactive") {
-    return validateStructures();
+
+    try {
+      console.log("[validateStructure] calling validateRNA...");
+      const result = await validateRNA(trimmedText);
+
+      if (!result["Validation Result"]) {
+        let errorList: string[] = ["Validation failed on server"];
+
+        if (Array.isArray(result["Error List"]) && result["Error List"].length > 0) {
+          const flatErrors = result["Error List"].flat();
+          errorList = errorList.concat(flatErrors);
+        }
+
+        console.log("ErrorList: ", errorList);
+        setErrors(errorList);
+        return false;
+      }
+
+      // always set the input to be ready for the engine
+      setText(result["Validated RNA"]);
+
+      // jeśli backend zasugerował poprawkę → ustawiamy warning
+      if (result["Fix Suggested"] && result["Validated RNA"]) {
+          const warningsList: string[] = ["A fix was suggested by the server"];
+          if (result["Incorrect Pairs"]?.length > 0) {
+            const pairsMsg = result["Incorrect Pairs"]
+              .map((pair: [number, number]) => `[${pair[0]} - ${pair[1]}]`)
+              .join(", ");
+            warningsList.push(`Incorrect Pairs: ${pairsMsg}`);
+          }
+
+          if (result["Mismatching Brackets"]?.length > 0) {
+            const bracketMsg = result["Mismatching Brackets"]
+              .map((pos: number) => pos.toString())
+              .join(", ");
+            warningsList.push(`Mismatching bracket at positions: ${bracketMsg}`);
+          }
+          setWarnings(warningsList);
+        }
+
+      // jeśli brak błędów i brak warningów → approve
+      if (!result["Fix Suggested"]) {
+        setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
+      }
+
+      return true;
+    } catch (err: any) {
+      setErrors([err.message || "Server validation error"]);
+      return false;
+    }
   }
-  return true; // dla File nie ma walidacji tutaj
+
+  if (inputFormat === "Interactive") {
+
+    // reset old communicates
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
+
+    if (validateStructures()) {
+      const joinedText = structures.join("\n");
+      setText(joinedText);
+      try {
+        // send to backend for validation
+        console.log("[validateStructure] calling validateRNA...");
+        const result = await validateRNA(joinedText);
+
+        if (!result["Validation Result"]) {
+          const errorList: string[] = ["Validation failed on server"];
+
+          if (result["Error List"]?.length > 0) {
+            // dodajemy każdy błąd jako osobny wpis
+            result["Error List"].forEach((err: string) => {
+              errorList.push(err);
+            });
+          }
+
+          setErrors(errorList);
+          return false;
+        }
+
+        setErrors([]);
+        // always set the input to be ready for the engine
+        setText(result["Validated RNA"]);
+
+        // jeśli backend zasugerował poprawkę → ustawiamy warning
+        if (result["Fix Suggested"] && result["Validated RNA"]) {
+          const warningsList: string[] = ["A fix was suggested by the server"];
+          if (result["Incorrect Pairs"]?.length > 0) {
+            const pairsMsg = result["Incorrect Pairs"]
+              .map((pair: [number, number]) => `[${pair[0]} - ${pair[1]}]`)
+              .join(", ");
+            warningsList.push(`Incorrect Pairs: ${pairsMsg}`);
+          }
+
+          if (result["Mismatching Brackets"]?.length > 0) {
+            const bracketMsg = result["Mismatching Brackets"]
+              .map((pos: number) => pos.toString())
+              .join(", ");
+            warningsList.push(`Mismatching bracket at positions: ${bracketMsg}`);
+            }
+            setWarnings(warningsList);
+          }
+
+        // jeśli brak błędów i brak warningów → approve
+        if (!result["Fix Suggested"]) {
+          setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
+        }
+
+        return true;
+      } catch (err: any) {
+        setErrors([err.message || "Server validation error"]);
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
+  return true; // dla File brak walidacji
 };
 
-const handleNext = () => {
+const handleNext = async () => {
   if (currentStep === 0) {
-    const isValid = validateStructure();
+    const isValid = await validateStructure();
     if (isValid) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
+
+      try {
+        const data = await getSuggestedData();
+        if (typeof data?.seed === "number") setSeed(data.seed);
+        if (data?.job_name) setJobname(data.job_name);
+        setAutoSeed(true);
+        setAutoName(true);
+      } catch (e) {
+        setSeed(34404);
+        setJobname('job-150625');
+        setAutoSeed(true);
+        setAutoName(true);
+      }
     }
   } else {
-    setCurrentStep(prev => prev + 1);
+    setCurrentStep((prev) => prev + 1);
   }
 };
 
 
-  const handleSubmit = () => {
-    if (email === ""){
+  const handleSubmit = async () => {
+    if (email === "" || emailValidator(email)){
       setCurrentStep(prev => prev + 1)
+      try {
+        const response = await submitJobRequest({
+          fasta_raw: text,
+          seed: seed,
+          job_name: jobname,
+          email: email,
+          alternative_conformations: alternativeConformations,
+        });
+
+        console.log("[handleSubmit] job created:", response);
+        setApproves([`Job '${response.job_name}' submitted successfully.`]);
+        setCurrentStep(prev => prev + 1);
+      } catch (err: any) {
+        console.error("[handleSubmit] error", err);
+        setErrors([err.message]);
+      }
     }
     else{
-      if (emailValidator(email)){
-          setCurrentStep(prev => prev + 1)
-      }
-      else{
         setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
-      }
     }
   }
 
@@ -186,15 +326,26 @@ const handleNext = () => {
                     <div className="jp-add-structure" onClick={addStructure}>
                       <p>+</p>
                     </div>
-                    {errors.length > 0 && (
-                      <div className="jp-errors">
-                        <ErrorBox errors={errors} />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                  {errors.length > 0 && (
+                    <div className="jp-errors">
+                      <MessageBox type="error" messages={errors} />
+                    </div>
+                  )}
 
+                  {warnings.length > 0 && (
+                    <div className="jp-warnings">
+                      <MessageBox type="warning" messages={warnings} />
+                    </div>
+                  )}
+
+                  {approves.length > 0 && (
+                    <div className="jp-approves">
+                      <MessageBox type="approve" messages={approves} />
+                    </div>
+                  )}
+                    </div>
+                  </div>
+                )}
 
               {inputFormat === "Text" && (
                   <div className='jp-format-info'>
@@ -262,7 +413,19 @@ const handleNext = () => {
                 </div>
                 {errors.length > 0 && (
                   <div className="jp-errors">
-                    <ErrorBox errors={errors} />
+                    <MessageBox type="error" messages={errors} />
+                  </div>
+                )}
+
+                {warnings.length > 0 && (
+                  <div className="jp-warnings">
+                    <MessageBox type="warning" messages={warnings} />
+                  </div>
+                )}
+
+                {approves.length > 0 && (
+                  <div className="jp-approves">
+                    <MessageBox type="approve" messages={approves} />
                   </div>
                 )}
               </div>
@@ -345,14 +508,13 @@ const handleNext = () => {
 
                 {/* --- INTEGER FIELD --- */}
                 <div className='jp-alt-param'>
-                  #Alternative conformations
                   <IntegerField
                     min={1}
                     max={5}
                     width="975px"
                     height="50px"
-                    defaultValue={1}
-                    onChange={(val) => console.log("Nowa wartość:", val)}
+                    defaultValue={alternativeConformations}
+                    onChange={(val) => setAlternativeConformations(val)}
                   />
                 </div>
               </div>
@@ -404,7 +566,23 @@ const handleNext = () => {
                   />
                 {errors.length > 0 && (
                   <div className="jp-errors">
-                    <ErrorBox errors={errors} />
+                    {errors.length > 0 && (
+                      <div className="jp-errors">
+                        <MessageBox type="error" messages={errors} />
+                      </div>
+                    )}
+
+                    {warnings.length > 0 && (
+                      <div className="jp-warnings">
+                        <MessageBox type="warning" messages={warnings} />
+                      </div>
+                    )}
+
+                    {approves.length > 0 && (
+                      <div className="jp-approves">
+                        <MessageBox type="approve" messages={approves} />
+                      </div>
+                    )}
                   </div>
                 )}
                 </div>
