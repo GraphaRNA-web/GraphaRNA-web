@@ -31,7 +31,17 @@ def ValidateEmailAddress(email: Optional[str]) -> bool:
 example post
 {
 "RNA": ">example1\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
-}"""
+}
+response
+{
+    "Validation Result": true,
+    "Error List": [],
+    "Validated RNA": "GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
+    "Mismatching Brackets": [],
+    "Incorrect Pairs": [],
+    "Fix Suggested": false
+}
+"""
 
 
 @api_view(["POST"])
