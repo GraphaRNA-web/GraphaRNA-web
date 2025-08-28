@@ -63,23 +63,33 @@ def PostRnaValidation(request: Request) -> Response:
 """
 example post
 {
-  "bracket": "((((...(( ))...))))",
-  "RNA": "CGCGGAACG CGGGACGCG",
+  "fasta_raw": "CGCGGAACG CGGGACGCG\n((((...(( ))...))))",
   "seed": 123456,
   "job_name": "my_rna_job",
   "email": "user@example.com",
   "alternative_conformations": "2"
-}"""
+}
+response
+{
+    "success": true,
+    "Job": "my_rna_job"
+}
+"""
 """
 example post
 {
-  "bracket": "(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
-  "RNA": "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA",
+  "fasta_raw": "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
   "seed": 123456,
   "job_name": "my_rna_job",
   "email": "user@example.com",
   "alternative_conformations": "1"
-}"""
+}
+response
+{
+    "success": true,
+    "Job": "my_rna_job"
+}
+"""
 
 
 @api_view(["POST"])
