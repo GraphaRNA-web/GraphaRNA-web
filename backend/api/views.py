@@ -37,8 +37,8 @@ response
     "Validation Result": true,
     "Error List": [],
     "Validated RNA": "GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
-    "Mismatching Brackets": [],
-    "Incorrect Pairs": [],
+    "Mismatching Brackets": [], (list of indices of unclosed brackets)
+    "Incorrect Pairs": [], (list of tuples containing indices of incorrect pairs)
     "Fix Suggested": false
 }
 """
