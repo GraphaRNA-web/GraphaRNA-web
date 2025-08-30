@@ -22,13 +22,17 @@ spec:
         app.kubernetes.io/name: {{ .Values.frontend.name }}
     spec:
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 3000
+        runAsUser: 1001
+        runAsGroup: 1001
         fsGroup: 2000
       containers:
         - name: {{ .Values.frontend.name }}
           image: {{ .Values.frontend.image }}
           imagePullPolicy: {{ .Values.frontend.pullPolicy }}
+
+          envFrom:
+            - configMapRef:
+                name: frontend-config
 
           ports:
             - containerPort: {{ .Values.frontend.port }}
@@ -62,3 +66,4 @@ spec:
             capabilities:
               drop:
                 - ALL
+      volumes: 

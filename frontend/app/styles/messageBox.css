@@ -1,0 +1,45 @@
+.message-box {
+  width: 760px;
+  border-radius: 20px;
+  padding: 15px 30px;
+  font-family: Inter;
+  font-weight: 400;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.message-multiple {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message-line {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+}
+
+.message-header,
+.message-footer {
+  font-weight: 500;
+}
+
+/* Kolory dla typów */
+.message-box.error {
+  background-color: var(--primary1-lighten-25);
+  color: #8D2521;
+}
+
+.message-box.warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.message-box.approve {
+  background-color: #d4edda;
+  color: #155724;
+}

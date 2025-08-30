@@ -33,6 +33,7 @@ class RnaValidator:
             item
             for item in self.fasta_raw.split("\n")
             if (item != "" and item[0] != "#")
+
         ]  # remove empty lines and comments
 
         potentialNameLines: list[str] = inputStructureSplit[::3]
@@ -111,11 +112,15 @@ class RnaValidator:
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
             }
-
+          
         inputStr = self.parsedStructure
         rnaSplit: list[str] = inputStr.split("\n")
         rna: str = rnaSplit[0]
         dotBracket: str = rnaSplit[1]
+
+        validatedRna: str = ""
+        validationResult = False
+        fixSuggested: bool = False
 
         # length check
         if len(rna) == 0:
@@ -223,3 +228,4 @@ class RnaValidator:
             "Incorrect Pairs": incorrectPairs,
             "Fix Suggested": fixSuggested,
         }
+

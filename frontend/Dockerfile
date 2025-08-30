@@ -1,5 +1,4 @@
-# Źródło: https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile; https://nextjs.org/docs/app/getting-started/deploying
-
+#source: https://nextjs.org/docs/pages/getting-started/deploying#docker
 # syntax=docker.io/docker/dockerfile:1
 
 FROM node:18-alpine AS base

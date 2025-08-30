@@ -64,6 +64,9 @@ VALID_BRACKETS=()<>[]{}AaBbCcDd.
 VALID_NUCLEOTIDES=AUGC
 VALID_PAIRS = "GCCGAUUAGUUG"
 
+ENGINE_TEST_URL = http://grapharna-engine:8080/test
+ENGINE_URL = http://grapharna-engine:8080/test
+
 JOB_EXPIRATION_WEEKS=2
 
 MODEL_NAME=model_800.h5
