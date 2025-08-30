@@ -341,7 +341,7 @@ class PostRnaValidationTests(TestCase):
         self.assertEqual(response.data["Mismatching Brackets"], [])
         self.assertEqual(response.data["Incorrect Pairs"], [])
         self.assertEqual(response.data["Validated RNA"], "")
-    
+
     def test_unequal_rna_and_dotbracket_lengths(self):
         rna_input = ">example\nAUGC\n(...)"
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
@@ -351,7 +351,9 @@ class PostRnaValidationTests(TestCase):
         self.assertEqual(response.data["Mismatching Brackets"], [])
         self.assertEqual(response.data["Incorrect Pairs"], [])
         self.assertEqual(response.data["Validated RNA"], "")
-        self.assertIn("RNA and DotBracket not of equal lengths", response.data["Error List"])
+        self.assertIn(
+            "RNA and DotBracket not of equal lengths", response.data["Error List"]
+        )
 
     def test_rna_with_extra_spaces(self):
         rna_input = ">example\nA U G C\n( . . )"
@@ -362,7 +364,7 @@ class PostRnaValidationTests(TestCase):
         self.assertEqual(response.data["Incorrect Pairs"], [(0, 6)])
         self.assertEqual(response.data["Validated RNA"], "A U G C\n. . . .")
         self.assertTrue(response.data["Validation Result"])
-    
+
     def test_unclosed_opening_bracket(self):
         rna_input = ">example\nAUGC\n((.."
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
@@ -388,18 +390,14 @@ class PostRnaValidationTests(TestCase):
         self.assertTrue(response.data["Validation Result"])
 
     def test_long_valid_structure(self):
-        rna_input = (
-            "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))...."
-        )
+        rna_input = "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))...."
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
-    
+
     def test_long_invalid_structure(self):
-        rna_input = (
-            "aCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((.......))))))))))))...."
-        )
+        rna_input = "aCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((.......))))))))))))...."
         response = self.client.post(self.url, {"RNA": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
