@@ -31,7 +31,17 @@ def ValidateEmailAddress(email: Optional[str]) -> bool:
 example post
 {
 "RNA": ">example1\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
-}"""
+}
+response
+{
+    "Validation Result": true,
+    "Error List": [],
+    "Validated RNA": "GCGGAUUUAGCUCAGUUGGGAGAGCGCCAGACUGAAGAUCUGGAGGUCCUGUGUUCGAUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
+    "Mismatching Brackets": [], (list of indices of unclosed brackets)
+    "Incorrect Pairs": [], (list of tuples containing indices of incorrect pairs)
+    "Fix Suggested": false
+}
+"""
 
 
 @api_view(["POST"])
@@ -63,22 +73,33 @@ def PostRnaValidation(request: Request) -> Response:
 """
 example post
 {
-  "bracket": "((((...(( ))...))))",
-  "RNA": "CGCGGAACG CGGGACGCG",
+  "fasta_raw": "CGCGGAACG CGGGACGCG\n((((...(( ))...))))",
   "seed": 123456,
   "job_name": "my_rna_job",
   "email": "user@example.com",
   "alternative_conformations": "2"
-}"""
+}
+response
+{
+    "success": true,
+    "Job": "my_rna_job"
+}
+"""
 """
 example post
 {
-  "fasta_raw": ">job\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
+  "fasta_raw": "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))....",
   "seed": 123456,
   "job_name": "my_rna_job",
   "email": "user@example.com",
   "alternative_conformations": "1"
-}"""
+}
+response
+{
+    "success": true,
+    "Job": "my_rna_job"
+}
+"""
 
 
 @api_view(["POST"])
