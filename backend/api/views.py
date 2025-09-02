@@ -307,7 +307,7 @@ def TestRequest(request: Request) -> Response:
 
 
 class JobCursorPagination(CursorPagination):
-    page_size = 10
+    page_size = getattr(settings, 'DEFAULT_PAGINATION_SIZE', 10)
     ordering = '-created_at'
     cursor_query_param = 'cursor'
 
