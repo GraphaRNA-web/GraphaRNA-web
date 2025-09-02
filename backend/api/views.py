@@ -14,7 +14,8 @@ from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
-
+from django.db.models import Q
+from rest_framework.pagination import CursorPagination
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
@@ -278,10 +279,8 @@ def TestRequest(request: Request) -> Response:
     if not jobName:
         jobName = f"job-{today_str}-{count}"
 
-    # Manually create uuid (needed for file name before record creation)
     job_uuid: UUID = uuid4()
 
-    # Save rna to .dotseq file
     input_dir: str = "/shared/samples/engine_inputs"
     os.makedirs(input_dir, exist_ok=True)
     input_filename: str = f"{str(job_uuid)}.dotseq"
@@ -305,6 +304,20 @@ def TestRequest(request: Request) -> Response:
 
     return Response({"success": True, "Job": job.job_name})
 
+
+
+class JobCursorPagination(CursorPagination):
+    page_size = 10
+    ordering = '-created_at'
+    cursor_query_param = 'cursor'
+
+@api_view(["GET"])
+def getSortedJob(request: Request) -> Response:
+    data = Job.objects.filter(status__in=["Queued","Running"]).order_by('created_at').values()
+    paginator = JobCursorPagination()
+    page = paginator.paginate_queryset(data, request)
+    
+    return paginator.get_paginated_response(list(page))
 
 @api_view(["GET"])
 def healthcheck(request: Request) -> Response:
