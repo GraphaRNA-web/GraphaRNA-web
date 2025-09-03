@@ -14,7 +14,6 @@ from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
-from django.db.models import Q
 from rest_framework.pagination import CursorPagination
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
