@@ -31,12 +31,9 @@ def DownloadZipFile(request:Request)->HttpResponse:
     
     if job.status != "F":
         return HttpResponse("Job is not finished", status=400)
-    instance = JobResults.objects.get(job=job)  # lub inny sposób pobrania instancji
+    instance = JobResults.objects.get(job=job)
     filePathSecondary = instance.result_secondary_structure.path
     filePathTertiary = instance.result_tertiary_structure.path
-    # print(path)
-
-    # filePath=f"/shared/samples/engine_outputs/{job.job_name}-result_file.pdb"   ###TUTAJ SCIEZKA ORAZ NAZWA PLIKU!!!!!!!!
     if not os.path.exists(filePathSecondary):
         return HttpResponse("File does not exist", status=404)
     if not os.path.exists(filePathTertiary):
@@ -143,8 +140,6 @@ def ProcessRequestData(request: Request) -> Response:
             raise ValidationError("File have to be .fasta")
         content = rnaFile.read().decode()
         lines = content.strip().splitlines()
-        if len(lines) > 2:
-            return Response({'error': f'Invalid .fasta format {lines} {content}'}, status=status.HTTP_400_BAD_REQUEST)
         rna = lines[0].strip()
         bracket = lines[1].strip()
     

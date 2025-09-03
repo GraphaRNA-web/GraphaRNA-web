@@ -8,14 +8,15 @@ from typing import Dict, Any
 from webapp.models import Job
 import uuid
 from django.utils import timezone
+from django.urls import reverse
 
 
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = "/api/postRequestData/"
+        self.url = reverse("postRequestData")
         self.valid_data: Dict[str, Any] = {
-            "bracket": "(())",
+            "bracket": "((.))",
             "RNA": "AUGCUU",
             "email": "test@example.com",
             "seed": 12345,
@@ -122,16 +123,6 @@ class GetResultsTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
         self.url: str = "/api/getResults/"
-        # self.valid_data: Dict[str, Any] = {
-        #     "bracket": "(())",
-        #     "RNA": "AUGCUU",
-        #     "email": "test@example.com",
-        #     "seed": 12345,
-        #     "job_name": "job-test-1",
-        #     "alternative_conformations": 1
-        # }
-
-        
         self.job: MagicMock = MagicMock()
         self.job.uid = uuid.uuid4()
         self.job.input_structure.read.return_value = b">Job\nACBC"
@@ -220,11 +211,6 @@ class GetResultsTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
-
-
-
 
 class SuggestSeedAndJobNameTests(TestCase):
     def setUp(self) -> None:
