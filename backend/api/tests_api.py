@@ -93,7 +93,7 @@ class PostRnaDataTests(TestCase):
 class GetResultsTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = "/api/getResults/"
+        self.url: str = reverse("getResults")
 
         self.job: MagicMock = MagicMock()
         self.job.uid = uuid.uuid4()
@@ -104,13 +104,17 @@ class GetResultsTests(TestCase):
         self.job.created_at = timezone.now()
 
         self.job_results: list[MagicMock] = []
-        for i in range(5):
-            self.job_results.append(MagicMock())
-            self.job_results[i].job = self.job
-            self.job_results[i].completed_at = timezone.now()
-            self.job_results[i].result_tetriary_structure.read.return_value = (
-                b"HEADER RNA PDB"
-            )
+        for _ in range(3):
+            jr = MagicMock()
+            jr.job = self.job
+            jr.completed_at = timezone.now()
+            jr.result_tertiary_structure.read.return_value = b"HEADER RNA PDB"
+            jr.result_secondary_structure_dotseq.read.return_value = b"..((..)).."
+            jr.result_secondary_structure_svg.read.return_value = b"<svg></svg>"
+            jr.result_arc_diagram.read.return_value = b"<arc></arc>"
+            jr.f1 = 0.95
+            jr.inf = 0.85
+            self.job_results.append(jr)
 
     def test_valid_get_no_results(self) -> None:
 
@@ -131,7 +135,6 @@ class GetResultsTests(TestCase):
         self.assertEqual(
             data["input_structure"], self.job.input_structure.read().decode("UTF-8")
         )
-        self.assertEqual(data["seed"], self.job.seed)
         self.assertEqual(data["created_at"], self.job.created_at)
         self.assertEqual(data["result_list"], [])
 
@@ -155,22 +158,29 @@ class GetResultsTests(TestCase):
         self.assertEqual(
             data["input_structure"], self.job.input_structure.read().decode("UTF-8")
         )
-        self.assertEqual(data["seed"], self.job.seed)
         self.assertEqual(data["created_at"], self.job.created_at)
 
-        expected_results = []
-        for jr in self.job_results:
-            processing_time = jr.completed_at - self.job.created_at
-            expected_results.append(
-                {
-                    "completed_at": jr.completed_at,
-                    "result_tetriary_structure": jr.result_tetriary_structure.read().decode(
-                        "UTF-8"
-                    ),
-                    "processing_time": processing_time,
-                }
+        self.assertEqual(len(data["result_list"]), len(self.job_results))
+        for i, jr in enumerate(self.job_results):
+            result_item = data["result_list"][i]
+            self.assertEqual(
+                result_item["result_tetriary_structure"],
+                jr.result_tertiary_structure.read().decode("utf-8"),
             )
-        self.assertEqual(data["result_list"], expected_results)
+            self.assertEqual(
+                result_item["result_secondary_structure_dotseq"],
+                jr.result_secondary_structure_dotseq.read().decode("utf-8"),
+            )
+            self.assertEqual(
+                result_item["result_secondary_structure_svg"],
+                jr.result_secondary_structure_svg.read().decode("utf-8"),
+            )
+            self.assertEqual(
+                result_item["result_arc_diagram"],
+                jr.result_arc_diagram.read().decode("utf-8"),
+            )
+            self.assertEqual(result_item["f1"], jr.f1)
+            self.assertEqual(result_item["inf"], jr.inf)
 
     def test_invalid_uid(self) -> None:
         response: Response = self.client.get(self.url, {"uid": "1234"})
