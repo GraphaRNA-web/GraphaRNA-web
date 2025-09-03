@@ -313,13 +313,9 @@ class JobCursorPagination(CursorPagination):
 
 @api_view(["GET"])
 def getActiveJobs(request: Request) -> Response:
-    print(Job.objects.all())
     data = Job.objects.filter(status__in=["Q","P"]).order_by('created_at').values()
-    print(data)
     paginator = JobCursorPagination()
     page = paginator.paginate_queryset(data, request)
-    print(page)
-    print("test")
     return paginator.get_paginated_response(list(page))
 
 @api_view(["GET"])
