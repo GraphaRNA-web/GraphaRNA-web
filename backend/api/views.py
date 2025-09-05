@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
+from django.core.files.uploadedfile import UploadedFile
 
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
@@ -104,7 +105,9 @@ response
 
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
-    fasta_raw: str = request.data.get("fasta_raw")
+    """Allows for uploading .fasta files"""
+    fasta_raw: Optional[str] = request.data.get("fasta_raw")
+    fasta_file: Optional[UploadedFile] = request.data.get("fasta_file")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
@@ -112,18 +115,29 @@ def ProcessRequestData(request: Request) -> Response:
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
-    if fasta_raw is None:
+    sequence_raw: str = "" 
+
+    if fasta_raw is None and fasta_file is None:
         return Response(
-            {"success": False, "error": "Brak danych RNA."},
+            {"success": False, "error": "Missing RNA data."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+    elif fasta_raw is not None and fasta_file is not None:
+         return Response(
+            {"success": False, "error": "RNA can be send via text or file not both."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    elif fasta_raw is None and fasta_file is not None:
+        sequence_raw = fasta_file.read().decode("utf-8")
+    else:
+        sequence_raw = fasta_raw
 
     try:
         seed: int = int(seed_raw)
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
 
-    validator: RnaValidator = RnaValidator(fasta_raw)
+    validator: RnaValidator = RnaValidator(sequence_raw)
     validationResult = validator.ValidateRna()
 
     if not validationResult["Validation Result"]:
@@ -134,7 +148,7 @@ def ProcessRequestData(request: Request) -> Response:
 
     if not ValidateEmailAddress(email):
         return Response(
-            {"success": False, "error": "Niepoprawna forma emaila."},
+            {"success": False, "error": "Incorrect email format."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
