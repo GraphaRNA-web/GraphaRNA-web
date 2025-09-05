@@ -53,7 +53,6 @@ class PostRnaDataTests(TestCase):
         self.assertTrue(Job.objects.filter(job_name="job-test-1").exists())
         self.assertTrue(response.data["success"])
 
-    
     def test_valid_post_with_file(self) -> None:
         data = self.valid_data.copy()
         del data["fasta_raw"]
@@ -64,14 +63,16 @@ class PostRnaDataTests(TestCase):
         self.assertIn("Job", response.data)
         self.assertTrue(response.data["success"])
         self.assertTrue(Job.objects.filter(job_name="job-test-1").exists())
-    
+
     def test_invalid_post_with_file_and_text(self) -> None:
         data = self.valid_data.copy()
         data["fasta_file"] = self.mock_fasta_file
 
         response: Response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data["error"], "RNA can be send via text or file not both.")
+        self.assertEqual(
+            response.data["error"], "RNA can be send via text or file not both."
+        )
         self.assertFalse(response.data["success"])
 
     def test_missing_rna(self) -> None:
@@ -82,7 +83,6 @@ class PostRnaDataTests(TestCase):
         self.assertIn("error", response.data)
         self.assertFalse(response.data["success"])
 
-
     def test_missing_email(self) -> None:
         data = self.valid_data.copy()
         del data["email"]
@@ -91,7 +91,6 @@ class PostRnaDataTests(TestCase):
         self.assertIn("error", response.data)
         self.assertFalse(response.data["success"])
 
-
     def test_invalid_email(self) -> None:
         data = self.valid_data.copy()
         data["email"] = "XYZABC"
@@ -99,7 +98,6 @@ class PostRnaDataTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
         self.assertFalse(response.data["success"])
-
 
     def test_missing_optional_seed_and_job_name(self) -> None:
         data: Dict[str, Any] = {
@@ -112,7 +110,6 @@ class PostRnaDataTests(TestCase):
         self.assertIn("Job", response.data)
         self.assertTrue(response.data["success"])
 
-
     def test_seed_as_string(self) -> None:
         data = self.valid_data.copy()
         data["seed"] = "XYZABC123"
@@ -120,7 +117,6 @@ class PostRnaDataTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("Job", response.data)
         self.assertTrue(response.data["success"])
-
 
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)

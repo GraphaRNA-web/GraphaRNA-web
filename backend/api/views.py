@@ -115,7 +115,7 @@ def ProcessRequestData(request: Request) -> Response:
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
-    sequence_raw: str = "" 
+    sequence_raw: str = ""
 
     if fasta_raw is None and fasta_file is None:
         return Response(
@@ -123,13 +123,14 @@ def ProcessRequestData(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
     elif fasta_raw is not None and fasta_file is not None:
-         return Response(
+        return Response(
             {"success": False, "error": "RNA can be send via text or file not both."},
             status=status.HTTP_400_BAD_REQUEST,
         )
     elif fasta_raw is None and fasta_file is not None:
         sequence_raw = fasta_file.read().decode("utf-8")
     else:
+        assert fasta_raw is not None
         sequence_raw = fasta_raw
 
     try:
