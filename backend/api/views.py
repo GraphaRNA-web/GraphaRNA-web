@@ -194,65 +194,73 @@ def GetResults(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
-
+    finish_time: datetime | None = None
     results_list: list = []
 
-    seed_counter: int = job.seed
 
-    finish_time: datetime = datetime(2000, 1, 1)
-    finish_time = timezone.make_aware(finish_time)
+    if job.status == "F":
+        job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
 
-    for result in job_results_qs:
-        try:
-            result_tertiatiary_structure: str = (
-                result.result_tertiary_structure.read().decode("utf-8")
+
+        seed_counter: int = job.seed
+
+
+        for result in job_results_qs:
+            try:
+                result_tertiatiary_structure: str = (
+                    result.result_tertiary_structure.read().decode("utf-8")
+                )
+            except Exception as e:
+                result_tertiatiary_structure = f"[Error reading file: {str(e)}]"
+
+            try:
+                result_secondary_structure_dotseq: str = (
+                    result.result_secondary_structure_dotseq.read().decode("utf-8")
+                )
+            except Exception as e:
+                result_secondary_structure_dotseq = f"[Error reading file: {str(e)}]"
+
+            try:
+                result_secondary_structure_svg: str = (
+                    result.result_secondary_structure_svg.read().decode("utf-8")
+                )
+            except Exception as e:
+                result_secondary_structure_svg = f"[Error reading file: {str(e)}]"
+
+            try:
+                result_arc_diagram: str = result.result_arc_diagram.read().decode("utf-8")
+            except Exception as e:
+                result_arc_diagram = f"[Error reading file: {str(e)}]"
+
+            if not finish_time:
+                finish_time = result.completed_at
+            elif result.completed_at > finish_time:
+                finish_time = result.completed_at
+
+            results_list.append(
+                {
+                    "completed_at": result.completed_at,
+                    "result_tetriary_structure": result_tertiatiary_structure,
+                    "result_secondary_structure_dotseq": result_secondary_structure_dotseq,
+                    "result_secondary_structure_svg": result_secondary_structure_svg,
+                    "result_arc_diagram": result_arc_diagram,
+                    "f1": result.f1,
+                    "inf": result.inf,
+                    "seed": seed_counter,
+                }
             )
-        except Exception as e:
-            result_tertiatiary_structure = f"[Error reading file: {str(e)}]"
-
-        try:
-            result_secondary_structure_dotseq: str = (
-                result.result_secondary_structure_dotseq.read().decode("utf-8")
-            )
-        except Exception as e:
-            result_secondary_structure_dotseq = f"[Error reading file: {str(e)}]"
-
-        try:
-            result_secondary_structure_svg: str = (
-                result.result_secondary_structure_svg.read().decode("utf-8")
-            )
-        except Exception as e:
-            result_secondary_structure_svg = f"[Error reading file: {str(e)}]"
-
-        try:
-            result_arc_diagram: str = result.result_arc_diagram.read().decode("utf-8")
-        except Exception as e:
-            result_arc_diagram = f"[Error reading file: {str(e)}]"
-
-        if result.completed_at > finish_time:
-            finish_time = result.completed_at
-
-        results_list.append(
-            {
-                "completed_at": result.completed_at,
-                "result_tetriary_structure": result_tertiatiary_structure,
-                "result_secondary_structure_dotseq": result_secondary_structure_dotseq,
-                "result_secondary_structure_svg": result_secondary_structure_svg,
-                "result_arc_diagram": result_arc_diagram,
-                "f1": result.f1,
-                "inf": result.inf,
-                "seed": seed_counter,
-            }
-        )
-        seed_counter += 1
+            seed_counter += 1
+    
 
     try:
         input_structure: str = job.input_structure.read().decode("utf-8")
     except Exception as e:
         input_structure = f"[Error reading file: {str(e)}]"
 
-    processing_time = finish_time - job.created_at
+    processing_time = (
+        (finish_time - job.created_at) if finish_time else None
+    )
+
 
     return Response(
         {

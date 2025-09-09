@@ -98,7 +98,7 @@ class GetResultsTests(TestCase):
         self.job: MagicMock = MagicMock()
         self.job.uid = uuid.uuid4()
         self.job.input_structure.read.return_value = b">Job\nACBC"
-        self.job.status = "Q"
+        self.job.status = "F"
         self.job.job_name = "Job"
         self.job.seed = 42
         self.job.created_at = timezone.now()
@@ -139,6 +139,7 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["result_list"], [])
 
     def test_valid_get_with_results(self) -> None:
+
         mock_full_qs = MagicMock()
         mock_full_qs.__iter__.return_value = iter(self.job_results)
         mock_full_qs.count.return_value = len(self.job_results)
@@ -158,7 +159,7 @@ class GetResultsTests(TestCase):
         self.assertEqual(
             data["input_structure"], self.job.input_structure.read().decode("UTF-8")
         )
-        self.assertEqual(data["created_at"], self.job.created_at)
+
 
         self.assertEqual(len(data["result_list"]), len(self.job_results))
         for i, jr in enumerate(self.job_results):
@@ -181,6 +182,35 @@ class GetResultsTests(TestCase):
             )
             self.assertEqual(result_item["f1"], jr.f1)
             self.assertEqual(result_item["inf"], jr.inf)
+        
+
+    def test_unfinished_job(self) -> None:
+        self.job.status = "Q"
+
+        mock_qs = MagicMock()
+        mock_qs.__iter__.return_value = iter(self.job_results)
+
+        with patch("api.views.Job.objects.get", return_value=self.job), patch(
+            "api.views.JobResults.objects.filter", return_value=mock_qs
+        ):
+            response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.data
+
+        self.assertTrue(data["success"])
+        self.assertEqual(data["status"], self.job.status)
+        self.assertEqual(data["job_name"], self.job.job_name)
+        self.assertEqual(
+            data["input_structure"], self.job.input_structure.read().decode("utf-8")
+        )
+        self.assertEqual(data["created_at"], self.job.created_at)
+
+        self.assertEqual(data["result_list"], [])
+
+
+        
 
     def test_invalid_uid(self) -> None:
         response: Response = self.client.get(self.url, {"uid": "1234"})
