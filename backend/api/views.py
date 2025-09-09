@@ -7,7 +7,6 @@ from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
 from typing import Optional
 import random
-from django.utils import timezone
 from datetime import date, datetime
 from webapp.models import Job, JobResults
 from webapp.tasks import run_grapharna_task, test_grapharna_run
@@ -197,13 +196,10 @@ def GetResults(request: Request) -> Response:
     finish_time: datetime | None = None
     results_list: list = []
 
-
     if job.status == "F":
         job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
 
-
         seed_counter: int = job.seed
-
 
         for result in job_results_qs:
             try:
@@ -228,7 +224,9 @@ def GetResults(request: Request) -> Response:
                 result_secondary_structure_svg = f"[Error reading file: {str(e)}]"
 
             try:
-                result_arc_diagram: str = result.result_arc_diagram.read().decode("utf-8")
+                result_arc_diagram: str = result.result_arc_diagram.read().decode(
+                    "utf-8"
+                )
             except Exception as e:
                 result_arc_diagram = f"[Error reading file: {str(e)}]"
 
@@ -250,17 +248,13 @@ def GetResults(request: Request) -> Response:
                 }
             )
             seed_counter += 1
-    
 
     try:
         input_structure: str = job.input_structure.read().decode("utf-8")
     except Exception as e:
         input_structure = f"[Error reading file: {str(e)}]"
 
-    processing_time = (
-        (finish_time - job.created_at) if finish_time else None
-    )
-
+    processing_time = (finish_time - job.created_at) if finish_time else None
 
     return Response(
         {

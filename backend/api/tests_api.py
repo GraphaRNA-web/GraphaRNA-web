@@ -160,7 +160,6 @@ class GetResultsTests(TestCase):
             data["input_structure"], self.job.input_structure.read().decode("UTF-8")
         )
 
-
         self.assertEqual(len(data["result_list"]), len(self.job_results))
         for i, jr in enumerate(self.job_results):
             result_item = data["result_list"][i]
@@ -182,7 +181,6 @@ class GetResultsTests(TestCase):
             )
             self.assertEqual(result_item["f1"], jr.f1)
             self.assertEqual(result_item["inf"], jr.inf)
-        
 
     def test_unfinished_job(self) -> None:
         self.job.status = "Q"
@@ -208,9 +206,6 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["created_at"], self.job.created_at)
 
         self.assertEqual(data["result_list"], [])
-
-
-        
 
     def test_invalid_uid(self) -> None:
         response: Response = self.client.get(self.url, {"uid": "1234"})
