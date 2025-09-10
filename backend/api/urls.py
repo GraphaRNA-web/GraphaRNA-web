@@ -7,7 +7,7 @@ urlpatterns = [
     path("postRequestData/", api.views.ProcessRequestData, name="postRequestData"),
     path("hello/", api.views.hello_view),
     path("healthcheck/", api.views.healthcheck),
-    path("getResults/", api.views.GetResults),
+    path("getResults/", api.views.GetResults, name="getResults"),
     path("testRequest/", api.views.TestRequest),
     path("getSuggestedSeedAndJobName/", api.views.GetSuggestedSeedAndJobName),
     path("testEngineRun/", api.views.testEngineRun),

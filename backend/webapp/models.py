@@ -54,6 +54,20 @@ class JobResults(models.Model):
     result_secondary_structure_svg: models.FileField = models.FileField(null=True)
     result_tertiary_structure: models.FileField = models.FileField()
     result_arc_diagram: models.FileField = models.FileField(null=True)
+    f1: models.FloatField = models.FloatField(
+        null=True,
+        validators=[
+            MinValueValidator(0, message="Value f1 can't be lower than 0"),
+            MaxValueValidator(1, message="Value f1 can't be higher than 1"),
+        ],
+    )
+    inf: models.FloatField = models.FloatField(
+        null=True,
+        validators=[
+            MinValueValidator(0, message="Value f1 can't be lower than 0"),
+            MaxValueValidator(1, message="Value f1 can't be higher than 1"),
+        ],
+    )
 
     def __str__(self) -> str:
         return str(self.result_tertiary_structure)
