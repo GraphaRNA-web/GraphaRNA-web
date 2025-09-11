@@ -7,7 +7,7 @@ from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
 from typing import Optional
 import random
-from datetime import date, datetime
+from datetime import date
 from webapp.models import Job, JobResults
 from webapp.tasks import run_grapharna_task, test_grapharna_run
 from uuid import UUID, uuid4
@@ -244,7 +244,6 @@ def GetResults(request: Request) -> Response:
             except Exception as e:
                 result_arc_diagram = f"[Error reading file: {str(e)}]"
 
-
             results_list.append(
                 {
                     "completed_at": result.completed_at,
@@ -255,7 +254,7 @@ def GetResults(request: Request) -> Response:
                     "f1": result.f1,
                     "inf": result.inf,
                     "seed": seed_counter,
-                    "processing_time": result.processing_time
+                    "processing_time": result.processing_time,
                 }
             )
             seed_counter += 1
@@ -264,7 +263,6 @@ def GetResults(request: Request) -> Response:
         input_structure: str = job.input_structure.read().decode("utf-8")
     except Exception as e:
         input_structure = f"[Error reading file: {str(e)}]"
-
 
     return Response(
         {

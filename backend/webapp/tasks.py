@@ -17,7 +17,6 @@ from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
 
 
-
 def log_to_file(message: str) -> None:
     ts = datetime.now().isoformat()
     with open("/shared/celery_debug.log", "a") as f:
@@ -146,9 +145,13 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
         processing_end: datetime = timezone.now()
         try:
-            job_result_qs: QuerySet = JobResults.objects.filter(job__exact = job_data)
-            if job_result_qs.count() + 1 == job_data.alternative_conformations: # check if current job result is the last one
-                job_data.sum_processing_time = sum([i.processing_time for i in job_result_qs], timedelta()) + (processing_end - processing_start)
+            job_result_qs: QuerySet = JobResults.objects.filter(job__exact=job_data)
+            if (
+                job_result_qs.count() + 1 == job_data.alternative_conformations
+            ):  # check if current job result is the last one
+                job_data.sum_processing_time = sum(
+                    [i.processing_time for i in job_result_qs], timedelta()
+                ) + (processing_end - processing_start)
                 job_data.save()
             JobResults.objects.create(
                 job=job_data,
@@ -157,7 +160,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 result_secondary_structure_svg=relative_path_svg,
                 result_arc_diagram=relative_path_arc,
                 completed_at=processing_end,
-                processing_time=(processing_end - processing_start)
+                processing_time=(processing_end - processing_start),
             )
         except Exception as e:
             logger.exception(f"Failed to create JobResults: {str(e)}")

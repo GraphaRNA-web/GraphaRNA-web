@@ -4,7 +4,14 @@ from .models import Job, JobResults
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ("uid", "job_name", "email", "created_at", "expires_at", "sum_processing_time")
+    list_display = (
+        "uid",
+        "job_name",
+        "email",
+        "created_at",
+        "expires_at",
+        "sum_processing_time",
+    )
     search_fields = ("job_name", "email")
 
 
@@ -17,6 +24,6 @@ class JobResultsAdmin(admin.ModelAdmin):
         "result_secondary_structure_svg",
         "result_tertiary_structure",
         "result_arc_diagram",
-        "processing_time"
+        "processing_time",
     )
     search_fields = ("result_tertiary_structure",)
