@@ -23,6 +23,7 @@ class Job(models.Model):
     email: models.CharField = models.CharField(max_length=255, null=True, blank=True)
     created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
     expires_at: models.DateTimeField = models.DateTimeField(null=True)
+    sum_processing_time: models.DurationField = models.DurationField(null=True)
     status: models.TextField = models.TextField(choices=STATUS)
     alternative_conformations: models.IntegerField = models.IntegerField(
         validators=[
@@ -68,6 +69,7 @@ class JobResults(models.Model):
             MaxValueValidator(1, message="Value f1 can't be higher than 1"),
         ],
     )
+    processing_time: models.DurationField = models.DurationField(null=True)
 
     def __str__(self) -> str:
         return str(self.result_tertiary_structure)

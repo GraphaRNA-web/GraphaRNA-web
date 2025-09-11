@@ -14,6 +14,8 @@ from webapp.visualization_tools import (
     getDotBracket,
 )
 from celery.utils.log import get_task_logger
+from django.db.models.query import QuerySet
+
 
 
 def log_to_file(message: str) -> None:
@@ -74,6 +76,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     engine_url = settings.ENGINE_URL
 
     for i in range(job_data.alternative_conformations):
+        processing_start: datetime = timezone.now()
         response = requests.post(
             engine_url,
             data={"uuid": uuid_str, "seed": seed + i},
@@ -140,14 +143,21 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             secondary_structure_svg_path, settings.MEDIA_ROOT
         )
         relative_path_arc = os.path.relpath(arc_diagram_path, settings.MEDIA_ROOT)
+
+        processing_end: datetime = timezone.now()
         try:
+            job_result_qs: QuerySet = JobResults.objects.filter(job__exact = job_data)
+            if job_result_qs.count() + 1 == job_data.alternative_conformations: # check if current job result is the last one
+                job_data.sum_processing_time = sum([i.processing_time for i in job_result_qs], timedelta()) + (processing_end - processing_start)
+                job_data.save()
             JobResults.objects.create(
                 job=job_data,
                 result_tertiary_structure=relative_path_pdb,
                 result_secondary_structure_dotseq=relative_path_dotseq,
                 result_secondary_structure_svg=relative_path_svg,
                 result_arc_diagram=relative_path_arc,
-                completed_at=timezone.now(),
+                completed_at=processing_end,
+                processing_time=(processing_end - processing_start)
             )
         except Exception as e:
             logger.exception(f"Failed to create JobResults: {str(e)}")
