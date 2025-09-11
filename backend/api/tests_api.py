@@ -480,6 +480,15 @@ class PostRnaValidationTests(TestCase):
         self.assertFalse(response.data["Validation Result"])
         self.assertIn("Parsing error: Wrong line order", response.data["Error List"])
 
+    def test_invalid_bracket_edge_case(self):
+        rna_input = ">example1\nAG\nqq"
+        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertIn(
+            "DotBracket contains invalid brackets: q", response.data["Error List"]
+        )
+
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
