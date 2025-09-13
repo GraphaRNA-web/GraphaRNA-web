@@ -317,6 +317,15 @@ def getActiveJobs(request: Request) -> Response:
     page = paginator.paginate_queryset(data, request)
     return paginator.get_paginated_response(list(page))
 
+
+@api_view(["GET"])
+def getFinishedJobs(request: Request) -> Response:
+    data = Job.objects.filter(status__in=["F"]).order_by('created_at').values()
+    paginator = JobCursorPagination()
+    page = paginator.paginate_queryset(data, request)
+    return paginator.get_paginated_response(list(page))
+
+
 @api_view(["GET"])
 def healthcheck(request: Request) -> Response:
     return Response(status=status.HTTP_200_OK)
