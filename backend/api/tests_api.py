@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import MagicMock, mock_open, patch
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -135,6 +135,7 @@ class GetResultsTests(TestCase):
         self.job.job_name = "Job"
         self.job.seed = 42
         self.job.created_at = timezone.now()
+        self.job.sum_processing_time = timedelta(minutes=5)
 
         self.job_results: list[MagicMock] = []
         for _ in range(3):
@@ -147,6 +148,7 @@ class GetResultsTests(TestCase):
             jr.result_arc_diagram.read.return_value = b"<arc></arc>"
             jr.f1 = 0.95
             jr.inf = 0.85
+            jr.processing_time = timedelta(minutes=1)
             self.job_results.append(jr)
 
     def test_valid_get_no_results(self) -> None:
@@ -169,6 +171,7 @@ class GetResultsTests(TestCase):
             data["input_structure"], self.job.input_structure.read().decode("UTF-8")
         )
         self.assertEqual(data["created_at"], self.job.created_at)
+        self.assertEqual(data["sum_processing_time"], self.job.sum_processing_time)
         self.assertEqual(data["result_list"], [])
 
     def test_valid_get_with_results(self) -> None:
@@ -189,6 +192,7 @@ class GetResultsTests(TestCase):
         self.assertTrue(data["success"])
         self.assertEqual(data["status"], self.job.status)
         self.assertEqual(data["job_name"], self.job.job_name)
+        self.assertEqual(data["sum_processing_time"], self.job.sum_processing_time)
         self.assertEqual(
             data["input_structure"], self.job.input_structure.read().decode("UTF-8")
         )
@@ -237,7 +241,7 @@ class GetResultsTests(TestCase):
             data["input_structure"], self.job.input_structure.read().decode("utf-8")
         )
         self.assertEqual(data["created_at"], self.job.created_at)
-
+        self.assertEqual(data["sum_processing_time"], self.job.sum_processing_time)
         self.assertEqual(data["result_list"], [])
 
     def test_invalid_uid(self) -> None:

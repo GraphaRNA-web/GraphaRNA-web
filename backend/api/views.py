@@ -7,7 +7,7 @@ from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
 from typing import Optional
 import random
-from datetime import date, datetime
+from datetime import date
 from webapp.models import Job, JobResults
 from webapp.tasks import run_grapharna_task, test_grapharna_run
 from uuid import UUID, uuid4
@@ -208,7 +208,6 @@ def GetResults(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    finish_time: datetime | None = None
     results_list: list = []
 
     if job.status == "F":
@@ -245,11 +244,6 @@ def GetResults(request: Request) -> Response:
             except Exception as e:
                 result_arc_diagram = f"[Error reading file: {str(e)}]"
 
-            if not finish_time:
-                finish_time = result.completed_at
-            elif result.completed_at > finish_time:
-                finish_time = result.completed_at
-
             results_list.append(
                 {
                     "completed_at": result.completed_at,
@@ -260,6 +254,7 @@ def GetResults(request: Request) -> Response:
                     "f1": result.f1,
                     "inf": result.inf,
                     "seed": seed_counter,
+                    "processing_time": result.processing_time,
                 }
             )
             seed_counter += 1
@@ -269,8 +264,6 @@ def GetResults(request: Request) -> Response:
     except Exception as e:
         input_structure = f"[Error reading file: {str(e)}]"
 
-    processing_time = (finish_time - job.created_at) if finish_time else None
-
     return Response(
         {
             "success": True,
@@ -278,7 +271,7 @@ def GetResults(request: Request) -> Response:
             "job_name": job.job_name,
             "input_structure": input_structure,
             "created_at": job.created_at,
-            "processing_time": processing_time,
+            "sum_processing_time": job.sum_processing_time,
             "result_list": results_list,
         }
     )
