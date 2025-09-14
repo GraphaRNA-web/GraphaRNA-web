@@ -135,3 +135,13 @@
 .vwm-btn.confirm:hover {
   background: #234100;
 }
+
+.rna-error {
+  color: #8D2521;
+  font-weight: bold;
+}
+
+.rna-fix {
+  color: #155724; 
+  font-weight: bold;
+}

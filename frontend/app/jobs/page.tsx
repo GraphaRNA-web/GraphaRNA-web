@@ -32,7 +32,9 @@ export default function Jobs() {
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
   const [nextPending, setNextPending] = useState(false);
-
+  const [structures, setStructures] = useState<string[]>([""]);
+  const [mismatchingBrackets, setMismatchingBrackets] = useState<number[]>([]);
+  const [incorrectPairs, setIncorrectPairs] = useState<[number, number][]>([]);
 
   const allowedCharacters = /^[ACGUacgu(.)\s\n]*$/;
 
@@ -40,7 +42,6 @@ export default function Jobs() {
 
   const emailValidator = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
-  const [structures, setStructures] = useState<string[]>([""]);
 
 const validateStructures = (): boolean => {
   const newErrors: string[] = [];
@@ -87,6 +88,9 @@ const validateStructure = async () : Promise<boolean> => {
       console.log("[validateStructure] calling validateRNA...");
       const result = await validateRNA(trimmedText);
 
+      setMismatchingBrackets(result["Mismatching Brackets"] || []);
+      setIncorrectPairs(result["Incorrect Pairs"] || []);
+
       if (!result["Validation Result"]) {
         let errorList: string[] = [];
 
@@ -132,21 +136,31 @@ const validateStructure = async () : Promise<boolean> => {
     if (validateStructures()) {
       // znormalizowany format
       const normalized = structures
-        .map((s, idx) => {
-          const lines = s.trim().split("\n");
-          if (lines[0].startsWith(">")) {
-            return s.trim();
-          } else {
-            return `>auto${idx + 1}\n${s.trim()}`;
-          }
-        })
-        .join("\n");
+      .map((s, idx) => {
+        const lines = s
+          .split("\n")
+          .map(l => l.trim())
+          .filter(l => l !== "" && !l.startsWith("#"));
 
-      setText(normalized);
+        if (lines.length === 0) return "";
+
+        if (lines[0].startsWith(">")) {
+          return lines.join("\n");
+        } else {
+          return `>auto${idx + 1}\n${lines.join("\n")}`;
+        }
+      })
+      .filter(block => block !== "")
+      .join("\n");
+
+      setText(normalized)
 
       try {
         console.log("[validateStructure] calling validateRNA...");
         const result = await validateRNA(normalized);
+
+        setMismatchingBrackets(result["Mismatching Brackets"] || []);
+        setIncorrectPairs(result["Incorrect Pairs"] || []);
 
         if (!result["Validation Result"]) {
           const errorList: string[] = [];
@@ -600,8 +614,21 @@ const goNext = async () => {
             setNextPending(false);
           }}
           onConfirm={() => {
+            // jeśli user klika Agree
             setText(correctedText);
+
+            if (inputFormat === "Interactive") {
+              // podmiana structures na poprawione
+              const blocks = correctedText
+                .split("\n>")
+                .map((b, i) => (i === 0 ? b : ">" + b)) // zachowaj '>' dla kolejnych
+                .filter((b) => b.trim() !== "");
+
+              setStructures(blocks);
+            }
+
             setShowValidation(false);
+
             if (nextPending) {
               goNext();
             }
@@ -609,6 +636,8 @@ const goNext = async () => {
           }}
           text={text}
           correctedText={correctedText}
+          mismatchingBrackets={mismatchingBrackets}
+          incorrectPairs={incorrectPairs}
         />
       </div>
     </div>
