@@ -11,6 +11,8 @@ import TextArea from '../components/TextArea';
 import CustomCheckbox from '../components/CustomCheckbox';
 import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
+import ValidationWarningModal from "../components/ValidationWarningModal";
+
 
 
 export default function Jobs() {
@@ -18,6 +20,8 @@ export default function Jobs() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [text, setText] = useState('');
+  const [correctedText, setCorrectedText] = useState('');
+  const [showValidation, setShowValidation] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [approves, setApproves] = useState<string[]>([]);
@@ -27,11 +31,12 @@ export default function Jobs() {
   const [jobname, setJobname] = useState("");
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
+  const [nextPending, setNextPending] = useState(false);
 
 
   const allowedCharacters = /^[ACGUacgu(.)\s\n]*$/;
 
-  const dynamicHeight = 500 + 50 * errors.length + 50 * warnings.length + 50 * approves.length
+  const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
   const emailValidator = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
@@ -63,7 +68,7 @@ const addStructure = () => {
 };
 
 
-const validateStructure = async (): Promise<boolean> => {
+const validateStructure = async () : Promise<boolean> => {
   if (inputFormat === "Text") {
     const trimmedText = text;
     console.log("[validateStructure] start", { inputFormat, text });
@@ -83,7 +88,7 @@ const validateStructure = async (): Promise<boolean> => {
       const result = await validateRNA(trimmedText);
 
       if (!result["Validation Result"]) {
-        let errorList: string[] = ["Validation failed on server"];
+        let errorList: string[] = [];
 
         if (Array.isArray(result["Error List"]) && result["Error List"].length > 0) {
           const flatErrors = result["Error List"].flat();
@@ -96,29 +101,19 @@ const validateStructure = async (): Promise<boolean> => {
       }
 
       // always set the input to be ready for the engine
-      setText(result["Validated RNA"]);
+      setCorrectedText(result["Validated RNA"]);
 
       // jeśli backend zasugerował poprawkę → ustawiamy warning
+      
       if (result["Fix Suggested"] && result["Validated RNA"]) {
-          const warningsList: string[] = ["A fix was suggested by the server"];
-          if (result["Incorrect Pairs"]?.length > 0) {
-            const pairsMsg = result["Incorrect Pairs"]
-              .map((pair: [number, number]) => `[${pair[0]} - ${pair[1]}]`)
-              .join(", ");
-            warningsList.push(`Incorrect Pairs: ${pairsMsg}`);
-          }
-
-          if (result["Mismatching Brackets"]?.length > 0) {
-            const bracketMsg = result["Mismatching Brackets"]
-              .map((pos: number) => pos.toString())
-              .join(", ");
-            warningsList.push(`Mismatching bracket at positions: ${bracketMsg}`);
-          }
-          setWarnings(warningsList);
-        }
+        setText(trimmedText);
+        setCorrectedText(result["Validated RNA"]);
+        setShowValidation(true);
+      }
 
       // jeśli brak błędów i brak warningów → approve
       if (!result["Fix Suggested"]) {
+        setText(correctedText)
         setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
       }
 
@@ -130,60 +125,53 @@ const validateStructure = async (): Promise<boolean> => {
   }
 
   if (inputFormat === "Interactive") {
-
-    // reset old communicates
     setErrors([]);
     setWarnings([]);
     setApproves([]);
 
     if (validateStructures()) {
-      const joinedText = structures.join("\n");
-      setText(joinedText);
+      // znormalizowany format
+      const normalized = structures
+        .map((s, idx) => {
+          const lines = s.trim().split("\n");
+          if (lines[0].startsWith(">")) {
+            return s.trim();
+          } else {
+            return `>auto${idx + 1}\n${s.trim()}`;
+          }
+        })
+        .join("\n");
+
+      setText(normalized);
+
       try {
-        // send to backend for validation
         console.log("[validateStructure] calling validateRNA...");
-        const result = await validateRNA(joinedText);
+        const result = await validateRNA(normalized);
 
         if (!result["Validation Result"]) {
-          const errorList: string[] = ["Validation failed on server"];
-
+          const errorList: string[] = [];
           if (result["Error List"]?.length > 0) {
-            // dodajemy każdy błąd jako osobny wpis
             result["Error List"].forEach((err: string) => {
               errorList.push(err);
             });
           }
-
           setErrors(errorList);
           return false;
         }
 
         setErrors([]);
-        // always set the input to be ready for the engine
-        setText(result["Validated RNA"]);
+        setCorrectedText(result["Validated RNA"]);
 
-        // jeśli backend zasugerował poprawkę → ustawiamy warning
         if (result["Fix Suggested"] && result["Validated RNA"]) {
-          const warningsList: string[] = ["A fix was suggested by the server"];
-          if (result["Incorrect Pairs"]?.length > 0) {
-            const pairsMsg = result["Incorrect Pairs"]
-              .map((pair: [number, number]) => `[${pair[0]} - ${pair[1]}]`)
-              .join(", ");
-            warningsList.push(`Incorrect Pairs: ${pairsMsg}`);
-          }
+          setCorrectedText(result["Validated RNA"]);
+          setShowValidation(true);
+        }
 
-          if (result["Mismatching Brackets"]?.length > 0) {
-            const bracketMsg = result["Mismatching Brackets"]
-              .map((pos: number) => pos.toString())
-              .join(", ");
-            warningsList.push(`Mismatching bracket at positions: ${bracketMsg}`);
-            }
-            setWarnings(warningsList);
-          }
-
-        // jeśli brak błędów i brak warningów → approve
         if (!result["Fix Suggested"]) {
-          setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
+          setText(correctedText)
+          setApproves([
+            "Validation passed successfully. Input was parsed to the engine's format.",
+          ]);
         }
 
         return true;
@@ -192,9 +180,6 @@ const validateStructure = async (): Promise<boolean> => {
         return false;
       }
     }
-    else {
-      return false;
-    }
   }
 
   return true; // dla File brak walidacji
@@ -202,27 +187,28 @@ const validateStructure = async (): Promise<boolean> => {
 
 const handleNext = async () => {
   if (currentStep === 0) {
-    const isValid = await validateStructure();
-    if (isValid) {
-      setCurrentStep((prev) => prev + 1);
-
-      try {
-        const data = await getSuggestedData();
-        if (typeof data?.seed === "number") setSeed(data.seed);
-        if (data?.job_name) setJobname(data.job_name);
-        setAutoSeed(true);
-        setAutoName(true);
-      } catch (e) {
-        setSeed(34404);
-        setJobname('job-150625');
-        setAutoSeed(true);
-        setAutoName(true);
-      }
-    }
+    setNextPending(true);
+    await validateStructure();
   } else {
-    setCurrentStep((prev) => prev + 1);
+    goNext();
   }
 };
+
+const goNext = async () => {
+  setCurrentStep((prev) => prev + 1);
+  try {
+    const data = await getSuggestedData();
+    if (typeof data?.seed === "number") setSeed(data.seed);
+    if (data?.job_name) setJobname(data.job_name);
+    setAutoSeed(true);
+    setAutoName(true);
+  } catch (e) {
+    setSeed(34404);
+    setJobname("job-150625");
+    setAutoSeed(true);
+    setAutoName(true);
+  }
+  };
 
 
   const handleSubmit = async () => {
@@ -326,15 +312,10 @@ const handleNext = async () => {
                     <div className="jp-add-structure" onClick={addStructure}>
                       <p>+</p>
                     </div>
+
                   {errors.length > 0 && (
                     <div className="jp-errors">
                       <MessageBox type="error" messages={errors} />
-                    </div>
-                  )}
-
-                  {warnings.length > 0 && (
-                    <div className="jp-warnings">
-                      <MessageBox type="warning" messages={warnings} />
                     </div>
                   )}
 
@@ -411,15 +392,10 @@ const handleNext = async () => {
                     placeholder={`CGCGGAACG CGGGACGCG\n((((...(( ))...))))`}
                   />
                 </div>
+
                 {errors.length > 0 && (
                   <div className="jp-errors">
                     <MessageBox type="error" messages={errors} />
-                  </div>
-                )}
-
-                {warnings.length > 0 && (
-                  <div className="jp-warnings">
-                    <MessageBox type="warning" messages={warnings} />
                   </div>
                 )}
 
@@ -617,7 +593,25 @@ const handleNext = async () => {
             <p>{email} {text} {seed} {jobname} {structures}</p>
           </div>
         )}
+        <ValidationWarningModal
+          isOpen={showValidation}
+          onClose={() => {
+            setShowValidation(false);
+            setNextPending(false);
+          }}
+          onConfirm={() => {
+            setText(correctedText);
+            setShowValidation(false);
+            if (nextPending) {
+              goNext();
+            }
+            setNextPending(false);
+          }}
+          text={text}
+          correctedText={correctedText}
+        />
       </div>
     </div>
+    
   );
 }

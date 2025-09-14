@@ -25,7 +25,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({ type, messages }) => {
   };
 
   const footers: Record<MessageType, string> = {
-    error: "Correct the errors",
+    error: "Please correct the errors!",
     warning: "",
     approve: ""
   };
