@@ -15,7 +15,7 @@ import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
 from django.core.files.uploadedfile import UploadedFile 
-from django.core.files import File
+# from django.core.files import File
 import zipfile
 import io
 from django.http import HttpResponse
