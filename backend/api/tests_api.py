@@ -121,35 +121,6 @@ class PostRnaDataTests(TestCase):
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-    # def test_empty_bracket(self) -> None:
-    #     data = self.valid_data.copy()
-    #     data["bracket"] = ""
-    #     response: Response = self.client.post(self.url, data, format="json")
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #     self.assertIn("error", response.data)
-
-    # def test_missing_bracket(self) -> None:
-    #     data = self.valid_data.copy()
-    #     del data["bracket"]
-    #     response: Response = self.client.post(self.url, data, format="json")
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #     self.assertIn("error", response.data)
-
-    # def test_invalid_bracket(self) -> None:
-    #     data = self.valid_data.copy()
-    #     data["bracket"] = "jfeoew"
-    #     response: Response = self.client.post(self.url, data, format="json")
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #     self.assertIn("error", response.data)
-
-    # def test_valid_bracket(self) -> None:
-    #     data = self.valid_data.copy()
-    #     data["RNA"] = "AUGCUU"
-    #     data["bracket"] = "((..))"
-    #     response: Response = self.client.post(self.url, data, format="json")
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertIn("Job", response.data)
-    #PRZEDAWNIONE TESTY
 
 
 class GetResultsTests(TestCase):

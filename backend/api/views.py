@@ -14,8 +14,7 @@ from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
-from django.core.files.uploadedfile import UploadedFile 
-# from django.core.files import File
+from django.core.files.uploadedfile import UploadedFile
 import zipfile
 import io
 from django.http import HttpResponse
@@ -151,7 +150,6 @@ def ProcessRequestData(request: Request) -> Response:
     """Allows for uploading .fasta files"""
     fasta_raw: Optional[str] = request.data.get("fasta_raw")
     fasta_file: Optional[UploadedFile] = request.FILES.get("fasta_file")
-    # fasta_files = request.FILES.getlist("fasta_file")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
