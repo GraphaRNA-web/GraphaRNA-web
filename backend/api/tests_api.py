@@ -305,11 +305,11 @@ class PostRnaValidationTests(TestCase):
         response = self.client.post(self.url, {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["success"])
-        self.assertEqual(response.data["error"], "Brak danych RNA.")
+        self.assertEqual(response.data["error"], "Missing RNA data.")
 
     def test_valid_rna_and_dotbracket(self):
         rna_input = ">example1\nAGC UUU\n(.. ..)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
@@ -319,7 +319,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_valid_rna_and_dotbracket_with_t(self):
         rna_input = ">example1\nAGC UUT\n(.. ..)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
@@ -329,7 +329,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_valid_rna_and_dotbracket_multiple_strands(self):
         rna_input = ">example1\nAGC UUU\n(.. ..)\n>example1\nAGC UUU\n(.. ..)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
@@ -341,7 +341,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_empty_rna_data(self):
         rna_input = ""
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
@@ -352,7 +352,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_invalid_nucleotide(self):
         rna_input = ">example1\nAGC TXG\n(.. ..)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
@@ -363,7 +363,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_invalid_dotbracket(self):
         rna_input = ">example1\nAGC UUG\n(.. .X)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
@@ -376,7 +376,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_mismatched_brackets(self):
         rna_input = ">example1\nAGC UUG\n(.. .))"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
         self.assertTrue(response.data["Fix Suggested"])
@@ -384,7 +384,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_incorrect_rna_pairs(self):
         rna_input = ">example1\nUGC UUU\n(.. ..)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
         self.assertTrue(response.data["Fix Suggested"])
@@ -392,7 +392,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_inconsistant_strand_naming(self):
         rna_input = ">example1\nAGC\n(..\nUUG\n.X)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
@@ -405,7 +405,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_whitespace_only_rna(self):
         rna_input = "   \n   "
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertIn("Invalid data", response.data["Error List"])
@@ -416,7 +416,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_unequal_rna_and_dotbracket_lengths(self):
         rna_input = ">example\nAUGC\n(...)"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
@@ -429,7 +429,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_rna_with_extra_spaces(self):
         rna_input = ">example\nA U G C\n( . . )"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Fix Suggested"])
         self.assertEqual(response.data["Mismatching Brackets"], [])
@@ -439,7 +439,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_unclosed_opening_bracket(self):
         rna_input = ">example\nAUGC\n((.."
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Fix Suggested"])
         self.assertEqual(response.data["Validated RNA"], "AUGC\n....")
@@ -448,7 +448,7 @@ class PostRnaValidationTests(TestCase):
 
     def test_missing_dotbracket_line(self):
         rna_input = ">example\nAUGC"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertIn("Parsing error: Missing Lines", response.data["Error List"])
@@ -457,20 +457,20 @@ class PostRnaValidationTests(TestCase):
         rna_seq = "A" * 10000
         dotbracket = "." * 10000
         rna_input = f">long\n{rna_seq}\n{dotbracket}"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
 
     def test_long_valid_structure(self):
         rna_input = "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))...."
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
         self.assertFalse(response.data["Fix Suggested"])
 
     def test_long_invalid_structure(self):
         rna_input = "aCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((.......))))))))))))...."
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["Validation Result"])
         self.assertTrue(response.data["Fix Suggested"])
@@ -479,14 +479,14 @@ class PostRnaValidationTests(TestCase):
 
     def test_incorrect_order(self):
         rna_input = ">example1\nAGC\n(..\n>idk\n.X)\nUUG"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertIn("Parsing error: Wrong line order", response.data["Error List"])
 
     def test_invalid_bracket_edge_case(self):
         rna_input = ">example1\nAG\nqq"
-        response = self.client.post(self.url, {"RNA": rna_input}, format="json")
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
         self.assertIn(

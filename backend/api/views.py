@@ -15,6 +15,7 @@ import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
 from django.core.files.uploadedfile import UploadedFile
+from .api_docs import process_request_data_schema, validate_rna_schema
 
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
@@ -45,17 +46,31 @@ response
 """
 
 
+@validate_rna_schema
 @api_view(["POST"])
 def PostRnaValidation(request: Request) -> Response:
-    rna = request.data.get("RNA")
-    if rna is None:
+    """Validates RNA sequence and dot-bracket notation, returns validation results and suggested fix if applicable."""
+    fasta_raw: Optional[str] = request.data.get("fasta_raw")
+    fasta_file: Optional[UploadedFile] = request.data.get("fasta_file")
+    sequence_raw: str = ""
+
+    if fasta_raw is None and fasta_file is None:
         return Response(
-            {"success": False, "error": "Brak danych RNA."},
+            {"success": False, "error": "Missing RNA data."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+    elif fasta_raw is not None and fasta_file is not None:
+        return Response(
+            {"success": False, "error": "RNA can be send via text or file not both."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    elif fasta_raw is None and fasta_file is not None:
+        sequence_raw = fasta_file.read().decode("utf-8")
+    else:
+        assert fasta_raw is not None
+        sequence_raw = fasta_raw
 
-    rna_str: str = rna
-    validator: RnaValidator = RnaValidator(rna_str)
+    validator: RnaValidator = RnaValidator(sequence_raw)
     results: dict = validator.ValidateRna()
 
     if results["Validation Result"]:
@@ -100,12 +115,32 @@ response
     "success": true,
     "Job": "my_rna_job"
 }
+
+post
+seed: 123456
+job_name:my_rna_job
+email:user@example.com
+alternative_conformations: 4
+fasta_raw:CGCGGAACG CGGGACGCX↵((((...(( ))...))))
+response
+{
+    "Validation Result": false,
+    "Error List": [
+        "RNA contains invalid characters: X"
+    ],
+    "Validated RNA": "",
+    "Mismatching Brackets": [],
+    "Incorrect Pairs": [],
+    "Fix Suggested": false
+}
 """
 
 
+@process_request_data_schema
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
-    """Allows for uploading .fasta files"""
+    """Allows for uploading RNA data via raw text or file, validates it, creates a Job and triggers the processing task.
+    If RNA validation fails but a fix is possible, job will be created with that fix."""
     fasta_raw: Optional[str] = request.data.get("fasta_raw")
     fasta_file: Optional[UploadedFile] = request.data.get("fasta_file")
     seed_raw = request.data.get("seed")
@@ -132,6 +167,9 @@ def ProcessRequestData(request: Request) -> Response:
     else:
         assert fasta_raw is not None
         sequence_raw = fasta_raw
+
+    if job_alternative_conformations is None:
+        job_alternative_conformations = 1
 
     try:
         seed: int = int(seed_raw)
@@ -289,12 +327,6 @@ def GetSuggestedSeedAndJobName(request: Request) -> Response:
         {"success": True, "seed": seed, "job_name": jobName},
         status=status.HTTP_200_OK,
     )
-
-
-@api_view(["GET"])
-def hello_view(request: Request) -> Response:
-    name: str = request.GET.get("name", "Guest")
-    return Response({"message": f"Cześć, {name}!"})
 
 
 @api_view(["POST"])
