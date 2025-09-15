@@ -11,5 +11,6 @@ urlpatterns = [
     path("testRequest/", api.views.TestRequest),
     path("getSuggestedSeedAndJobName/", api.views.GetSuggestedSeedAndJobName),
     path("testEngineRun/", api.views.testEngineRun),
-    path("ActiveJobs/", api.views.getActiveJobs, name="getActiveJobs"),
+    path("activeJobs/", api.views.getActiveJobs, name="getActiveJobs"),
+    path("finishedJobs/", api.views.getFinishedJobs, name="getFinishedJobs"),
 ]

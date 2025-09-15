@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-# from kombu import Queue
+from kombu import Queue
 
 # Load .env variables
 load_dotenv()
@@ -154,7 +154,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Celery settings
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://guest:guest@rabbitmq:5672//")
 CELERY_RESULT_BACKEND = "rpc://"
-# CELERY_TASK_QUEUES = (Queue("grapharna", durable=True),)
+CELERY_TASK_QUEUES = (Queue("grapharna", durable=True),)
 CELERY_TASK_QUEUES = (),
 
 CELERY_TASK_DEFAULT_QUEUE = "grapharna"
