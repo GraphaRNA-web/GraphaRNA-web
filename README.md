@@ -82,8 +82,8 @@ To run the Django Project run command:
 
 ## Documentations
 
-Swagger documentation visible at /swagger/, /swagger.json/ and /swagger.yaml/ 
-Redoc documentation at /redoc/ 
+Swagger documentation visible at ```/swagger/```, ```/swagger.json/``` and ```/swagger.yaml/``` 
+Redoc documentation at ```/redoc/``` 
 
 ## Code Audit
 
