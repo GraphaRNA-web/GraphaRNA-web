@@ -68,7 +68,7 @@ class PostRnaDataTests(TestCase):
         data = self.valid_data.copy()
         data["fasta_file"] = self.mock_fasta_file
 
-        response: Response = self.client.post(self.url, data, format="json")
+        response: Response = self.client.post(self.url, data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["error"], "RNA can be send via text or file not both."
@@ -262,8 +262,6 @@ class GetResultsTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-
 class SuggestSeedAndJobNameTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
@@ -305,7 +303,7 @@ class PostRnaValidationTests(TestCase):
         response = self.client.post(self.url, {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["success"])
-        self.assertEqual(response.data["error"], "Brak danych RNA.")
+        self.assertEqual(response.data["error"], "No data.")
 
     def test_valid_rna_and_dotbracket(self):
         rna_input = ">example1\nAGC UUU\n(.. ..)"

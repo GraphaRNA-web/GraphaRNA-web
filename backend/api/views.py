@@ -15,7 +15,49 @@ import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
 from django.core.files.uploadedfile import UploadedFile
+import zipfile
+import io
+from django.http import HttpResponse
 
+
+@api_view(["GET"])
+def DownloadZipFile(request:Request)->HttpResponse:
+    uuid = request.query_params.get("uuid")
+    if not uuid:
+        return HttpResponse("UUID error", status=400)
+    try:
+        job = Job.objects.get(pk=uuid)
+    except Job.DoesNotExist:
+        return HttpResponse("Job not found", status=404)
+    
+    if job.status != "F":
+        return HttpResponse("Job is not finished", status=400)
+    instance = JobResults.objects.get(job=job)
+    filePathSecondaryDotseq = instance.result_secondary_structure_dotseq.path
+    filePathSecondarySvg = instance.result_secondary_structure_svg.path
+    filePathTertiary = instance.result_tertiary_structure.path
+    if not os.path.exists(filePathSecondaryDotseq):
+        return HttpResponse("File does not exist", status=404)
+    if not os.path.exists(filePathSecondarySvg):
+        return HttpResponse("File does not exist", status=404)
+    if not os.path.exists(filePathTertiary):
+        return HttpResponse("File does not exist", status=404)
+
+
+    
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        with open(filePathSecondaryDotseq, "rb") as f:
+            zip_file.writestr(instance.result_secondary_structure_dotseq.name, f.read())
+        with open(filePathSecondarySvg, "rb") as f:
+            zip_file.writestr(instance.result_secondary_structure_svg.name, f.read())
+        with open(filePathTertiary, "rb") as f:
+            zip_file.writestr(instance.result_tertiary_structure.name, f.read())
+    zip_buffer.seek(0)
+
+    response = HttpResponse(zip_buffer.read(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{job.job_name}-result.zip"'
+    return response
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
@@ -50,7 +92,7 @@ def PostRnaValidation(request: Request) -> Response:
     rna = request.data.get("RNA")
     if rna is None:
         return Response(
-            {"success": False, "error": "Brak danych RNA."},
+            {"success": False, "error": "No data."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -107,7 +149,7 @@ response
 def ProcessRequestData(request: Request) -> Response:
     """Allows for uploading .fasta files"""
     fasta_raw: Optional[str] = request.data.get("fasta_raw")
-    fasta_file: Optional[UploadedFile] = request.data.get("fasta_file")
+    fasta_file: Optional[UploadedFile] = request.FILES.get("fasta_file")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
@@ -115,6 +157,10 @@ def ProcessRequestData(request: Request) -> Response:
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
+    if fasta_file is not None:
+        if not fasta_file.name or not fasta_file.name.endswith('.fasta'):
+            raise ValidationError("File have to be .fasta")
+        
     sequence_raw: str = ""
 
     if fasta_raw is None and fasta_file is None:
@@ -156,10 +202,8 @@ def ProcessRequestData(request: Request) -> Response:
     if not jobName:
         jobName = f"job-{today_str}-{count}"
 
-    # Manually create uuid (needed for file name before record creation)
     job_uuid: UUID = uuid4()
 
-    # Save rna to .dotseq file
     input_dir: str = "/shared/samples/engine_inputs"
     os.makedirs(input_dir, exist_ok=True)
     input_filename: str = f"{str(job_uuid)}.dotseq"
