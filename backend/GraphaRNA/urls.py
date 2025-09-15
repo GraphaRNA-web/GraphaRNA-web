@@ -23,12 +23,9 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        #  add your swagger doc title
-        title="Showroom API",
-        #  version of the swagger doc
+        title="GraphaRNA API",
         default_version="v1",
-        # first line that appears on the top of the doc
-        description="Test description",
+        description="Swagger documentation for GraphaRNA API",
     ),
     public=True,
 )

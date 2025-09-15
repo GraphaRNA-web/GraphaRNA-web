@@ -92,17 +92,17 @@ process_request_data_schema = swagger_auto_schema(
                     ),
                     "Fix Suggested": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                 },
-                examples={
-                    "application/json": {
-                        "Validation Result": False,
-                        "Error List": ["RNA contains invalid characters: X"],
-                        "Validated RNA": "",
-                        "Mismatching Brackets": [],
-                        "Incorrect Pairs": [],
-                        "Fix Suggested": False,
-                    }
-                },
             ),
+            examples={
+                "application/json": {
+                    "Validation Result": False,
+                    "Error List": ["RNA contains invalid characters: X"],
+                    "Validated RNA": "",
+                    "Mismatching Brackets": [],
+                    "Incorrect Pairs": [],
+                    "Fix Suggested": False,
+                }
+            },
         ),
     },
 )
@@ -204,5 +204,134 @@ validate_rna_schema = swagger_auto_schema(
                 }
             },
         ),
+    },
+)
+get_results_schema = swagger_auto_schema(
+    method="get",
+    manual_parameters=[
+        openapi.Parameter(
+            "uid",
+            openapi.IN_QUERY,
+            description="Job UID (UUID)",
+            type=openapi.TYPE_STRING,
+            required=True,
+            example="fdf137ee-4765-4347-876c-a8a7a4cf57ae",
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="Job results fetched successfully",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "status": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Job status: P (Processing), F (Finished), E (Error)",
+                    ),
+                    "job_name": openapi.Schema(type=openapi.TYPE_STRING),
+                    "input_structure": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Input RNA structure in FASTA format",
+                    ),
+                    "created_at": openapi.Schema(
+                        type=openapi.TYPE_STRING, format="date-time"
+                    ),
+                    "sum_processing_time": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Total processing time (timedelta, formatted as 'HH:MM:SS.ssssss')",
+                    ),
+                    "result_list": openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                "completed_at": openapi.Schema(
+                                    type=openapi.TYPE_STRING, format="date-time"
+                                ),
+                                "result_tetriary_structure": openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                "result_secondary_structure_dotseq": openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                "result_secondary_structure_svg": openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                "result_arc_diagram": openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                                "f1": openapi.Schema(type=openapi.TYPE_NUMBER),
+                                "inf": openapi.Schema(type=openapi.TYPE_NUMBER),
+                                "seed": openapi.Schema(type=openapi.TYPE_INTEGER),
+                                "processing_time": openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    description="Processing time for this result (timedelta, formatted as 'HH:MM:SS.ssssss')",
+                                ),
+                            },
+                        ),
+                    ),
+                },
+            ),
+            examples={
+                "application/json": {
+                    "success": True,
+                    "status": "F",
+                    "job_name": "my_rna_job",
+                    "input_structure": ">my_rna_job\nACGC\n....",
+                    "created_at": "2025-09-15T21:27:57.298011Z",
+                    "sum_processing_time": "4.530384",
+                    "result_list": [
+                        {
+                            "completed_at": "2025-09-15T21:28:01.851603Z",
+                            "result_tetriary_structure": "HEADER",
+                            "result_secondary_structure_dotseq": ">strand_A\nAUCG\n....\n",
+                            "result_secondary_structure_svg": '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">...</svg>',
+                            "result_arc_diagram": '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">...</svg>',
+                            "f1": None,
+                            "inf": None,
+                            "seed": 123456,
+                            "processing_time": "4.530384",
+                        }
+                    ],
+                }
+            },
+        ),
+        400: openapi.Response(
+            description="Invalid UID or job not found",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "error": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+            examples={
+                "application/json": {"success": False, "error": "Job doesn't exist"},
+            },
+        ),
+    },
+)
+get_suggested_seed_and_job_name_schema = swagger_auto_schema(
+    method="get",
+    responses={
+        200: openapi.Response(
+            description="Suggested seed and job name",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "seed": openapi.Schema(type=openapi.TYPE_INTEGER),
+                    "job_name": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+            examples={
+                "application/json": {
+                    "success": True,
+                    "seed": 123456789,
+                    "job_name": "job-20250915-2",
+                }
+            },
+        )
     },
 )

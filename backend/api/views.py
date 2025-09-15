@@ -9,13 +9,18 @@ from typing import Optional
 import random
 from datetime import date
 from webapp.models import Job, JobResults
-from webapp.tasks import run_grapharna_task, test_grapharna_run
+from webapp.tasks import run_grapharna_task
 from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
 from django.core.files.uploadedfile import UploadedFile
-from .api_docs import process_request_data_schema, validate_rna_schema
+from .api_docs import (
+    process_request_data_schema,
+    validate_rna_schema,
+    get_results_schema,
+    get_suggested_seed_and_job_name_schema,
+)
 
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
@@ -225,6 +230,7 @@ def ProcessRequestData(request: Request) -> Response:
     return Response({"success": True, "Job": job.job_name})
 
 
+@get_results_schema
 @api_view(["GET"])
 def GetResults(request: Request) -> Response:
     """Returns details and list of results of a job with a given uid"""
@@ -315,9 +321,10 @@ def GetResults(request: Request) -> Response:
     )
 
 
+@get_suggested_seed_and_job_name_schema
 @api_view(["GET"])
 def GetSuggestedSeedAndJobName(request: Request) -> Response:
-
+    """Generates and returns a random seed and a suggested job name based on current date and existing jobs."""
     seed = random.randint(1, 100_000_000_0)
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
@@ -329,71 +336,6 @@ def GetSuggestedSeedAndJobName(request: Request) -> Response:
     )
 
 
-@api_view(["POST"])
-def TestRequest(request: Request) -> Response:
-    bracket: Optional[str] = request.data.get("bracket")
-    rna: Optional[str] = request.data.get("RNA")
-    seed_raw = request.data.get("seed")
-    jobName: Optional[str] = request.data.get("job_name")
-    email: Optional[str] = request.data.get("email")
-    today_str = date.today().strftime("%Y%m%d")
-    count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
-
-    try:
-        seed: int = int(seed_raw)
-    except (TypeError, ValueError):
-        seed = random.randint(1, 1000000000)
-
-    """if not RnaValidation(rna):
-        return Response(
-            {"success": False, "error": "Niepoprawna sekwencja RNA."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )"""
-
-    if not ValidateEmailAddress(email):
-        return Response(
-            {"success": False, "error": "Niepoprawna forma emaila."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if not jobName:
-        jobName = f"job-{today_str}-{count}"
-
-    # Manually create uuid (needed for file name before record creation)
-    job_uuid: UUID = uuid4()
-
-    # Save rna to .dotseq file
-    input_dir: str = "/shared/samples/engine_inputs"
-    os.makedirs(input_dir, exist_ok=True)
-    input_filename: str = f"{str(job_uuid)}.dotseq"
-    input_filepath: str = os.path.join(input_dir, input_filename)
-
-    dotseq_data = f">{jobName}\n{rna}\n{bracket}"
-
-    with open(input_filepath, "w") as f:
-        f.write(dotseq_data)
-
-    relative_path = os.path.relpath(input_filepath, settings.MEDIA_ROOT)
-
-    job = Job.objects.create(
-        uid=job_uuid,
-        input_structure=relative_path,
-        seed=seed,
-        job_name=jobName,
-        email=email,
-        status="Q",
-    )
-
-    return Response({"success": True, "Job": job.job_name})
-
-
 @api_view(["GET"])
 def healthcheck(request: Request) -> Response:
     return Response(status=status.HTTP_200_OK)
-
-
-@api_view(["POST"])
-def testEngineRun(request: Request) -> Response:
-    response = test_grapharna_run()
-    assert response == "OK"
-    return Response({"success": True})
