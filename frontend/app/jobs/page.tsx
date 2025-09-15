@@ -22,6 +22,7 @@ export default function Jobs() {
   const [text, setText] = useState('');
   const [correctedText, setCorrectedText] = useState('');
   const [showValidation, setShowValidation] = useState(false);
+  const [showValidationNext, setShowValidationNext] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [approves, setApproves] = useState<string[]>([]);
@@ -31,7 +32,6 @@ export default function Jobs() {
   const [jobname, setJobname] = useState("");
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
-  const [nextPending, setNextPending] = useState(false);
   const [structures, setStructures] = useState<string[]>([""]);
   const [mismatchingBrackets, setMismatchingBrackets] = useState<number[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<[number, number][]>([]);
@@ -68,8 +68,9 @@ const addStructure = () => {
   setStructures([...structures, ""]);
 };
 
+type ValidationResult = "error" | "warning" | "ok";
 
-const validateStructure = async () : Promise<boolean> => {
+const validateStructure = async (fromNext = false) : Promise<ValidationResult> => {
   if (inputFormat === "Text") {
     const trimmedText = text;
     console.log("[validateStructure] start", { inputFormat, text });
@@ -81,7 +82,7 @@ const validateStructure = async () : Promise<boolean> => {
 
     if (trimmedText === '') {
       setErrors(["Input cannot be empty."]);
-      return false;
+      return "error";
     }
 
     try {
@@ -101,7 +102,7 @@ const validateStructure = async () : Promise<boolean> => {
 
         console.log("ErrorList: ", errorList);
         setErrors(errorList);
-        return false;
+        return "error";
       }
 
       // always set the input to be ready for the engine
@@ -112,19 +113,19 @@ const validateStructure = async () : Promise<boolean> => {
       if (result["Fix Suggested"] && result["Validated RNA"]) {
         setText(trimmedText);
         setCorrectedText(result["Validated RNA"]);
-        setShowValidation(true);
+        return "warning"
       }
 
       // jeśli brak błędów i brak warningów → approve
       if (!result["Fix Suggested"]) {
-        setText(correctedText)
+        setText(result["Validated RNA"])
         setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
       }
 
-      return true;
+      return "ok";
     } catch (err: any) {
       setErrors([err.message || "Server validation error"]);
-      return false;
+      return "error";
     }
   }
 
@@ -170,7 +171,7 @@ const validateStructure = async () : Promise<boolean> => {
             });
           }
           setErrors(errorList);
-          return false;
+          return "error";
         }
 
         setErrors([]);
@@ -178,31 +179,42 @@ const validateStructure = async () : Promise<boolean> => {
 
         if (result["Fix Suggested"] && result["Validated RNA"]) {
           setCorrectedText(result["Validated RNA"]);
-          setShowValidation(true);
+          return "warning"
         }
 
         if (!result["Fix Suggested"]) {
-          setText(correctedText)
+          setText(result["Validated RNA"])
           setApproves([
             "Validation passed successfully. Input was parsed to the engine's format.",
           ]);
         }
 
-        return true;
+        return "ok";
       } catch (err: any) {
         setErrors([err.message || "Server validation error"]);
-        return false;
+        return "error";
       }
     }
   }
 
-  return true; // dla File brak walidacji
+  return "ok"; // dla File brak walidacji
+};
+
+const handleValidate = async () => {
+  const res = await validateStructure(false);
+  if (res === "warning") {
+    setShowValidation(true)
+  }
 };
 
 const handleNext = async () => {
   if (currentStep === 0) {
-    setNextPending(true);
-    await validateStructure();
+    const res = await validateStructure(true);
+    if (res === "warning") {
+      setShowValidationNext(true)
+    } else if (res === "ok") {
+      goNext();
+    }
   } else {
     goNext();
   }
@@ -251,7 +263,7 @@ const goNext = async () => {
   }
 
   const handlePrev = () => {
-    setCurrentStep(prev => prev - 1)
+    setCurrentStep(prev => prev - 1);
   }
 
   return (
@@ -438,7 +450,7 @@ const goNext = async () => {
                   width='277px'
                   height='50px'
                   label='Validate structure'
-                  action={validateStructure}
+                  action={handleValidate}
                   fontSize='18px'
                 />
               </div>
@@ -608,10 +620,10 @@ const goNext = async () => {
           </div>
         )}
         <ValidationWarningModal
-          isOpen={showValidation}
+          isOpen={showValidation || showValidationNext}
           onClose={() => {
             setShowValidation(false);
-            setNextPending(false);
+            setShowValidationNext(false);
           }}
           onConfirm={() => {
             // jeśli user klika Agree
@@ -627,12 +639,12 @@ const goNext = async () => {
               setStructures(blocks);
             }
 
-            setShowValidation(false);
-
-            if (nextPending) {
+            if (showValidationNext) {
               goNext();
             }
-            setNextPending(false);
+
+            setShowValidation(false);
+            setShowValidationNext(false);
           }}
           text={text}
           correctedText={correctedText}

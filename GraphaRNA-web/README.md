@@ -62,6 +62,12 @@ When having service mesh enabled remember to add the `-c <container_name>` arg
 Later to install certificates it will be necessery to get:
 `helm install cert-manager oci://quay.io/jetstack/charts/cert-manager --version v1.18.2 --namespace cert-manager --create-namespace --set crds.enabled=true`
 
+To access grafana: `kubectl --namespace monitoring port-forward $POD_NAME 3000` after checking pod name or use
+`export POD_NAME=$(kubectl get pods --namespace meta -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}") && kubectl --namespace meta port-forward $POD_NAME 3000 --address 0.0.0.0` 
+
+
+To integrate Loki with grafana use a dedicated dashboard and put in `http://loki:3100`
+
 
 ## Example Secrets & Configmap files
 ### Backend
