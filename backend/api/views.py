@@ -34,9 +34,12 @@ def DownloadZipFile(request:Request)->HttpResponse:
     if job.status != "F":
         return HttpResponse("Job is not finished", status=400)
     instance = JobResults.objects.get(job=job)
-    filePathSecondary = instance.result_secondary_structure.path
+    filePathSecondaryDotseq = instance.result_secondary_structure_dotseq.path
+    filePathSecondarySvg = instance.result_secondary_structure_svg.path
     filePathTertiary = instance.result_tertiary_structure.path
-    if not os.path.exists(filePathSecondary):
+    if not os.path.exists(filePathSecondaryDotseq):
+        return HttpResponse("File does not exist", status=404)
+    if not os.path.exists(filePathSecondarySvg):
         return HttpResponse("File does not exist", status=404)
     if not os.path.exists(filePathTertiary):
         return HttpResponse("File does not exist", status=404)
@@ -45,8 +48,10 @@ def DownloadZipFile(request:Request)->HttpResponse:
     
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        with open(filePathSecondary, "rb") as f:
-            zip_file.writestr(instance.result_secondary_structure.name, f.read())
+        with open(filePathSecondaryDotseq, "rb") as f:
+            zip_file.writestr(instance.result_secondary_structure_dotseq.name, f.read())
+        with open(filePathSecondarySvg, "rb") as f:
+            zip_file.writestr(instance.result_secondary_structure_svg.name, f.read())
         with open(filePathTertiary, "rb") as f:
             zip_file.writestr(instance.result_tertiary_structure.name, f.read())
     zip_buffer.seek(0)
@@ -145,7 +150,8 @@ response
 def ProcessRequestData(request: Request) -> Response:
     """Allows for uploading .fasta files"""
     fasta_raw: Optional[str] = request.data.get("fasta_raw")
-    fasta_file: Optional[UploadedFile] = request.data.get("fasta_file")
+    fasta_file: Optional[UploadedFile] = request.FILES.get("fasta_file")
+    # fasta_files = request.FILES.getlist("fasta_file")
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
@@ -156,10 +162,7 @@ def ProcessRequestData(request: Request) -> Response:
     if fasta_file is not None:
         if not fasta_file.name or not fasta_file.name.endswith('.fasta'):
             raise ValidationError("File have to be .fasta")
-
-    
-
-
+        
     sequence_raw: str = ""
 
     if fasta_raw is None and fasta_file is None:
