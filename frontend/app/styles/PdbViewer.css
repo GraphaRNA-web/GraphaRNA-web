@@ -1,0 +1,50 @@
+.pdb-viewer-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  background-color: #F9F8F4;
+  border-radius: 10px;
+}
+
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
+.controls-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+.viewer-container {
+  background: #fff;
+  border: 1px solid #ddd;
+  position: relative;
+}
+
+.pdb-viewer-wrapper.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #F9F8F4;
+  z-index: 9999;
+  gap: 10px;
+}
+
+.pdb-viewer-wrapper.fullscreen .viewer-container {
+  width: 100%;
+  height: calc(100vh - 50px);
+}
+
+.pdb-viewer-wrapper.fullscreen{
+  padding: 5px;
+}

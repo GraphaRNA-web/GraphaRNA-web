@@ -2,10 +2,12 @@
 
 import React from 'react';
 import '../styles/results.css';
+import PdbViewer from "../components/PdbViewer";
+
 
 export default function Home() {
 
-  const [isFound, setIsFound] = React.useState(false);
+  const [isFound, setIsFound] = React.useState(true);
 
   return (
     <div className='content'>
@@ -27,7 +29,11 @@ export default function Home() {
 
       {isFound === true && (
         <div className='found'>
-          
+            <PdbViewer 
+              filePath="1CRN.pdb" 
+              width={400} 
+              height={350} 
+            />
         </div>
       )}
     </div>
