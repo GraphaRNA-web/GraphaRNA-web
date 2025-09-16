@@ -107,7 +107,9 @@ export default function ValidationWarningModal({
     return (
       <div className="rna-block">
         <div className="rna-line">
-          {highlightRNA(nucleotides, { mismatchingBrackets, incorrectPairs, mode })}
+          {nucleotides.split("").map((ch, i) => (
+            <span key={i}>{ch}</span>
+          ))}
         </div>
         <div className="rna-line">
           {highlightRNA(brackets, { mismatchingBrackets, incorrectPairs, mode })}
