@@ -263,7 +263,7 @@ const handleNext = async () => {
             <div className="jp-toggle-button" onClick={() => setIsExpanded(prev => !prev)}>
               <span>{isExpanded ? "show less" : "show more"}</span>
               <img
-                  src={isExpanded ? "arrow_up.svg" : "arrow_down.svg"}
+                  src={isExpanded ? "icons/arrow_up.svg" : "icons/arrow_down.svg"}
                   alt="Toggle icon"
                   className="jp-toggle-icon"
               />

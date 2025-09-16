@@ -80,7 +80,7 @@ const Modal: React.FC = () => {
         width="305px"
         height="50px"
         action={() => setIsOpen(true)}
-        icon={<img src="white_upload.svg" alt="Upload Icon" style={{ height: 24, width: 24 }} />}
+        icon={<img src="icons/white_upload.svg" alt="Upload Icon" style={{ height: 24, width: 24 }} />}
         label="Upload File"
       />
 
@@ -89,7 +89,7 @@ const Modal: React.FC = () => {
         <div className="modal-backdrop">
           <div className="modal">
             <div className="modal-close-icon" onClick={() => setIsOpen(false)}>
-              <img src="close_icon.svg" alt="Close Icon" width={30} height={30} />
+              <img src="icons/close_icon.svg" alt="Close Icon" width={30} height={30} />
             </div>
 
             <div className="modal-top-text">
@@ -118,13 +118,13 @@ const Modal: React.FC = () => {
             >
               {selectedFile ? (
                 <div className="uploaded-file">
-                  <img src="file_icon.png" alt="File Icon" width={64} height={64} />
+                  <img src="photos/file_icon.png" alt="File Icon" width={64} height={64} />
                   <p className="file-name">{selectedFile.name}</p>
                 </div>
               ) : (
                 <>
                   <div className="upload-icon">
-                    <img src="upload_icon.svg" alt="Upload Icon" width={74} height={74} />
+                    <img src="icons/upload_icon.svg" alt="Upload Icon" width={74} height={74} />
                   </div>
                   <div className="dropzone-text">
                     <p className="dropzone-instruction">Upload file</p>
@@ -143,7 +143,7 @@ const Modal: React.FC = () => {
 
             {errorMessage && (
               <div className="error-message">
-                <img src="error.svg" alt="Error Icon" width={24} height={24} />
+                <img src="icons/error.svg" alt="Error Icon" width={24} height={24} />
                 <p>
                   {errorMessage}
                 </p>
