@@ -12,4 +12,5 @@ urlpatterns = [
     path("downloadZip/", api.views.DownloadZipFile,name="dowwnloadZip"),
     path("getSuggestedSeedAndJobName/", api.views.GetSuggestedSeedAndJobName,name="getSuggestedSeedAndJobName"),
     path("testEngineRun/", api.views.testEngineRun,name="testEngineRun"),
+    path("getInf/", api.views.getInf_F1,name="getInf"),
 ]
