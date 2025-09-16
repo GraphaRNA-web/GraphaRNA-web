@@ -416,8 +416,8 @@ def getInf_F1(request: Request) -> Response:
     model_input  = model_seq + "\n" + model_dot
     target_correct, target_incorrect, target_all = dotbracketToPairs(target_input)
     model_correct, model_incorrect, model_all = dotbracketToPairs(model_input)
-    infScore, f1Score = CalculateF1Inf(target_correct, model_correct)
-    return Response({"success": True, "inf Score": infScore, "f1 Score":f1Score})
+    tp,fp,fn,inf,f1 = CalculateF1Inf(target_correct, model_correct)
+    return Response({"success": True,"Dane:": {tp,fp,fn,inf, f1}})
 
 
 

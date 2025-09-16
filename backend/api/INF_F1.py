@@ -42,13 +42,10 @@ def CalculateF1Inf(target: set, model: set) -> tuple[float, float]:
     tp = len(target & model)
     fp = len(model - target)
     fn = len(target - model)
-
-    ppv = tp/(tp+fp) if (tp+fp) != 0 else 0
-    tpr = tp/(tp+fn) if (tp+fn) != 0 else 0
-    inf = math.sqrt(ppv*tpr)
+    inf = math.sqrt((tp/(tp+fp) if (tp+fp) != 0 else 0)*(tp/(tp+fn) if (tp+fn) != 0 else 1))
     f1 = (2*tp)/(2*tp+fp+fn) if (2*tp+fp+fn) != 0 else 0
 
-    return inf, f1
+    return tp,fp,fn,inf,f1
 
 
 def dotbracketToPairs(input: str) -> tuple[str, list, str, set[tuple[int, int]]]:
