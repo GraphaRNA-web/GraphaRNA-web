@@ -36,8 +36,6 @@ export default function Jobs() {
   const [mismatchingBrackets, setMismatchingBrackets] = useState<number[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<[number, number][]>([]);
 
-  const allowedCharacters = /^[ACGUacgu(.)\s\n]*$/;
-
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
   const emailValidator = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
