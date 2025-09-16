@@ -80,6 +80,10 @@ To run the Django Project run command:
 
 ```python manage.py runserver```
 
+## Documentations
+
+Swagger documentation visible at ```/swagger/```, ```/swagger.json/``` and ```/swagger.yaml/``` 
+Redoc documentation at ```/redoc/``` 
 
 ## Code Audit
 
