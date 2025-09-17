@@ -37,6 +37,8 @@ spec:
           volumeMounts:
             - name: shared-volume
               mountPath: /shared
+            - name: tmp-dir
+              mountPath: /tmp
 
           livenessProbe:
             httpGet:
@@ -72,3 +74,5 @@ spec:
         - name: shared-volume
           persistentVolumeClaim:
             claimName: {{ .Values.engine.pvc }}
+        - name: tmp-dir
+          emptyDir: {}

@@ -29,7 +29,7 @@ frontend:
 backend:
   name: backend
   image: pwlklr/grapharna:backend
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   port: 8000
 
   replicas: 1
