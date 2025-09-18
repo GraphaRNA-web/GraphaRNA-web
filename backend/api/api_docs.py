@@ -49,9 +49,10 @@ process_request_data_schema = swagger_auto_schema(
                 properties={
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "Job": openapi.Schema(type=openapi.TYPE_STRING),
+                    "email_sent": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                 },
             ),
-            examples={"application/json": {"success": True, "Job": "my_rna_job"}},
+            examples={"application/json": {"success": True, "Job": "my_rna_job", "email_sent": True}},
         ),
         400: openapi.Response(
             description="Bad request - missing data or invalid email",
@@ -60,10 +61,11 @@ process_request_data_schema = swagger_auto_schema(
                 properties={
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "error": openapi.Schema(type=openapi.TYPE_STRING),
+                    "email_sent": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                 },
             ),
             examples={
-                "application/json": {"success": False, "error": "Missing RNA data."}
+                "application/json": {"success": False, "error": "Missing RNA data.", "email_sent": False}
             },
         ),
         422: openapi.Response(

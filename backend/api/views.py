@@ -188,7 +188,7 @@ response
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
     """Allows for uploading RNA data via raw text or file, validates it, creates a Job and triggers the processing task.
-    If RNA validation fails but a fix is possible, job will be created with that fix."""
+    If RNA validation fails but a fix is possible, job will be created with that fix. If email address is provided, a notification email will be sent (on job creation and on job compleation)."""
     fasta_raw: Optional[str] = request.data.get("fasta_raw")
     fasta_file: Optional[UploadedFile] = request.FILES.get("fasta_file")
     seed_raw = request.data.get("seed")
