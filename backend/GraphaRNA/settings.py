@@ -33,6 +33,21 @@ ENGINE_TEST_URL = os.getenv("ENGINE_TEST_URL", "http://grapharna-engine:8080/tes
 
 ENGINE_URL = os.getenv("ENGINE_URL", "http://grapharna-engine:8080/run")
 
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+RESULT_BASE_URL = os.getenv("RESULT_BASE_URL")
+
+TEMPLATE_PATH_JOB_CREATED = os.getenv("TEMPLATE_PATH_JOB_CREATED")
+TEMPLATE_PATH_JOB_FINISHED = os.getenv("TEMPLATE_PATH_JOB_FINISHED")
+TEMPLATE_PATH_JOB_NEAR_EXPIRATION = os.getenv("TEMPLATE_PATH_JOB_NEAR_EXPIRATION")
+
+TITLE_JOB_CREATED = os.getenv("EMAIL_TITLE_JOB_CREATED")
+TITLE_JOB_FINISHED = os.getenv("EMAIL_TITLE_JOB_FINISHED")
+TITLE_JOB_NEAR_EXPIRATION = os.getenv("EMAIL_TITLE_JOB_NEAR_EXPIRATION")
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 

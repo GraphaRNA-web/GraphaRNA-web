@@ -29,12 +29,14 @@ class PostRnaDataTests(TestCase):
         self.patcher_relpath = patch(
             "os.path.relpath", return_value="mocked/path/file.dotseq"
         )
-        self.patcher_task = patch("webapp.tasks.run_grapharna_task.delay")
+        self.patcher_task_engine = patch("webapp.tasks.run_grapharna_task.delay")
+        self.patcher_task_email = patch("webapp.tasks.send_email_task.delay")
 
         self.mock_open = self.patcher_open.start()
         self.mock_makedirs = self.patcher_makedirs.start()
         self.mock_relpath = self.patcher_relpath.start()
-        self.mock_task = self.patcher_task.start()
+        self.mock_task_engine = self.patcher_task_engine.start()
+        self.mock_task_email = self.patcher_task_email.start()
 
         self.mock_fasta_file = SimpleUploadedFile(
             "rna.fasta", b">example1\nAGC UUU\n(.. ..)"
@@ -44,7 +46,8 @@ class PostRnaDataTests(TestCase):
         self.patcher_open.stop()
         self.patcher_makedirs.stop()
         self.patcher_relpath.stop()
-        self.patcher_task.stop()
+        self.patcher_task_engine.stop()
+        self.patcher_task_email.stop()
 
     def test_valid_post(self) -> None:
         response: Response = self.client.post(self.url, self.valid_data, format="json")
@@ -262,6 +265,8 @@ class GetResultsTests(TestCase):
     def test_wrong_http_method_post(self) -> None:
         response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
 class SuggestSeedAndJobNameTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
@@ -304,7 +309,6 @@ class PostRnaValidationTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(response.data["success"])
         self.assertEqual(response.data["error"], "Missing RNA data.")
-
 
     def test_valid_rna_and_dotbracket(self):
         rna_input = ">example1\nAGC UUU\n(.. ..)"
