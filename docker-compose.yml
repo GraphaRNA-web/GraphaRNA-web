@@ -106,7 +106,39 @@ services:
       - rabbitmq
     networks:
       - backend
-      
+    
+  celery-maintenance:
+    build:
+      context: ./backend
+    container_name: grapha_celery_maintenance
+    command: celery -A GraphaRNA worker -Q maintenance --loglevel=info
+    volumes:
+      - shared_volume:/shared
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - backend
+      - rabbitmq
+    networks:
+      - backend
+  
+  celery-email:
+    build:
+      context: ./backend
+    container_name: grapha_celery_email
+    command: celery -A GraphaRNA worker -Q email --loglevel=info
+    volumes:
+      - shared_volume:/shared
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - backend
+      - rabbitmq
+    networks:
+      - backend
+    
   celery-beat:
     build:
       context: ./backend

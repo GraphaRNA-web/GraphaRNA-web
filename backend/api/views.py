@@ -9,7 +9,7 @@ from typing import Optional
 import random
 from datetime import date
 from webapp.models import Job, JobResults
-from webapp.tasks import run_grapharna_task
+from webapp.tasks import run_grapharna_task, send_email_task
 from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
@@ -27,7 +27,7 @@ from django.http import HttpResponse
 
 
 @api_view(["GET"])
-def DownloadZipFile(request:Request)->HttpResponse:
+def DownloadZipFile(request: Request) -> HttpResponse:
     uuid = request.query_params.get("uuid")
     if not uuid:
         return HttpResponse("UUID error", status=400)
@@ -35,7 +35,7 @@ def DownloadZipFile(request:Request)->HttpResponse:
         job = Job.objects.get(pk=uuid)
     except Job.DoesNotExist:
         return HttpResponse("Job not found", status=404)
-    
+
     if job.status != "F":
         return HttpResponse("Job is not finished", status=400)
     instance = JobResults.objects.get(job=job)
@@ -49,8 +49,6 @@ def DownloadZipFile(request:Request)->HttpResponse:
     if not os.path.exists(filePathTertiary):
         return HttpResponse("File does not exist", status=404)
 
-
-    
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         with open(filePathSecondaryDotseq, "rb") as f:
@@ -62,8 +60,11 @@ def DownloadZipFile(request:Request)->HttpResponse:
     zip_buffer.seek(0)
 
     response = HttpResponse(zip_buffer.read(), content_type="application/zip")
-    response["Content-Disposition"] = f'attachment; filename="{job.job_name}-result.zip"'
+    response["Content-Disposition"] = (
+        f'attachment; filename="{job.job_name}-result.zip"'
+    )
     return response
+
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
@@ -187,7 +188,7 @@ response
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
     """Allows for uploading RNA data via raw text or file, validates it, creates a Job and triggers the processing task.
-    If RNA validation fails but a fix is possible, job will be created with that fix."""
+    If RNA validation fails but a fix is possible, job will be created with that fix. If email address is provided, a notification email will be sent (on job creation and on job compleation)."""
     fasta_raw: Optional[str] = request.data.get("fasta_raw")
     fasta_file: Optional[UploadedFile] = request.FILES.get("fasta_file")
     seed_raw = request.data.get("seed")
@@ -198,9 +199,9 @@ def ProcessRequestData(request: Request) -> Response:
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
     if fasta_file is not None:
-        if not fasta_file.name or not fasta_file.name.endswith('.fasta'):
+        if not fasta_file.name or not fasta_file.name.endswith(".fasta"):
             raise ValidationError("File have to be .fasta")
-        
+
     sequence_raw: str = ""
 
     if fasta_raw is None and fasta_file is None:
@@ -271,7 +272,23 @@ def ProcessRequestData(request: Request) -> Response:
 
     run_grapharna_task.delay(job.uid)
 
-    return Response({"success": True, "Job": job.job_name})
+    if email:
+        url = f"{settings.RESULT_BASE_URL}?uid={job.uid}"
+        send_email_task.delay(
+            receiver_email=email,
+            template_path=settings.TEMPLATE_PATH_JOB_CREATED,
+            title=settings.TITLE_JOB_CREATED,
+            url=url,
+        )
+        return Response(
+            {"success": True, "Job": job.job_name, "email_sent": True},
+            status=status.HTTP_200_OK,
+        )
+    else:
+        return Response(
+            {"success": True, "Job": job.job_name, "email_sent": False},
+            status=status.HTTP_200_OK,
+        )
 
 
 @get_results_schema

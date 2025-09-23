@@ -1,4 +1,7 @@
 from datetime import timedelta, datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
 from django.utils import timezone
 from django.conf import settings
 from .models import Job, JobResults
@@ -15,6 +18,7 @@ from webapp.visualization_tools import (
 )
 from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
+from django.template import Template, Context
 
 
 def log_to_file(message: str) -> None:
@@ -24,7 +28,15 @@ def log_to_file(message: str) -> None:
 
 
 @shared_task
+def delete_expired_jobs_scheduler() -> None:
+    delete_expired_jobs.delay()
+    near_expiration_email_task.delay()
+
+
+@shared_task(queue="maintenance")
 def delete_expired_jobs() -> str:
+    logger = get_task_logger(__name__)
+
     now = timezone.now()
     expired_jobs = Job.objects.filter(expires_at__lt=now)
     count = expired_jobs.count()
@@ -39,7 +51,75 @@ def delete_expired_jobs() -> str:
 
         job.delete()
 
+    logger.info(f"Deleted {count} expired jobs.")
     return f"Deleted {count} expired jobs."
+
+
+@shared_task(queue="email")
+def near_expiration_email_task() -> None:
+    logger = get_task_logger(__name__)
+
+    now = timezone.now()
+    near_expired_jobs = Job.objects.filter(expires_at__lte=now + timedelta(days=1))
+    count = near_expired_jobs.count()
+
+    for job in near_expired_jobs:
+        if job.email:
+            url = f"{settings.RESULT_BASE_URL}?uid={job.uid}"
+            expiration_date = job.expires_at.strftime("%d-%m-%Y %H:%M")
+            send_email_task.delay(
+                receiver_email=job.email,
+                template_path=settings.TEMPLATE_PATH_JOB_NEAR_EXPIRATION,
+                title=settings.TITLE_JOB_NEAR_EXPIRATION,
+                url=url,
+                expiration_date=expiration_date,
+            )
+
+    logger.info(f"Sent {count} near expiration emails.")
+
+
+@shared_task(queue="email")
+def send_email_task(
+    receiver_email: str,
+    template_path: str,
+    title: str,
+    url: str,
+    expiration_date: str | None = None,
+) -> bool:
+    logger = get_task_logger(__name__)
+    sender_email = settings.EMAIL_HOST_USER
+    password = settings.EMAIL_HOST_PASSWORD
+
+    template_path = os.path.join(settings.BASE_DIR, template_path)
+    try:
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_content = f.read()
+    except Exception as e:
+        logger.error(f"Error loading template: {e}")
+        return False
+    template = Template(template_content)
+    if expiration_date:
+        html_content = template.render(
+            Context({"url": url, "expiration_date": expiration_date})
+        )
+    else:
+        html_content = template.render(Context({"url": url}))
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
+    msg["Subject"] = title
+    msg.attach(MIMEText(html_content, "html"))
+
+    try:
+        with smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+        logger.info(f"Email sent to {receiver_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Error sending email: {e}")
+        return False
 
 
 @shared_task(queue="grapharna")
@@ -62,8 +142,6 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     output_dir = "/shared/samples/engine_outputs"
 
     os.makedirs(output_dir, exist_ok=True)
-
-    logger.info("Dsadsad")
 
     try:
         job_data.status = "P"
@@ -171,6 +249,15 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     )
     job_data.status = "F"
     job_data.save()
+
+    if job_data.email:
+        url = f"{settings.RESULT_BASE_URL}?uid={job_data.uid}"
+        send_email_task.delay(
+            receiver_email=job_data.email,
+            template_path=settings.TEMPLATE_PATH_JOB_FINISHED,
+            title=settings.TITLE_JOB_FINISHED,
+            url=url,
+        )
 
     return "OK"
 
