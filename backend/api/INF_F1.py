@@ -8,7 +8,7 @@ VALID_CONNECTIONS = [
     ["G", "C"], ["C", "G"], ["A", "U"], ["U", "A"], ["G", "U"], ["U", "G"]
 ]
 
-def parseFastaFile(filename: str) -> str:
+def parseFastaFile(filename: str) -> tuple[str, str]:
     VALID_LETTERS = set("ACGUacguTt")
     VALID_BRACKETS = set(".()[]<>{}AaBbCcDd")
 
@@ -38,7 +38,7 @@ def parseFastaFile(filename: str) -> str:
     return joinedStrands, joinedBrackets
 
 
-def CalculateF1Inf(target: set, model: set) -> tuple[float, float]:
+def CalculateF1Inf(target: set[tuple[int, int]], model: set[tuple[int, int]]) -> tuple[float, float]:
     tp = len(target & model)
     fp = len(model - target)
     fn = len(target - model)
