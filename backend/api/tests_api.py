@@ -102,6 +102,14 @@ class PostRnaDataTests(TestCase):
         self.assertIn("error", response.data)
         self.assertFalse(response.data["success"])
 
+    def test_valid_email(self) -> None:
+        data = self.valid_data.copy()
+        data["email"] = "fajnymail@domena.pl"
+        response: Response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("error", response.data)
+        self.assertTrue(response.data["success"])
+
     def test_missing_optional_seed_and_job_name(self) -> None:
         data: Dict[str, Any] = {
             "fasta_raw": ">example1\nAGC UUU\n(.. ..)",
