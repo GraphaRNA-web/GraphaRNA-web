@@ -15,8 +15,7 @@ from django.core.files.base import ContentFile
 import os
 import zipfile
 import io
-from django.test import override_settings
-import tempfile
+
 
 
 
@@ -512,57 +511,62 @@ class PostRnaValidationTests(TestCase):
 
 class DownloadZipFileTests(TestCase):
     def setUp(self):
-        #Job active
-        self.job_queued = Job.objects.create(
-            uid=uuid.uuid4(),
-            seed=1,
-            job_name="Job queued",
-            status="Q",
-            alternative_conformations=2,
+        self.client = APIClient()
+
+        # Mock jobs
+        self.job_queued = MagicMock(uid=uuid.uuid4(), status="Q", job_name="queued")
+        self.job_finished = MagicMock(uid=uuid.uuid4(), status="F", job_name="finished")
+
+        # Mock JobResults
+        self.result = MagicMock(job=self.job_finished)
+        self.result.result_secondary_structure_dotseq.name = "dotseq.txt"
+        self.result.result_secondary_structure_svg.name = "structure.svg"
+        self.result.result_tertiary_structure.name = "tertiary.txt"
+
+        # Patch Job.objects.get
+        patcher_job_get = patch(
+            "webapp.models.Job.objects.get",
+            side_effect=lambda pk=None, **kwargs: self.job_finished
+            if str(pk) == str(self.job_finished.uid)
+            else self.job_queued
         )
+        self.mock_job_get = patcher_job_get.start()
+        self.addCleanup(patcher_job_get.stop)
 
-        #Job finished
-        self.job_finished = Job.objects.create(
-            uid=uuid.uuid4(),
-            seed=2,
-            job_name="Job finished",
-            status="F",
-            alternative_conformations=2,
-        )
+        # Patch JobResults.objects.get
+        patcher_results_get = patch("webapp.models.JobResults.objects.get", return_value=self.result)
+        self.mock_results_get = patcher_results_get.start()
+        self.addCleanup(patcher_results_get.stop)
 
-        self.result = JobResults.objects.create(
-            job=self.job_finished,
-            result_secondary_structure_dotseq=ContentFile(b"dotseq content", name="dotseq.txt"),
-            result_secondary_structure_svg=ContentFile(b"svg content", name="structure.svg"),
-            result_tertiary_structure=ContentFile(b"tertiary content", name="tertiary.txt"),
-        )
+        # Patch filesystem
+        patcher_exists = patch("os.path.exists", return_value=True)
+        self.mock_exists = patcher_exists.start()
+        self.addCleanup(patcher_exists.stop)
 
+        patcher_open = patch("builtins.open", mock_open(read_data=b"xyz"))
+        self.mock_open = patcher_open.start()
+        self.addCleanup(patcher_open.stop)
 
-
-    TEMP_MEDIA_ROOT = tempfile.mkdtemp()
-    @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
     def test_download_zip_no_uuid(self):
-        url = reverse('dowwnloadZip')
+        url = reverse('downloadZip')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
 
-    @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
     def test_download_zip_job_not_finished(self):
-        url = reverse('dowwnloadZip') + f"?uuid={self.job_queued.uid}"
+        url = reverse('downloadZip') + f"?uuid={self.job_queued.uid}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
         self.assertIn(b"Job is not finished", response.content)
 
-    @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
     def test_download_zip_success(self):
-        url = reverse('dowwnloadZip') + f"?uuid={self.job_finished.uid}"
+        url = reverse('downloadZip') + f"?uuid={self.job_finished.uid}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/zip')
+
         zip_buffer = io.BytesIO(response.content)
         with zipfile.ZipFile(zip_buffer) as zf:
             filenames = [os.path.basename(f) for f in zf.namelist()]
             self.assertTrue(any("tertiary" in f for f in filenames))
             self.assertTrue(any("dotseq" in f for f in filenames))
             self.assertTrue(any("structure" in f for f in filenames))
-            
