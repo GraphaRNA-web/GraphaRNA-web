@@ -15,6 +15,11 @@ from django.core.files.base import ContentFile
 import os
 import zipfile
 import io
+from django.test import override_settings
+import tempfile
+
+
+
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
@@ -531,17 +536,24 @@ class DownloadZipFileTests(TestCase):
             result_secondary_structure_svg=ContentFile(b"svg content", name="structure.svg"),
             result_tertiary_structure=ContentFile(b"tertiary content", name="tertiary.txt"),
         )
+
+
+
+    TEMP_MEDIA_ROOT = tempfile.mkdtemp()
+    @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
     def test_download_zip_no_uuid(self):
         url = reverse('dowwnloadZip')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
 
+    @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
     def test_download_zip_job_not_finished(self):
         url = reverse('dowwnloadZip') + f"?uuid={self.job_queued.uid}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
         self.assertIn(b"Job is not finished", response.content)
 
+    @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
     def test_download_zip_success(self):
         url = reverse('dowwnloadZip') + f"?uuid={self.job_finished.uid}"
         response = self.client.get(url)
