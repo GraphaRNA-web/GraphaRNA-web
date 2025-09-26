@@ -278,7 +278,6 @@ class GetResultsTests(TestCase):
 class SuggestSeedAndJobNameTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        # self.url: str = "/api/getSuggestedSeedAndJobName/"
         self.url: str = reverse("getSuggestedSeedAndJobName")
 
     def test_valid_request(self) -> None:
