@@ -122,7 +122,6 @@ def PostRnaValidation(request: Request) -> Response:
     results: dict = validator.ValidateRna()
 
     if results["Validation Result"]:
-
         return Response(
             results,
             status=status.HTTP_200_OK,
