@@ -306,23 +306,24 @@ def TestRequest(request: Request) -> Response:
 
 
 class JobCursorPagination(CursorPagination):
-    page_size = getattr(settings, 'DEFAULT_PAGINATION_SIZE', 10)
+    page_size = settings.REST_FRAMEWORK.get('PAGE_SIZE', 10)
     ordering = '-created_at'
     cursor_query_param = 'cursor'
 
 @api_view(["GET"])
 def getActiveJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["Q","P"]).order_by('created_at').values()
+    data = Job.objects.filter(status__in=["Q","P"]).order_by('created_at','uid')
     paginator = JobCursorPagination()
     page = paginator.paginate_queryset(data, request)
-    return paginator.get_paginated_response(list(page))
-
+    print(settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"]))
+    return paginator.get_paginated_response(page)
 
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["F"]).order_by('created_at').values()
+    data = Job.objects.filter(status__in=["F"]).order_by('created_at')
     paginator = JobCursorPagination()
     page = paginator.paginate_queryset(data, request)
+    print(settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"]))
     return paginator.get_paginated_response(list(page))
 
 
