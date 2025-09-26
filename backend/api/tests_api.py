@@ -5,13 +5,16 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
 from typing import Dict, Any
-from webapp.models import Job
+from webapp.models import Job, JobResults
 import uuid
 from django.utils import timezone
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-
-
+from django.core.files.base import ContentFile
+from django.core.files.base import ContentFile
+import os
+import zipfile
+import io
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
@@ -499,3 +502,55 @@ class PostRnaValidationTests(TestCase):
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+
+class DownloadZipFileTests(TestCase):
+    def setUp(self):
+        #Job active
+        self.job_queued = Job.objects.create(
+            uid=uuid.uuid4(),
+            seed=1,
+            job_name="Job queued",
+            status="Q",
+            alternative_conformations=2,
+        )
+
+        #Job finished
+        self.job_finished = Job.objects.create(
+            uid=uuid.uuid4(),
+            seed=2,
+            job_name="Job finished",
+            status="F",
+            alternative_conformations=2,
+        )
+
+        self.result = JobResults.objects.create(
+            job=self.job_finished,
+            result_secondary_structure_dotseq=ContentFile(b"dotseq content", name="dotseq.txt"),
+            result_secondary_structure_svg=ContentFile(b"svg content", name="structure.svg"),
+            result_tertiary_structure=ContentFile(b"tertiary content", name="tertiary.txt"),
+        )
+    def test_download_zip_no_uuid(self):
+        url = reverse('dowwnloadZip')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_download_zip_job_not_finished(self):
+        url = reverse('dowwnloadZip') + f"?uuid={self.job_queued.uid}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b"Job is not finished", response.content)
+
+    def test_download_zip_success(self):
+        url = reverse('dowwnloadZip') + f"?uuid={self.job_finished.uid}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/zip')
+        zip_buffer = io.BytesIO(response.content)
+        with zipfile.ZipFile(zip_buffer) as zf:
+            filenames = [os.path.basename(f) for f in zf.namelist()]
+            self.assertTrue(any("tertiary" in f for f in filenames))
+            self.assertTrue(any("dotseq" in f for f in filenames))
+            self.assertTrue(any("structure" in f for f in filenames))
+            
