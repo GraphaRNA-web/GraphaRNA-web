@@ -15,7 +15,7 @@ import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
 from rest_framework.pagination import CursorPagination
-
+from .serializers import JobSerializer
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
         return False
@@ -315,16 +315,22 @@ def getActiveJobs(request: Request) -> Response:
     data = Job.objects.filter(status__in=["Q","P"]).order_by('created_at','uid')
     paginator = JobCursorPagination()
     page = paginator.paginate_queryset(data, request)
+    if page is not None: 
+        serializer = JobSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
     print(settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"]))
-    return paginator.get_paginated_response(page)
+    return paginator.get_paginated_response([])
 
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
     data = Job.objects.filter(status__in=["F"]).order_by('created_at')
     paginator = JobCursorPagination()
     page = paginator.paginate_queryset(data, request)
+    if page is not None: 
+        serializer = JobSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
     print(settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"]))
-    return paginator.get_paginated_response(list(page))
+    return paginator.get_paginated_response([])
 
 
 @api_view(["GET"])

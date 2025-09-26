@@ -9,7 +9,7 @@ from webapp.models import Job
 import uuid
 from django.utils import timezone
 from django.urls import reverse
-
+from django.conf import settings
 
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
@@ -415,3 +415,128 @@ class PostRnaValidationTests(TestCase):
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class JobActiveAndFinishedTests(TestCase):
+    activeSize=21
+    finishedSize=14
+    def setUp(self):
+        for i in range(self.activeSize):
+            Job.objects.create(
+                uid=uuid.uuid4(),
+                seed=i,
+                job_name=f"Active Job {i}",
+                status="Q" if i % 2 == 0 else "P",
+                alternative_conformations=3,
+                created_at=timezone.now()
+            )
+        
+        for i in range(self.finishedSize):
+            Job.objects.create(
+                uid=uuid.uuid4(),
+                seed=i,
+                job_name=f"Finished Job {i}",
+                status="F",
+                alternative_conformations=2,
+                created_at=timezone.now()
+            )
+    def test_size_active_jobs_first_page(self):
+        url = reverse('getActiveJobs')
+        response=self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('results', response.data)
+        self.assertLessEqual(len(response.data['results']), settings.REST_FRAMEWORK["PAGE_SIZE"])
+        if len(response.data['results']) < settings.REST_FRAMEWORK["PAGE_SIZE"]:
+            self.assertIsNone(response.data['next'])
+
+    def test_size_finished_jobs_first_page(self):
+        url = reverse('getFinishedJobs')
+        response=self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('results', response.data)
+        self.assertLessEqual(len(response.data['results']), settings.REST_FRAMEWORK["PAGE_SIZE"])
+        if len(response.data['results']) < settings.REST_FRAMEWORK["PAGE_SIZE"]:
+            self.assertIsNone(response.data['next'])
+
+    def test_next_exists_active_jobs_page_cursor(self):
+        url = reverse('getActiveJobs')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        next_url = response.data['next']
+        if next_url is not None:
+            response_next = self.client.get(next_url)
+            self.assertIsNotNone(response_next.data['results'])
+
+    def test_next_exists_finished_jobs_page_cursor(self):
+        url = reverse('getFinishedJobs')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        next_url = response.data['next']
+        if next_url is not None:
+            response_next = self.client.get(next_url)
+            self.assertIsNotNone(response_next.data['results'])
+
+    def test_previous_active_jobs_page_cursor(self):
+        url = reverse('getActiveJobs')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        first_page_data=response.data['results']
+        next_url = response.data['next']
+        if next_url is not None:
+            response_next = self.client.get(next_url)
+            self.assertIsNotNone(response_next.data['results'])
+            self.assertIsNotNone(response_next.data['previous'])
+            previous_url = response_next.data['previous']
+            response_previous = self.client.get(previous_url)
+            previous_data = response_previous.data['results']
+            self.assertEqual(previous_data,first_page_data)
+
+    def test_previous_finished_jobs_page_cursor(self):
+        url = reverse('getFinishedJobs')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        first_page_data=response.data['results']
+        next_url = response.data['next']
+        if next_url is not None:
+            response_next = self.client.get(next_url)
+            self.assertIsNotNone(response_next.data['results'])
+            self.assertIsNotNone(response_next.data['previous'])
+            previous_url = response_next.data['previous']
+            response_previous = self.client.get(previous_url)
+            previous_data = response_previous.data['results']
+            self.assertEqual(previous_data,first_page_data)
+    
+    def test_all_data_in_active_jobs_page_cursor(self):
+        ileDanych=0
+        url = reverse('getActiveJobs')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        first_page_data=response.data['results']
+        ileDanych+=len(first_page_data)
+        next_url = response.data['next']
+        while next_url is not None:
+            response_next = self.client.get(next_url)
+            self.assertIsNotNone(response_next.data['results'])
+            self.assertIsNotNone(response_next.data['previous'])
+            ileDanych+=len(response_next.data['results'])
+            next_url = response_next.data['next']
+
+        self.assertEqual(ileDanych,self.activeSize)
+
+    def test_all_data_in_finished_jobs_page_cursor(self):
+        ileDanych=0
+        url = reverse('getFinishedJobs')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        first_page_data=response.data['results']
+        ileDanych+=len(first_page_data)
+        next_url = response.data['next']
+        while next_url is not None:
+            response_next = self.client.get(next_url)
+            self.assertIsNotNone(response_next.data['results'])
+            self.assertIsNotNone(response_next.data['previous'])
+            ileDanych+=len(response_next.data['results'])
+            next_url = response_next.data['next']
+
+        self.assertEqual(ileDanych,self.finishedSize)
+
