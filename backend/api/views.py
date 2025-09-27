@@ -303,7 +303,7 @@ def GetResults(request: Request) -> Response:
 
     if not uid_param:
         return Response(
-            {"success": False, "error": "Missing uid parameter."},
+            {"success": False, "error": "Missing uidh parameter."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
