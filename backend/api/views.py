@@ -1,4 +1,5 @@
 from django.conf import settings
+from webapp.hashing_tools import hash_uuid
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -188,7 +189,8 @@ response
 @api_view(["POST"])
 def ProcessRequestData(request: Request) -> Response:
     """Allows for uploading RNA data via raw text or file, validates it, creates a Job and triggers the processing task.
-    If RNA validation fails but a fix is possible, job will be created with that fix. If email address is provided, a notification email will be sent (on job creation and on job compleation)."""
+    If RNA validation fails but a fix is possible, job will be created with that fix. If email address is provided, a notification email will be sent (on job creation and on job compleation).
+    """
     fasta_raw: Optional[str] = request.data.get("fasta_raw")
     fasta_file: Optional[UploadedFile] = request.FILES.get("fasta_file")
     seed_raw = request.data.get("seed")
@@ -247,6 +249,7 @@ def ProcessRequestData(request: Request) -> Response:
         jobName = f"job-{today_str}-{count}"
 
     job_uuid: UUID = uuid4()
+    hashed_uid: str = hash_uuid(str(job_uuid))
 
     input_dir: str = "/shared/samples/engine_inputs"
     os.makedirs(input_dir, exist_ok=True)
@@ -262,6 +265,7 @@ def ProcessRequestData(request: Request) -> Response:
 
     job = Job.objects.create(
         uid=job_uuid,
+        hashed_uid=hashed_uid,
         input_structure=relative_path,
         seed=seed,
         job_name=jobName,
@@ -273,7 +277,7 @@ def ProcessRequestData(request: Request) -> Response:
     run_grapharna_task.delay(job.uid)
 
     if email:
-        url = f"{settings.RESULT_BASE_URL}?uid={job.uid}"
+        url = f"{settings.RESULT_BASE_URL}?uidh={job.hashed_uid}"
         send_email_task.delay(
             receiver_email=email,
             template_path=settings.TEMPLATE_PATH_JOB_CREATED,
@@ -294,19 +298,17 @@ def ProcessRequestData(request: Request) -> Response:
 @get_results_schema
 @api_view(["GET"])
 def GetResults(request: Request) -> Response:
-    """Returns details and list of results of a job with a given uid"""
-    uid_param: str = request.GET.get("uid")
+    """Returns details and list of results of a job with a given hashed uid"""
+    uid_param: str = request.GET.get("uidh")
 
-    try:
-        uid: UUID = UUID(uid_param)
-    except (TypeError, ValueError):
+    if not uid_param:
         return Response(
-            {"success": False, "error": "Invalid or missing UID"},
+            {"success": False, "error": "Missing uid parameter."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     try:
-        job: Job = Job.objects.get(uid__exact=uid)
+        job: Job = Job.objects.get(hashed_uid__exact=uid_param)
     except Job.DoesNotExist:
         return Response(
             {"success": False, "error": "Job doesn't exist"},

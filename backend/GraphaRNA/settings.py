@@ -48,6 +48,8 @@ TITLE_JOB_CREATED = os.getenv("EMAIL_TITLE_JOB_CREATED")
 TITLE_JOB_FINISHED = os.getenv("EMAIL_TITLE_JOB_FINISHED")
 TITLE_JOB_NEAR_EXPIRATION = os.getenv("EMAIL_TITLE_JOB_NEAR_EXPIRATION")
 
+UUID_HASH_LENGTH = int(os.getenv("UUID_HASH_LENGTH", 5))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
