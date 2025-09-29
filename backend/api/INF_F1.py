@@ -38,7 +38,7 @@ def parseFastaFile(filename: str) -> tuple[str, str]:
     return joinedStrands, joinedBrackets
 
 
-def CalculateF1Inf(target: set[tuple[int, int]], model: set[tuple[int, int]]) -> tuple[float, float]:
+def CalculateF1Inf(target: set[tuple[int, int]], model: set[tuple[int, int]]) -> tuple[int,int,int,float, float]:
     tp = len(target & model)
     fp = len(model - target)
     fn = len(target - model)
