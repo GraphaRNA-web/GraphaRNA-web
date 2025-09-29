@@ -48,7 +48,7 @@ def CalculateF1Inf(target: set[tuple[int, int]], model: set[tuple[int, int]]) ->
     return tp,fp,fn,inf,f1
 
 
-def dotbracketToPairs(input: str) -> tuple[str, list, str, set[tuple[int, int]]]:
+def dotbracketToPairs(input: str) -> tuple[str,list[any],str,set[tuple[int,int]]]:
     validator = RnaValidator(input)
     result = validator.ValidateRna()
     incorrectPairs = set(result["Incorrect Pairs"])
