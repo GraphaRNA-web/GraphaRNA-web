@@ -200,7 +200,12 @@ class RnaValidator:
     
 
         # stack check
-    def stackCheck(self,dotBracket,rna): #Zmieniono kod aby nie trzeba było powtarzać kodu z liczeniem stacku i par
+    
+def stackCheck(
+    self,
+    dotBracket: str,
+    rna: str
+) -> tuple[dict[str, deque[int]], list[str], list[int], list[tuple[int,int]], list[tuple[int,int]]]: #Zmieniono kod aby nie trzeba było powtarzać kodu z liczeniem stacku i par
         bracketStacks: dict[str, deque[int]] = {
             self.validBrackets[i : i + 2]: deque()
             for i in range(0, len(self.validBrackets), 2)
