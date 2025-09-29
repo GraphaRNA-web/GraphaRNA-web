@@ -68,7 +68,7 @@ def DownloadZipFile(request: Request) -> HttpResponse:
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
-        return False
+        return True
     validator = EmailValidator()
     try:
         validator(email)

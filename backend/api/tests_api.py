@@ -90,9 +90,8 @@ class PostRnaDataTests(TestCase):
         data = self.valid_data.copy()
         del data["email"]
         response: Response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("error", response.data)
-        self.assertFalse(response.data["success"])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
 
     def test_invalid_email(self) -> None:
         data = self.valid_data.copy()
