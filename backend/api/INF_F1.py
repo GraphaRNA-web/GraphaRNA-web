@@ -1,6 +1,5 @@
 import math
 from api.validation_tools import RnaValidator
-from collections import deque
 from typing import Any
 VALID_LETTERS = "ACGUacgu"
 VALID_BRACKETS = ".()[]<>{}AaBbCcDd"
