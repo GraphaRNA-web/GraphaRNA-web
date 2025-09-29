@@ -10,6 +10,9 @@ import uuid
 from django.utils import timezone
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+import os
+import zipfile
+import io
 
 
 class PostRnaDataTests(TestCase):
@@ -155,13 +158,12 @@ class GetResultsTests(TestCase):
             self.job_results.append(jr)
 
     def test_valid_get_no_results(self) -> None:
-
         mock_empty_qs = MagicMock()
         mock_empty_qs.__iter__.return_value = iter([])
-        with patch("api.views.Job.objects.get", return_value=self.job), patch(
-            "api.views.JobResults.objects.filter", return_value=mock_empty_qs
+        with (
+            patch("api.views.Job.objects.get", return_value=self.job),
+            patch("api.views.JobResults.objects.filter", return_value=mock_empty_qs),
         ):
-
             response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -178,14 +180,13 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["result_list"], [])
 
     def test_valid_get_with_results(self) -> None:
-
         mock_full_qs = MagicMock()
         mock_full_qs.__iter__.return_value = iter(self.job_results)
         mock_full_qs.count.return_value = len(self.job_results)
-        with patch("api.views.Job.objects.get", return_value=self.job), patch(
-            "api.views.JobResults.objects.filter", return_value=mock_full_qs
+        with (
+            patch("api.views.Job.objects.get", return_value=self.job),
+            patch("api.views.JobResults.objects.filter", return_value=mock_full_qs),
         ):
-
             response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -228,8 +229,9 @@ class GetResultsTests(TestCase):
         mock_qs = MagicMock()
         mock_qs.__iter__.return_value = iter(self.job_results)
 
-        with patch("api.views.Job.objects.get", return_value=self.job), patch(
-            "api.views.JobResults.objects.filter", return_value=mock_qs
+        with (
+            patch("api.views.Job.objects.get", return_value=self.job),
+            patch("api.views.JobResults.objects.filter", return_value=mock_qs),
         ):
             response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
 
@@ -499,3 +501,68 @@ class PostRnaValidationTests(TestCase):
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class DownloadZipFileTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        # Mock jobs
+        self.job_queued = MagicMock(uid=uuid.uuid4(), status="Q", job_name="queued")
+        self.job_finished = MagicMock(uid=uuid.uuid4(), status="F", job_name="finished")
+
+        # Mock JobResults
+        self.result = MagicMock(job=self.job_finished)
+        self.result.result_secondary_structure_dotseq.name = "dotseq.txt"
+        self.result.result_secondary_structure_svg.name = "structure.svg"
+        self.result.result_tertiary_structure.name = "tertiary.txt"
+
+        # Patch Job.objects.get
+        patcher_job_get = patch(
+            "webapp.models.Job.objects.get",
+            side_effect=lambda pk=None, **kwargs: self.job_finished
+            if str(pk) == str(self.job_finished.uid)
+            else self.job_queued,
+        )
+        self.mock_job_get = patcher_job_get.start()
+        self.addCleanup(patcher_job_get.stop)
+
+        # Patch JobResults.objects.get
+        patcher_results_get = patch(
+            "webapp.models.JobResults.objects.get", return_value=self.result
+        )
+        self.mock_results_get = patcher_results_get.start()
+        self.addCleanup(patcher_results_get.stop)
+
+        # Patch filesystem
+        patcher_exists = patch("os.path.exists", return_value=True)
+        self.mock_exists = patcher_exists.start()
+        self.addCleanup(patcher_exists.stop)
+
+        patcher_open = patch("builtins.open", mock_open(read_data=b"xyz"))
+        self.mock_open = patcher_open.start()
+        self.addCleanup(patcher_open.stop)
+
+    def test_download_zip_no_uuid(self):
+        url = reverse("downloadZip")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_download_zip_job_not_finished(self):
+        url = reverse("downloadZip") + f"?uuid={self.job_queued.uid}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b"Job is not finished", response.content)
+
+    def test_download_zip_success(self):
+        url = reverse("downloadZip") + f"?uuid={self.job_finished.uid}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/zip")
+
+        zip_buffer = io.BytesIO(response.content)
+        with zipfile.ZipFile(zip_buffer) as zf:
+            filenames = [os.path.basename(f) for f in zf.namelist()]
+            self.assertTrue(any("tertiary" in f for f in filenames))
+            self.assertTrue(any("dotseq" in f for f in filenames))
+            self.assertTrue(any("structure" in f for f in filenames))
