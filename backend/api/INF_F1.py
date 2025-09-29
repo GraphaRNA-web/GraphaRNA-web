@@ -1,7 +1,7 @@
 import math
 from api.validation_tools import RnaValidator
 from collections import deque
-
+from typing import Any
 VALID_LETTERS = "ACGUacgu"
 VALID_BRACKETS = ".()[]<>{}AaBbCcDd"
 VALID_CONNECTIONS = [
@@ -48,7 +48,7 @@ def CalculateF1Inf(target: set[tuple[int, int]], model: set[tuple[int, int]]) ->
     return tp,fp,fn,inf,f1
 
 
-def dotbracketToPairs(input: str) -> tuple[str,list[any],str,set[tuple[int,int]]]:
+def dotbracketToPairs(input: str) -> tuple[str,list[Any],str,set[tuple[int,int]]]:
     validator = RnaValidator(input)
     result = validator.ValidateRna()
     incorrectPairs = set(result["Incorrect Pairs"])
