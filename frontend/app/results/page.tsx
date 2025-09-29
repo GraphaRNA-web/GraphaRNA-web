@@ -7,7 +7,7 @@ import PdbViewer from "../components/PdbViewer";
 
 export default function Home() {
 
-  const [isFound, setIsFound] = React.useState(true);
+  const [isFound, setIsFound] = React.useState(false);
 
   return (
     <div className='content'>
