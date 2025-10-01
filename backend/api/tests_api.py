@@ -166,7 +166,7 @@ class GetResultsTests(TestCase):
             patch("api.views.Job.objects.get", return_value=self.job),
             patch("api.views.JobResults.objects.filter", return_value=mock_empty_qs),
         ):
-            response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+            response: Response = self.client.get(self.url, {"uidh": str(self.job.hashed_uid)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.data
