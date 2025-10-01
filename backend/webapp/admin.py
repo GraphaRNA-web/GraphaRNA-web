@@ -6,6 +6,7 @@ from .models import Job, JobResults
 class JobAdmin(admin.ModelAdmin):
     list_display = (
         "uid",
+        "hashed_uid",
         "job_name",
         "email",
         "created_at",

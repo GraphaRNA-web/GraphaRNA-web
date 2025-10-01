@@ -65,7 +65,7 @@ def near_expiration_email_task() -> None:
 
     for job in near_expired_jobs:
         if job.email:
-            url = f"{settings.RESULT_BASE_URL}?uid={job.uid}"
+            url = f"{settings.RESULT_BASE_URL}?uidh={job.hashed_uid}"
             expiration_date = job.expires_at.strftime("%d-%m-%Y %H:%M")
             send_email_task.delay(
                 receiver_email=job.email,
@@ -251,7 +251,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     job_data.save()
 
     if job_data.email:
-        url = f"{settings.RESULT_BASE_URL}?uid={job_data.uid}"
+        url = f"{settings.RESULT_BASE_URL}?uidh={job_data.hashed_uid}"
         send_email_task.delay(
             receiver_email=job_data.email,
             template_path=settings.TEMPLATE_PATH_JOB_FINISHED,

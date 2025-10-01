@@ -10,6 +10,7 @@ import uuid
 from django.utils import timezone
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from webapp.hashing_tools import hash_uuid
 import os
 import zipfile
 import io
@@ -136,6 +137,7 @@ class GetResultsTests(TestCase):
 
         self.job: MagicMock = MagicMock()
         self.job.uid = uuid.uuid4()
+        self.job.hashed_uid = hash_uuid(str(self.job.uid))
         self.job.input_structure.read.return_value = b">Job\nACBC"
         self.job.status = "F"
         self.job.job_name = "Job"
@@ -164,7 +166,7 @@ class GetResultsTests(TestCase):
             patch("api.views.Job.objects.get", return_value=self.job),
             patch("api.views.JobResults.objects.filter", return_value=mock_empty_qs),
         ):
-            response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+            response: Response = self.client.get(self.url, {"uidh": str(self.job.hashed_uid)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.data
@@ -187,7 +189,10 @@ class GetResultsTests(TestCase):
             patch("api.views.Job.objects.get", return_value=self.job),
             patch("api.views.JobResults.objects.filter", return_value=mock_full_qs),
         ):
-            response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+
+            response: Response = self.client.get(
+                self.url, {"uidh": str(self.job.hashed_uid)}
+            )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -233,7 +238,9 @@ class GetResultsTests(TestCase):
             patch("api.views.Job.objects.get", return_value=self.job),
             patch("api.views.JobResults.objects.filter", return_value=mock_qs),
         ):
-            response: Response = self.client.get(self.url, {"uid": str(self.job.uid)})
+            response: Response = self.client.get(
+                self.url, {"uidh": str(self.job.hashed_uid)}
+            )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -249,23 +256,20 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["sum_processing_time"], self.job.sum_processing_time)
         self.assertEqual(data["result_list"], [])
 
-    def test_invalid_uid(self) -> None:
-        response: Response = self.client.get(self.url, {"uid": "1234"})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("error", response.data)
-
     def test_missing_uid(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
 
     def test_non_existent_job(self) -> None:
-        response: Response = self.client.get(self.url, {"uid": str(uuid.uuid4())})
+        response: Response = self.client.get(self.url, {"uidh": "nonexistent"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
 
     def test_wrong_http_method_post(self) -> None:
-        response: Response = self.client.post(self.url, {"uid": str(self.job.uid)})
+        response: Response = self.client.post(
+            self.url, {"uidh": str(self.job.hashed_uid)}
+        )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 

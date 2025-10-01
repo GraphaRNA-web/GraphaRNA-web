@@ -69,6 +69,8 @@ ENGINE_URL = http://grapharna-engine:8080/test
 
 JOB_EXPIRATION_WEEKS=2
 
+UUID_HASH_LENGTH=5
+
 MODEL_NAME=model_800.h5
 MODEL_EPOCHS=800
 

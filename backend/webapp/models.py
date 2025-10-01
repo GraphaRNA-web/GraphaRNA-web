@@ -17,6 +17,9 @@ class Job(models.Model):
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
+    hashed_uid: models.CharField = models.CharField(
+        max_length=settings.UUID_HASH_LENGTH, unique=True, editable=False, null=True
+    )
     input_structure: models.FileField = models.FileField()
     seed: models.IntegerField = models.IntegerField()
     job_name: models.CharField = models.CharField(max_length=255)
