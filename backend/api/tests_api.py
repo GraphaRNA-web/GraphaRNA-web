@@ -5,11 +5,12 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
 from typing import Dict, Any
-from webapp.models import Job
+from webapp.models import Job, JobResults
 import uuid
 from django.utils import timezone
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.files.base import ContentFile
 
 
 class PostRnaDataTests(TestCase):
@@ -494,3 +495,143 @@ class PostRnaValidationTests(TestCase):
     def test_wrong_http_method_get(self) -> None:
         response: Response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+
+
+import math
+from api.INF_F1 import parseFastaFile, CalculateF1Inf, dotbracketToPairs
+class INF(TestCase):
+    def test_perfect_match(self):
+        tp, fp, fn, inf, f1 = CalculateF1Inf({(0,1), (2,3)}, {(0,1), (2,3)})
+        assert (tp, fp, fn) == (2, 0, 0)
+        print("DEBUG:", tp, fp, fn, inf, f1)
+        assert math.isclose(inf, 1.0)
+        assert math.isclose(f1, 1.0)
+
+    def test_empty_model(self):
+        tp, fp, fn, inf, f1 = CalculateF1Inf({(0,1), (2,3)}, set())
+        assert (tp, fp, fn) == (0, 0, 2)
+        print("DEBUG:", tp, fp, fn, inf, f1)
+        assert math.isclose(inf, 0.0)
+        assert math.isclose(f1, 0.0)
+
+    def test_partial_match(self):
+        tp, fp, fn, inf, f1 = CalculateF1Inf({(0,1), (2,3)}, {(0,1), (4,5)})
+        
+        assert (tp, fp, fn) == (1, 1, 1)
+        print("DEBUG:", tp, fp, fn, inf, f1)
+        assert math.isclose(inf, 0.5)
+        assert math.isclose(f1, 0.5)
+
+
+    def test_CalculateF1Inf_perfect_match(self):
+        target = {(0, 3), (1, 2)}
+        model = {(0, 3), (1, 2)}
+        tp, fp, fn, inf, f1 = CalculateF1Inf(target, model)
+        print("DEBUG perfect:", tp, fp, fn, inf, f1)
+        assert (tp, fp, fn) == (2, 0, 0)
+        assert f1 == 1.0
+        assert inf == 1.0
+
+
+    def test_CalculateF1Inf_partial_match(self):
+        target = {(0, 3), (1, 2)}
+        model = {(0, 3), (4, 5)}
+        tp, fp, fn, inf, f1 = CalculateF1Inf(target, model)
+        print("DEBUG partial:", tp, fp, fn, inf, f1)
+        assert (tp, fp, fn) == (1, 1, 1)
+        assert round(f1, 2) == 0.5
+        assert round(inf, 2) == 0.5
+
+
+    def test_CalculateF1Inf_empty_model(self):
+        target = {(0, 3), (1, 2)}
+        model = set()
+        tp, fp, fn, inf, f1 = CalculateF1Inf(target, model)
+        print("DEBUG empty:", tp, fp, fn, inf, f1)
+        assert (tp, fp, fn) == (0, 0, 2)
+        assert f1 == 0.0
+        assert inf == 0.0
+
+
+    def test_dotbracketToPairs_simple(self):
+        input_str = ">Job\nACGU\n(())"
+        correct, incorrect, all_pairs = dotbracketToPairs(input_str)
+        print("DEBUG dotbracketToPairs:", correct, incorrect, all_pairs)
+        assert (0, 3) in correct
+        assert (1, 2) in correct
+        assert incorrect == set()
+
+    def test_perfect_match(self):
+        target_input = "ACGU\n()()"
+        model_input = "ACGU\n()()"
+
+        target_correct, target_incorrect, target_all = dotbracketToPairs(target_input)
+        model_correct, model_incorrect, model_all = dotbracketToPairs(model_input)
+
+        tp, fp, fn, inf, f1 = CalculateF1Inf(target_correct, model_correct)
+
+        self.assertEqual(tp, 1)
+        self.assertEqual(fp, 0)
+        self.assertEqual(fn, 0)
+        self.assertTrue(0 <= f1 <= 1)
+        self.assertTrue(0 <= inf <= 1)
+
+    def test_partial_match(self):
+        target_input = "GCGC\n()()"
+        model_input = "GCGC\n..()" 
+
+        target_correct, target_incorrect, target_all = dotbracketToPairs(target_input)
+        model_correct, model_incorrect, model_all = dotbracketToPairs(model_input)
+
+        tp, fp, fn, inf, f1 = CalculateF1Inf(target_correct, model_correct)
+        print("DEBUG test_partial_match:", tp, fp, fn,inf,f1)
+        self.assertEqual(tp, 1)
+        self.assertEqual(fp, 0)
+        self.assertEqual(fn, 1)
+        self.assertTrue(0 < f1 < 1)
+        self.assertTrue(0 < inf < 1)
+
+    def test_empty_model(self):
+        target_input = "GC\n()"
+        model_input = "..."
+
+        target_correct, target_incorrect, target_all = dotbracketToPairs(target_input)
+        model_correct, model_incorrect, model_all = dotbracketToPairs(model_input)
+
+        tp, fp, fn, inf, f1 = CalculateF1Inf(target_correct, model_correct)
+
+        self.assertEqual(tp, 0)
+        self.assertEqual(fp, 0)
+        self.assertEqual(fn, 1)
+        self.assertTrue(0 <= f1 <= 1)
+        self.assertTrue(0 <= inf <= 1)
+
+
+class GetInfF1EndpointTests(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+
+        self.job = Job.objects.create(
+            uid=uuid.uuid4(),
+            job_name="test-job",
+            input_structure=ContentFile(b">job\nACGU\n()", "input.dotseq"),
+            status="F",
+            seed=2137,
+            alternative_conformations=1,
+        )
+        self.job_result = JobResults.objects.create(
+            job=self.job,
+            result_secondary_structure_dotseq=ContentFile(b">job\nACGU\n..()", "model.dotseq"),
+        )
+
+    def test_get_inf_f1_success(self):
+        url = reverse("getInf") + f"?uid={self.job.uid}"
+        
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertIn("Dane:", data)

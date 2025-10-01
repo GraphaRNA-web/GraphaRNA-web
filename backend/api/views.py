@@ -410,14 +410,23 @@ def getInf_F1(request: Request) -> Response:
 
     jobResult = JobResults.objects.get(job=job)
     model = jobResult.result_secondary_structure_dotseq.path
-    target_seq, target_dot = parseFastaFile(target)
-    model_seq, model_dot = parseFastaFile(model)
+    try:
+        target_seq, target_dot = parseFastaFile(target)
+        model_seq, model_dot = parseFastaFile(model)
+    except FileNotFoundError:
+        return Response({"success": False, "error": "File not found"}, status=404)
     target_input = target_seq + "\n" + target_dot
     model_input  = model_seq + "\n" + model_dot
     target_correct, target_incorrect, target_all = dotbracketToPairs(target_input)
     model_correct, model_incorrect, model_all = dotbracketToPairs(model_input)
     tp,fp,fn,inf,f1 = CalculateF1Inf(target_correct, model_correct)
-    return Response({"success": True,"Dane:": {tp,fp,fn,inf, f1}})
+    return Response({"success": True,"Dane:": {
+        "tp": tp,
+        "fp": fp,
+        "fn": fn,
+        "inf": inf,
+        "f1": f1,
+        }})
 
 
 
