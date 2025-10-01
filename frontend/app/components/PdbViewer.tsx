@@ -37,7 +37,6 @@ export default function PdbViewer({ filePath, width, height }: PdbViewerProps) {
         backgroundColor: 0xffffff,
       });
 
-      // Załaduj plik z podanej ścieżki
       if (filePath) {
         try {
           const resp = await fetch(filePath);
@@ -52,7 +51,6 @@ export default function PdbViewer({ filePath, width, height }: PdbViewerProps) {
         }
       }
 
-      // ResizeObserver, żeby viewer renderował się przy zmianie rozmiaru
       const ro = new ResizeObserver(() => viewerRef.current.render());
       ro.observe(containerRef.current);
     };
@@ -86,7 +84,7 @@ export default function PdbViewer({ filePath, width, height }: PdbViewerProps) {
       style={{ width, height }}
     >
       <div className="header-bar">
-        <span className="file-name">{filePath.split("/").pop()}</span>
+        <span className="file-name">3D structure</span>
         <div className="controls-header">
           <button onClick={zoomIn}>＋</button>
           <button onClick={zoomOut}>－</button>
