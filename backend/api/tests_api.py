@@ -5,12 +5,13 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
 from typing import Dict, Any
-from webapp.models import Job, JobResults
+from webapp.models import Job
 import uuid
 from django.utils import timezone
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-
+import math
+from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
@@ -498,24 +499,23 @@ class PostRnaValidationTests(TestCase):
 
 
 
-import math
-from api.INF_F1 import parseFastaFile, CalculateF1Inf, dotbracketToPairs
+
 class INF(TestCase):
-    def test_perfect_match(self):
+    def test_perfect_match_CalculateF1Inf(self):
         tp, fp, fn, inf, f1 = CalculateF1Inf({(0,1), (2,3)}, {(0,1), (2,3)})
         assert (tp, fp, fn) == (2, 0, 0)
         print("DEBUG:", tp, fp, fn, inf, f1)
         assert math.isclose(inf, 1.0)
         assert math.isclose(f1, 1.0)
 
-    def test_empty_model(self):
+    def test_empty_model_CalculateF1Inf(self):
         tp, fp, fn, inf, f1 = CalculateF1Inf({(0,1), (2,3)}, set())
         assert (tp, fp, fn) == (0, 0, 2)
         print("DEBUG:", tp, fp, fn, inf, f1)
         assert math.isclose(inf, 0.0)
         assert math.isclose(f1, 0.0)
 
-    def test_partial_match(self):
+    def test_partial_match_CalculateF1Inf(self):
         tp, fp, fn, inf, f1 = CalculateF1Inf({(0,1), (2,3)}, {(0,1), (4,5)})
         
         assert (tp, fp, fn) == (1, 1, 1)
