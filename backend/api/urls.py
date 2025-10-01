@@ -8,7 +8,7 @@ urlpatterns = [
     path("getResults/", api.views.GetResults, name="getResults"),
     path("healthcheck/", api.views.healthcheck, name="healthcheck"),
     path("getResults/", api.views.GetResults, name="getResults"),
-    path("downloadZip/", api.views.DownloadZipFile, name="dowwnloadZip"),
+    path("downloadZip/", api.views.DownloadZipFile, name="downloadZip"),
     path(
         "getSuggestedSeedAndJobName/",
         api.views.GetSuggestedSeedAndJobName,

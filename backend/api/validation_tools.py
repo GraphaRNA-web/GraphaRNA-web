@@ -3,7 +3,6 @@ from django.conf import settings
 
 
 class RnaValidator:
-
     def __init__(self, fasta_raw: str) -> None:
         self.fasta_raw: str = fasta_raw
         self.validBrackets: str = settings.VALID_BRACKETS + " "
@@ -53,8 +52,11 @@ class RnaValidator:
                     self.parsingResult = False
                     self.errorList.append("Parsing error: Missing Lines")
                     break
-                if not any(i in self.validBrackets for i in currentStrand[2]) and all(
-                    i in self.validNucleotides for i in currentStrand[2].upper()
+                if (
+                    not any(i in self.validBrackets for i in currentStrand[2])
+                    and all(
+                        i in self.validNucleotides for i in currentStrand[2].upper()
+                    )
                 ):  # verify order of lines in a strand by checking checking characters in dotbracket line (doesn't contain any valid brackets and contains only valid nucleotides)
                     self.parsingResult = False
                     self.errorList.append("Parsing error: Wrong line order")
