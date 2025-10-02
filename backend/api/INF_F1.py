@@ -1,7 +1,6 @@
 import math
 from api.validation_tools import RnaValidator
 from typing import Any
-from django.conf import settings
 
 
 def CalculateF1Inf(target: set[tuple[int, int]], model: set[tuple[int, int]]) -> tuple[int,int,int,float, float]:
