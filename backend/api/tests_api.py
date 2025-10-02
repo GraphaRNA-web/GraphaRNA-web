@@ -94,9 +94,8 @@ class PostRnaDataTests(TestCase):
         data = self.valid_data.copy()
         del data["email"]
         response: Response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("error", response.data)
-        self.assertFalse(response.data["success"])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
 
     def test_invalid_email(self) -> None:
         data = self.valid_data.copy()
@@ -105,6 +104,14 @@ class PostRnaDataTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
         self.assertFalse(response.data["success"])
+
+    def test_valid_email(self) -> None:
+        data = self.valid_data.copy()
+        data["email"] = "fajnymail@domena.pl"
+        response: Response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("error", response.data)
+        self.assertTrue(response.data["success"])
 
     def test_missing_optional_seed_and_job_name(self) -> None:
         data: Dict[str, Any] = {
@@ -276,7 +283,7 @@ class GetResultsTests(TestCase):
 class SuggestSeedAndJobNameTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
-        self.url: str = "/api/getSuggestedSeedAndJobName/"
+        self.url: str = reverse("getSuggestedSeedAndJobName")
 
     def test_valid_request(self) -> None:
         response: Response = self.client.get(self.url)
