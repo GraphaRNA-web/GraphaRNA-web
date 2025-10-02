@@ -284,12 +284,12 @@ def ProcessRequestData(request: Request) -> Response:
             url=url,
         )
         return Response(
-            {"success": True, "Job": job.job_name, "email_sent": True},
+            {"success": True, "Job": job.job_name, "email_sent": True, "job_hash": job.hashed_uid},
             status=status.HTTP_200_OK,
         )
     else:
         return Response(
-            {"success": True, "Job": job.job_name, "email_sent": False},
+            {"success": True, "Job": job.job_name, "email_sent": False, "job_hash": job.hashed_uid},
             status=status.HTTP_200_OK,
         )
 
