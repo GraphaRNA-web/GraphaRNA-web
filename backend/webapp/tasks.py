@@ -15,7 +15,7 @@ from webapp.visualization_tools import (
 )
 from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
-
+from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
 def log_to_file(message: str) -> None:
     ts = datetime.now().isoformat()
@@ -132,9 +132,22 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             input_dotbracket = getDotBracket(job_data.input_structure.path)
             output_dotbracket = getDotBracket(dotbracket_path)
             generateRchieDiagram(input_dotbracket, output_dotbracket, arc_diagram_path)
+
         except Exception as e:
             logger.error(f"Error generating arc diagram{e}")
             raise
+        try:
+            target = job_data.input_structure.path
+            model=dotbracket_path
+            with open(target) as f:
+                target_correct, target_incorrect, target_all = dotbracketToPairs(f.read())
+            with open(model) as f:
+                model_correct, model_incorrect, model_all = dotbracketToPairs(f.read())
+            tp,fp,fn,infV,f1V = CalculateF1Inf(target_correct, model_correct)
+        except Exception as e:
+            logger.error(f"Error with generating F1 and INF value {e}")
+
+
 
         relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
         relative_path_dotseq = os.path.relpath(dotbracket_path, settings.MEDIA_ROOT)
@@ -160,6 +173,8 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 result_secondary_structure_svg=relative_path_svg,
                 result_arc_diagram=relative_path_arc,
                 completed_at=processing_end,
+                inf=infV,
+                f1=f1V,
                 processing_time=(processing_end - processing_start),
             )
         except Exception as e:
