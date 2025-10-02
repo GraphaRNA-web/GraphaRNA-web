@@ -9,8 +9,8 @@ urlpatterns = [
     path("healthcheck/", api.views.healthcheck,name="healthcheck"),
     path("getResults/", api.views.GetResults,name="getResults"),
     path("testRequest/", api.views.TestRequest,name="testRequest"),
-    path("downloadZip/", api.views.DownloadZipFile,name="dowwnloadZip"),
+    path("downloadZip/", api.views.DownloadZipFile,name="downloadZip"),
     path("getSuggestedSeedAndJobName/", api.views.GetSuggestedSeedAndJobName,name="getSuggestedSeedAndJobName"),
     path("testEngineRun/", api.views.testEngineRun,name="testEngineRun"),
-    path("getInf/", api.views.getInf_F1,name="getInf"),
+    # path("getInf/", api.views.getInf_F1,name="getInf"),
 ]

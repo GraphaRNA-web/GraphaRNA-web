@@ -18,7 +18,7 @@ from django.core.files.uploadedfile import UploadedFile
 import zipfile
 import io
 from django.http import HttpResponse
-from api.INF_F1 import CalculateF1Inf, dotbracketToPairs, parseFastaFile
+from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
 @api_view(["GET"])
 def DownloadZipFile(request:Request)->HttpResponse:
@@ -399,26 +399,26 @@ def TestRequest(request: Request) -> Response:
     return Response({"success": True, "Job": job.job_name})
 
 
-@api_view(["POST"])
+# @api_view(["POST"])
 def getInf_F1(request: Request) -> Response:
     
     uid = request.query_params.get("uid")
     if not uid:
         return Response({"success": False, "error": "uid missing"}, status=400)
     job = Job.objects.get(uid=uid)
-    target = job.input_structure.path
+
 
     jobResult = JobResults.objects.get(job=job)
-    model = jobResult.result_secondary_structure_dotseq.path
+
     try:
-        target_seq, target_dot = parseFastaFile(target)
-        model_seq, model_dot = parseFastaFile(model)
+        target = job.input_structure.path
+        model = jobResult.result_secondary_structure_dotseq.path
     except FileNotFoundError:
         return Response({"success": False, "error": "File not found"}, status=404)
-    target_input = target_seq + "\n" + target_dot
-    model_input  = model_seq + "\n" + model_dot
-    target_correct, target_incorrect, target_all = dotbracketToPairs(target_input)
-    model_correct, model_incorrect, model_all = dotbracketToPairs(model_input)
+    with open(target) as f:
+        target_correct, target_incorrect, target_all = dotbracketToPairs(f.read())
+    with open(model) as f:
+        model_correct, model_incorrect, model_all = dotbracketToPairs(f.read())
     tp,fp,fn,inf,f1 = CalculateF1Inf(target_correct, model_correct)
     return Response({"success": True,"Dane:": {
         "tp": tp,

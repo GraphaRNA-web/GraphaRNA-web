@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 import math
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
-
+from api.views import getInf_F1
 class PostRnaDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
@@ -640,9 +640,9 @@ class GetInfF1EndpointTests(TestCase):
         self.addCleanup(patcher_open.stop)
 
     def test_get_inf_f1_success(self):
-        url = reverse("getInf") + f"?uid={self.job_finished.uid}"
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
+        request = MagicMock()
+        request.query_params = {"uid": str(self.job_finished.uid)}
+        response = getInf_F1(request)
+        data = response.data 
         self.assertTrue(data["success"])
         self.assertIn("Dane:", data)

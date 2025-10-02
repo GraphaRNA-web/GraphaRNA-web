@@ -1,40 +1,7 @@
 import math
 from api.validation_tools import RnaValidator
 from typing import Any
-VALID_LETTERS = "ACGUacgu"
-VALID_BRACKETS = ".()[]<>{}AaBbCcDd"
-VALID_CONNECTIONS = [
-    ["G", "C"], ["C", "G"], ["A", "U"], ["U", "A"], ["G", "U"], ["U", "G"]
-]
-
-def parseFastaFile(filename: str) -> tuple[str, str]:
-    VALID_LETTERS = set("ACGUacguTt")
-    VALID_BRACKETS = set(".()[]<>{}AaBbCcDd")
-
-    strands = []
-    brackets = []
-
-    with open(filename, "r") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-
-            if line.startswith(">"):
-                strands.append("")
-                brackets.append("")
-                continue
-
-            if all(c in VALID_LETTERS for c in line):
-                strands[-1] += line
-            elif all(c in VALID_BRACKETS for c in line):
-                brackets[-1] += line
-            else:
-                print(f"Skipped line with illegal chars: {line}")
-
-    joinedStrands = " ".join(strands)
-    joinedBrackets = " ".join(brackets)
-    return joinedStrands, joinedBrackets
+from django.conf import settings
 
 
 def CalculateF1Inf(target: set[tuple[int, int]], model: set[tuple[int, int]]) -> tuple[int,int,int,float, float]:
