@@ -145,6 +145,38 @@ export async function getResultDetails(params: { uidh: string }) {
   return data;
 }
 
+
+// This function automaticly shows the download prompt, so you should use it like:
+// <Button
+//   onClick={() => downloadZip({ uuid: jobUuid })}
+// >
+//   Download ZIP
+// </Button>
+export async function downloadZip(params: { uuid: string }) {
+  console.log("[downloadZip] sending request to proxy", params);
+
+  const res = await fetchWithCsrf(`/api/downloadZip?uuid=${encodeURIComponent(params.uuid)}`, {
+    method: "GET",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Could not download ZIP");
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `result-${params.uuid}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+
 export async function getActiveJobs(): Promise<any> {
   console.log("[getActiveJobs] sending request to proxy");
 
