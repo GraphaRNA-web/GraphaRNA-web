@@ -5,7 +5,9 @@ export async function fetchWithCsrf(input: RequestInfo, init: RequestInit = {}) 
     const data = await res.json();
     csrf = data.csrfToken;
     const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
-    if (meta) meta.content = csrf;
+    if (meta && csrf) {
+      meta.content = csrf;
+    }
   }
 
   const mergedHeaders = {

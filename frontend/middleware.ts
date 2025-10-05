@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
   if (!req.cookies.get("csrfToken")) {
     res.cookies.set("csrfToken", crypto.randomUUID(), {
         httpOnly: true,
-        sameSite: "Strict",
+        sameSite: "strict",
         secure: process.env.NODE_ENV === "production",
         path: "/",
     });
