@@ -11,6 +11,13 @@
     padding-right: 150px;
 }
 
+@media (max-width: 768px) {
+  .gp-content {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
 [class*="header-"] {
     font-family: Raleway;
     font-weight: 700;
@@ -43,7 +50,9 @@
 }
 
 .example-image {
-  max-width: 1000px;
-  height: auto;
-  border-radius: 10px;
+  max-width: 100%;  
+  height: auto;     
+  display: block;   
+  margin: 0 auto;   
+  padding-bottom: 50px;
 }
