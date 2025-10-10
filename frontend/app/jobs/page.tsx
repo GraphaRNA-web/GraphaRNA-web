@@ -258,7 +258,7 @@ const goNext = async () => {
     else{
         setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
     }
-  }
+  } 
 
   const handlePrev = () => {
     setCurrentStep(prev => prev - 1);
