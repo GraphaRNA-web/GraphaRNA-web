@@ -96,7 +96,7 @@
 
     .text{
         width: 450px;
-        height: 170px;
+        height: 250px;
     }
 
     .circle{
@@ -114,8 +114,4 @@
     .cite-title{
         width: 550px;
     }
-}
-
-*{
-    outline: 1px solid red;
 }
