@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { validateRNA, getSuggestedData, submitJobRequest } from "@/lib/api";
+import { useRouter } from "next/navigation";
 import Modal from '../components/Modal';
 import Slider from '../components/Slider';
 import '../styles/jobs.css';
@@ -16,6 +17,7 @@ import ValidationWarningModal from "../components/ValidationWarningModal";
 
 
 export default function Jobs() {
+  const router = useRouter();
   const [inputFormat, setInputFormat] = useState("Text");
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -85,7 +87,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
     try {
       console.log("[validateStructure] calling validateRNA...");
-      const result = await validateRNA(trimmedText);
+      const result = await validateRNA({ fasta_raw: trimmedText });
 
       setMismatchingBrackets(result["Mismatching Brackets"] || []);
       setIncorrectPairs(result["Incorrect Pairs"] || []);
@@ -156,7 +158,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
       try {
         console.log("[validateStructure] calling validateRNA...");
-        const result = await validateRNA(normalized);
+        const result = await validateRNA({fasta_raw: normalized});
 
         setMismatchingBrackets(result["Mismatching Brackets"] || []);
         setIncorrectPairs(result["Incorrect Pairs"] || []);
@@ -236,8 +238,8 @@ const goNext = async () => {
 
 
   const handleSubmit = async () => {
-    if (email === "" || emailValidator(email)){
-      setCurrentStep(prev => prev + 1)
+    if (email === "" || emailValidator(email)) {
+      setCurrentStep(prev => prev + 1);
       try {
         const response = await submitJobRequest({
           fasta_raw: text,
@@ -248,17 +250,21 @@ const goNext = async () => {
         });
 
         console.log("[handleSubmit] job created:", response);
-        setApproves([`Job '${response.job_name}' submitted successfully.`]);
+        setApproves([`Job '${response.Job}' submitted successfully.`]);
         setCurrentStep(prev => prev + 1);
+
+        router.push(`/results?uidh=${response.job_hash}`);
+
       } catch (err: any) {
         console.error("[handleSubmit] error", err);
         setErrors([err.message]);
       }
+    } else {
+      setErrors([
+        "Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'",
+      ]);
     }
-    else{
-        setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
-    }
-  } 
+  };
 
   const handlePrev = () => {
     setCurrentStep(prev => prev - 1);
