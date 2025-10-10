@@ -2,13 +2,13 @@
     display: flex;
     flex-direction: column;
     padding-top: 110px;
+    padding-left: calc(180px - (1450px - 100vw)*0.545);
 }
 
 .cite{
     position: relative;
-    width: 100%;
+    width: 1020px;
     height: 570px;
-    padding-left: 200px;
     display: flex;
     flex-direction: column;
     gap: 30px;
@@ -23,7 +23,7 @@
 
 .cite-content{
     position: absolute;
-    width: 1150px;
+    width: 1020px;
     height: 500px;
     top: 80px;
 }
@@ -41,14 +41,14 @@
     position: absolute;
     z-index: 1;
     top: -70px;
-    left: 700px;
+    left: calc(700px - (1450px - 100vw)*0.45);
 }
 
 .triangle{
     position: absolute;
     z-index: 1;
     top: 200px;
-    left: 200px;
+    left: calc(200px - (1450px - 100vw)*0.45);
 }
 
 .green-thing{
@@ -79,4 +79,43 @@
     font-size: 16px;
     font-family: 'Raleway';
     font-weight: 400;
+}
+
+@media (max-width: 1200){
+    .content{
+        padding-left: 40px;
+    }
+
+    .cite-content{
+        width: 550px;
+    }
+
+    .cite{
+        width: 550px;
+    }
+
+    .text{
+        width: 450px;
+        height: 170px;
+    }
+
+    .circle{
+        left: calc(700px - (1450px - 100vw)*0.75);
+    }
+
+    .triangle{
+        left: calc(200px - (1450px - 100vw)*0.25);
+    }
+
+    .cite-subtitle{
+        width: 550px;
+    }
+
+    .cite-title{
+        width: 550px;
+    }
+}
+
+*{
+    outline: 1px solid red;
 }
