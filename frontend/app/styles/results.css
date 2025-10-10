@@ -48,7 +48,8 @@ p{
 
 .found {
   padding-top: 110px;
-  padding-left: 180px;
+  padding-left: calc(180px - (1450px - 100vw)*0.545);
+  width: 100%;
 }
 
 .title{
@@ -58,6 +59,7 @@ p{
 }
 
 .content{
+    width: 1120px;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -134,27 +136,28 @@ p{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    width: 520px;
 }
 
 .rep-time{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 920px;
+    width: 520px;
 }
 
 .rep-date{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 835px;
+    width: 520px;
 }
 
 .proc-time{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 870px;
+    width: 520px;
 }
 
 .field-name{
@@ -169,6 +172,7 @@ p{
     font-size: 16px;
     font-weight: 400;
     font-family: 'Inter';
+    text-align: right;
 }
 
 .dot-and-text{
@@ -191,14 +195,14 @@ p{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 635px;
+    width: 400px;
 }
 
 .seed{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 710px;
+    width: 400px;
 }
 
 .pagination{
@@ -321,4 +325,80 @@ p{
     line-height: 100%;
     letter-spacing: 0%;
 
+}
+
+.pagination{
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+@media (max-width: 1120px){
+    .found{
+        padding-left: 0px;
+    }
+
+    .top-section{
+        flex-direction: column;
+        height: 470px;
+        width: 605px;
+    }
+
+    .top-right{
+        flex-direction: row;
+    }
+
+    .images-2d3d{
+        flex-direction: column;
+        width: 605;
+        align-items: center;
+    }
+
+    .download-zip{
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        justify-content: center;
+        height: 100px;
+        width: 115px;
+        order: 1;
+        margin-left: 0px;
+        margin-top: 35px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        padding-left: 0px;
+        border-radius: 10px;
+    }
+
+    .download-text{
+        font-size: 16px;
+        text-align: center;
+        width: 110px;
+    }
+
+    .download-icon{
+        height: 20px;
+        width: 20px;
+    }
+
+    .pagination{
+        margin-right: 0px;
+        margin-top: 0px;
+    }
+    .content{
+        width: 610px;
+        display: flex;
+        flex-direction: column;
+        margin: 0 auto;
+    }
+
+    .input-data{
+        width: 605px;
+    }
+
+    .arc-diagram{
+        margin-left: 25px;
+        margin-right: 0px;
+    }
 }

@@ -95,7 +95,7 @@ export default function PdbViewer({ filePath, width, height }: PdbViewerProps) {
         className="viewer-container"
         ref={containerRef}
         style={{
-            width: isFullscreen ? "100%" : (typeof width === "number" ? width - 40 : `calc(${width} - 40px)`),
+            width: isFullscreen ? "100%" : (typeof width === "number" ? width - 60 : `calc(${width} - 60px)`),
             height: isFullscreen ? "100%" : (typeof height === "number" ? height - 40 : `calc(${height} - 40px)`),
         }}
       />

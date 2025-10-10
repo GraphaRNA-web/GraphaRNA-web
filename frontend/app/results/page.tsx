@@ -1,16 +1,26 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/results.css';
 import PdbViewer from "../components/PdbViewer";
 import DotsIndicator from '../components/DotsIndicator';
 import ImageViewer from '../components/ImageViewer';
-import ArcViewer from '../components/ArcViewer';
 
 export default function Results() {
+  const [windowWidth, setWindowWidth] = useState(0);
+
+  useEffect(() => {
+    setWindowWidth(window.innerWidth); // ustawienie początkowe
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const arcWidth = windowWidth < 1120 ? 550 : 1120;
+  const arcHeight = windowWidth < 1120 ? 306 : 612; // proporcja 1120:612
 
   const [isFound, setIsFound] = React.useState(true);
-  const status = "queued";
+  const status = "completed";
   const proc_time = "2h 24min";
   const reported_date = "15-06-2025";
   const reported_time = "22:36";
@@ -20,9 +30,19 @@ export default function Results() {
   const [jobFinished, setJobFinished] = React.useState(true);
   const [is2DExpanded, setIs2DExpanded] = React.useState(false);
 
+  const getStatusColor = (status: string) => {
+  switch (status) {
+    case "queued": return "var(--waiting)";
+    case "submitted": return "var(--submitted)";
+    case "running": return "var(--running)";
+    case "completed": return "var(--completed)";
+    case "error": return "var(--error)";
+    default: return "var(--brown-lighten-10)";
+  }
+};
 
   return (
-    <div className='content'>
+    <div className='whole-page'>
       {!isFound && (
           <div className='not-found'>
           <div className='left-side'>
@@ -48,15 +68,7 @@ export default function Results() {
                 <div className='status'>
                   <p className='field-name'>Status</p>
                   <div className='dot-and-text'>
-                    <div className='dot'
-                    style={{ 
-                      backgroundColor: 
-                        status === "queued" ? "var(--waiting)" : 
-                        status === "submitted"   ? "var(--submitted)" : 
-                        status === "running"   ? "var(--running)" : 
-                        status === "completed"   ? "var(--completed)" : 
-                        status === "error"  ? "var(--error)"   : "var(--brown-lighten-10)" 
-                    }}></div>
+                    <div className="dot" style={{ backgroundColor: getStatusColor(status)}}></div>
                     <p className='field-value'>{status}</p>
                   </div>
                 </div>
@@ -75,7 +87,7 @@ export default function Results() {
               </div>
               <div className='top-right'>
                 <div className='download-zip'>
-                  <img src='\icons\download.svg'></img>
+                  <img className='download-icon' src='\icons\download.svg'></img>
                   <p className='download-text'>Download ZIP</p>
                 </div>
                 <div className='name-and-seed'>
@@ -119,6 +131,7 @@ export default function Results() {
                 <div className='images-2d3d'>
                   <div className='2d-image'>
                     <ImageViewer 
+                      title = "2D structure"
                       src="/photos/notfound.png" 
                       width={550} 
                       height={612} 
@@ -136,9 +149,10 @@ export default function Results() {
                   )}
                 </div>
                 <div className='arc-diagram'>
-                  <ArcViewer 
+                  <ImageViewer
+                      title = "Arc diagram"
                       src="/photos/notfound.png" 
-                      width={1120} 
+                      width={arcWidth} 
                       height={612} 
                     />
                 </div>

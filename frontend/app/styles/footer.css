@@ -1,30 +1,56 @@
 @import './globals.css';
 
 .footer {
-  height: 78px;;
+  height: 78px;
   display: flex;
+  width: 100%;
   justify-content: space-between;
   align-items: center;
-  padding-left: 100px;
-  padding-right: 100px;
+  padding-left: clamp(10px, 8vw, 100px);
+  padding-right: clamp(10px, 8vw, 100px);
   padding-top: 20px;
   padding-bottom: 20px;
   background-color: var(--brown-base);
 }
 
-.footer__left {
+.footer_left{
+  width: 400px;
+}
+
+.footer_left p{
   font-size: 16px;
   color: var(--background-base);
   font-weight: 300;
+  width: 100%;
 }
 
-.footer__right {
+.footer_right {
   display: flex;
   align-items: center;
   gap: 40px;
 }
 
-.footer__right .footer__logo {
+.footer_right .footer_logo {
   height: 35px;
   width: auto;
+}
+
+@media (max-width: 900px){
+  .footer{
+    padding-left: 20px;
+    padding-right: 20px;
+    }
+  .footer_right{
+    gap: 20px;
+  }
+}
+
+@media (max-width: 700px){
+  .footer_right{
+    width: 0px;
+  }
+  .footer_left{
+    width: 100%;
+    text-align: center;
+  }
 }
