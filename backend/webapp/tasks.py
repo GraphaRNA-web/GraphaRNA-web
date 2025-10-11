@@ -17,6 +17,7 @@ from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
+
 def log_to_file(message: str) -> None:
     ts = datetime.now().isoformat()
     with open("/shared/celery_debug.log", "a") as f:
@@ -138,16 +139,17 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             raise
         try:
             target = job_data.input_structure.path
-            model=dotbracket_path
+            model = dotbracket_path
             with open(target) as f:
-                target_correct, target_incorrect, target_all = dotbracketToPairs(f.read())
+                target_dict = dotbracketToPairs(f.read())
             with open(model) as f:
-                model_correct, model_incorrect, model_all = dotbracketToPairs(f.read())
-            tp,fp,fn,infV,f1V = CalculateF1Inf(target_correct, model_correct)
+                model_dict = dotbracketToPairs(f.read())
+            values = CalculateF1Inf(
+                target_dict["correctPairs"], model_dict["correctPairs"]
+            )
         except Exception as e:
             logger.error(f"Error with generating F1 and INF value {e}")
-
-
+            raise
 
         relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
         relative_path_dotseq = os.path.relpath(dotbracket_path, settings.MEDIA_ROOT)
@@ -173,8 +175,8 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 result_secondary_structure_svg=relative_path_svg,
                 result_arc_diagram=relative_path_arc,
                 completed_at=processing_end,
-                inf=infV,
-                f1=f1V,
+                inf=values["inf"],
+                f1=values["f1"],
                 processing_time=(processing_end - processing_start),
             )
         except Exception as e:

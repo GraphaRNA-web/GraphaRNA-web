@@ -99,8 +99,7 @@ class RnaValidator:
         validationResult: bool = False
         fixSuggested: bool = False
         mismatchingBrackets: list[int] = []
-        incorrectPairs: list[tuple[int,int]] = []
-
+        incorrectPairs: list[tuple[int, int]] = []
 
         if not self.parsingResult:  # check for parsing errors
             validationResult = False
@@ -111,7 +110,7 @@ class RnaValidator:
                 "Mismatching Brackets": mismatchingBrackets,
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
-                "allPairs": []
+                "allPairs": [],
             }
 
         inputStr = self.parsedStructure
@@ -130,7 +129,7 @@ class RnaValidator:
                 "Mismatching Brackets": mismatchingBrackets,
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
-                "allPairs": []
+                "allPairs": [],
             }
         if len(rna) != len(dotBracket):
             self.errorList.append("RNA and DotBracket not of equal lengths")
@@ -167,12 +166,17 @@ class RnaValidator:
                 "Mismatching Brackets": mismatchingBrackets,
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
-                "allPairs": []
+                "allPairs": [],
             }
 
-        bracketStacks,suggestedDotBracketFixList,mismatchingBrackets, incorrectPairs, allPairs = self.stackCheck(dotBracket,rna)
-        
-        
+        (
+            bracketStacks,
+            suggestedDotBracketFixList,
+            mismatchingBrackets,
+            incorrectPairs,
+            allPairs,
+        ) = self.stackCheck(dotBracket, rna)
+
         for (
             stack
         ) in bracketStacks.values():  # check stacks for unclosed opening bracket
@@ -195,17 +199,18 @@ class RnaValidator:
             "Mismatching Brackets": mismatchingBrackets,
             "Incorrect Pairs": incorrectPairs,
             "Fix Suggested": fixSuggested,
-            "allPairs": allPairs
-        }   
-    
+            "allPairs": allPairs,
+        }
 
         # stack check
-    
-    def stackCheck(
-        self,
-        dotBracket: str,
-        rna: str
-    ) -> tuple[dict[str, deque[int]], list[str], list[int], list[tuple[int,int]], list[tuple[int,int]]]: #Zmieniono kod aby nie trzeba było powtarzać kodu z liczeniem stacku i par
+
+    def stackCheck(self, dotBracket: str, rna: str) -> tuple[
+        dict[str, deque[int]],
+        list[str],
+        list[int],
+        list[tuple[int, int]],
+        list[tuple[int, int]],
+    ]:  # Zmieniono kod aby nie trzeba było powtarzać kodu z liczeniem stacku i par
         bracketStacks: dict[str, deque[int]] = {
             self.validBrackets[i : i + 2]: deque()
             for i in range(0, len(self.validBrackets), 2)
@@ -243,6 +248,10 @@ class RnaValidator:
                 else:  # mismatched closing bracket, suggest replacement to .
                     mismatchingBrackets.append(i)
                     suggestedDotBracketFixList[i] = "."
-        return bracketStacks,suggestedDotBracketFixList,mismatchingBrackets, incorrectPairs, allPairs
-
-        
+        return (
+            bracketStacks,
+            suggestedDotBracketFixList,
+            mismatchingBrackets,
+            incorrectPairs,
+            allPairs,
+        )

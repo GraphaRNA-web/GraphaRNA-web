@@ -20,8 +20,9 @@ import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
+
 @api_view(["GET"])
-def DownloadZipFile(request:Request)->HttpResponse:
+def DownloadZipFile(request: Request) -> HttpResponse:
     uuid = request.query_params.get("uuid")
     if not uuid:
         return HttpResponse("UUID error", status=400)
@@ -29,7 +30,7 @@ def DownloadZipFile(request:Request)->HttpResponse:
         job = Job.objects.get(pk=uuid)
     except Job.DoesNotExist:
         return HttpResponse("Job not found", status=404)
-    
+
     if job.status != "F":
         return HttpResponse("Job is not finished", status=400)
     instance = JobResults.objects.get(job=job)
@@ -43,8 +44,6 @@ def DownloadZipFile(request:Request)->HttpResponse:
     if not os.path.exists(filePathTertiary):
         return HttpResponse("File does not exist", status=404)
 
-
-    
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         with open(filePathSecondaryDotseq, "rb") as f:
@@ -56,8 +55,11 @@ def DownloadZipFile(request:Request)->HttpResponse:
     zip_buffer.seek(0)
 
     response = HttpResponse(zip_buffer.read(), content_type="application/zip")
-    response["Content-Disposition"] = f'attachment; filename="{job.job_name}-result.zip"'
+    response["Content-Disposition"] = (
+        f'attachment; filename="{job.job_name}-result.zip"'
+    )
     return response
+
 
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
@@ -158,9 +160,9 @@ def ProcessRequestData(request: Request) -> Response:
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
     if fasta_file is not None:
-        if not fasta_file.name or not fasta_file.name.endswith('.fasta'):
+        if not fasta_file.name or not fasta_file.name.endswith(".fasta"):
             raise ValidationError("File have to be .fasta")
-        
+
     sequence_raw: str = ""
 
     if fasta_raw is None and fasta_file is None:
@@ -399,14 +401,12 @@ def TestRequest(request: Request) -> Response:
     return Response({"success": True, "Job": job.job_name})
 
 
-# @api_view(["POST"])
 def getInf_F1(request: Request) -> Response:
-    
+
     uid = request.query_params.get("uid")
     if not uid:
         return Response({"success": False, "error": "uid missing"}, status=400)
     job = Job.objects.get(uid=uid)
-
 
     jobResult = JobResults.objects.get(job=job)
 
@@ -416,21 +416,11 @@ def getInf_F1(request: Request) -> Response:
     except FileNotFoundError:
         return Response({"success": False, "error": "File not found"}, status=404)
     with open(target) as f:
-        target_correct, target_incorrect, target_all = dotbracketToPairs(f.read())
+        target_dict = dotbracketToPairs(f.read())
     with open(model) as f:
-        model_correct, model_incorrect, model_all = dotbracketToPairs(f.read())
-    tp,fp,fn,inf,f1 = CalculateF1Inf(target_correct, model_correct)
-    return Response({"success": True,"Dane:": {
-        "tp": tp,
-        "fp": fp,
-        "fn": fn,
-        "inf": inf,
-        "f1": f1,
-        }})
-
-
-
-
+        model_dict = dotbracketToPairs(f.read())
+    values = CalculateF1Inf(target_dict["correctPairs"], model_dict["correctPairs"])
+    return Response({"success": True, "Dane:": {values}})
 
 
 @api_view(["GET"])
