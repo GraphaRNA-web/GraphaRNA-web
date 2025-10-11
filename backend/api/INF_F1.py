@@ -1,10 +1,10 @@
 import math
 from api.validation_tools import RnaValidator
-
+from typing import Mapping, Union
 
 def CalculateF1Inf(
     target: set[tuple[int, int]], model: set[tuple[int, int]]
-) -> dict[str, float | int]:
+) -> Mapping[str, Union[int, float]]:
     tp = len(target & model)
     fp = len(model - target)
     fn = len(target - model)
@@ -13,24 +13,27 @@ def CalculateF1Inf(
         * (tp / (tp + fn) if (tp + fn) != 0 else 1)
     )
     f1 = (2 * tp) / (2 * tp + fp + fn) if (2 * tp + fp + fn) != 0 else 0
-    values = {}
-    values["tp"] = tp
-    values["fp"] = fp
-    values["fn"] = fn
-    values["inf"] = inf
-    values["f1"] = f1
+    values: dict[str, Union[int, float]] = {
+        "tp": tp,
+        "fp": fp,
+        "fn": fn,
+        "inf": inf,
+        "f1": f1
+    }
     return values
 
 
-def dotbracketToPairs(input: str) -> dict[str, float | int]:
+def dotbracketToPairs(input: str) -> Mapping[str, Union[int, float]]:
     validator = RnaValidator(input)
     result = validator.ValidateRna()
     incorrectPairs = set(result["Incorrect Pairs"])
     allPairs = set(result["allPairs"])
     correctPairs = allPairs - incorrectPairs
     print(correctPairs, allPairs, incorrectPairs)
-    Pairs = {}
-    Pairs["correctPairs"] = correctPairs
-    Pairs["incorrectPairs"] = incorrectPairs
-    Pairs["allPairs"] = allPairs
+    
+    Pairs: dict[str, Union[int, float]] = {
+    "correctPairs":correctPairs,
+    "incorrectPairs": incorrectPairs,
+    "allPairs": allPairs
+    }
     return Pairs
