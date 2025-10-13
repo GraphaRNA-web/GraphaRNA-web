@@ -14,8 +14,10 @@ from uuid import UUID, uuid4
 import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
-from rest_framework.pagination import CursorPagination
+from rest_framework.pagination import PageNumberPagination
 from .serializers import JobSerializer
+
+
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
         return False
@@ -304,32 +306,37 @@ def TestRequest(request: Request) -> Response:
     return Response({"success": True, "Job": job.job_name})
 
 
+class JobPageNumberPagination(PageNumberPagination):
+    page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
-class JobCursorPagination(CursorPagination):
-    page_size = settings.REST_FRAMEWORK.get('PAGE_SIZE', 10)
-    ordering = '-created_at'
-    cursor_query_param = 'cursor'
 
 @api_view(["GET"])
 def getActiveJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["Q","P"]).order_by('created_at','uid')
-    paginator = JobCursorPagination()
+    data = Job.objects.filter(status__in=["Q", "P"]).order_by("created_at", "uid")
+    paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
-    if page is not None: 
+    if page is not None:
         serializer = JobSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
-    print(settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"]))
+    print(
+        settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"])
+    )
     return paginator.get_paginated_response([])
+
 
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["F"]).order_by('created_at')
-    paginator = JobCursorPagination()
+    data = Job.objects.filter(status__in=["F"]).order_by("created_at")
+    paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
-    if page is not None: 
+    if page is not None:
         serializer = JobSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
-    print(settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"]))
+    print(
+        settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"])
+    )
     return paginator.get_paginated_response([])
 
 
