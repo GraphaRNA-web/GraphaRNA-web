@@ -23,14 +23,14 @@ def CalculateF1Inf(
     return values
 
 
-def dotbracketToPairs(input: str) -> Mapping[str, Union[int, float]]:
+def dotbracketToPairs(input: str) -> dict[str, set[tuple[int, int]]]:
     validator = RnaValidator(input)
     result = validator.ValidateRna()
     incorrectPairs = set(result["Incorrect Pairs"])
     allPairs = set(result["allPairs"])
     correctPairs = allPairs - incorrectPairs
     print(correctPairs, allPairs, incorrectPairs)
-    
+
     Pairs: dict[str, Union[int, float]] = {
     "correctPairs":correctPairs,
     "incorrectPairs": incorrectPairs,
