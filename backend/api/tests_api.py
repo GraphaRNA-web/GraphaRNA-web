@@ -12,7 +12,6 @@ from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 import math
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
-from api.views import getInf_F1
 
 
 class PostRnaDataTests(TestCase):
@@ -611,42 +610,3 @@ class INF(TestCase):
         self.assertTrue(0 <= values["f1"] <= 1)
         self.assertTrue(0 <= values["inf"] <= 1)
 
-
-# class GetInfF1EndpointTests(TestCase):
-
-#     def setUp(self):
-#         self.client = APIClient()
-
-#         self.job_finished = MagicMock(uid=uuid.uuid4(), status="F")
-#         self.result = MagicMock(job=self.job_finished)
-#         self.result.result_secondary_structure_dotseq.name = "dotseq.txt"
-#         self.result.result_secondary_structure_svg.name = "structure.svg"
-
-#         patcher_job_get = patch(
-#             "webapp.models.Job.objects.get",
-#             return_value=self.job_finished
-#         )
-#         self.mock_job_get = patcher_job_get.start()
-#         self.addCleanup(patcher_job_get.stop)
-
-#         patcher_results_get = patch(
-#             "webapp.models.JobResults.objects.get",
-#             return_value=self.result
-#         )
-#         self.mock_results_get = patcher_results_get.start()
-#         self.addCleanup(patcher_results_get.stop)
-
-#         patcher_exists = patch("os.path.exists", return_value=True)
-#         patcher_open = patch("builtins.open", mock_open(read_data=">seq\nACGU\n()"))
-#         self.mock_exists = patcher_exists.start()
-#         self.mock_open = patcher_open.start()
-#         self.addCleanup(patcher_exists.stop)
-#         self.addCleanup(patcher_open.stop)
-
-#     def test_get_inf_f1_success(self):
-#         request = MagicMock()
-#         request.query_params = {"uid": str(self.job_finished.uid)}
-#         response = getInf_F1(request)
-#         data = response.data
-#         self.assertTrue(data["success"])
-#         self.assertIn("Dane:", data)
