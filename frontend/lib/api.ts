@@ -128,7 +128,7 @@ export async function submitJobRequest(params: {
 export async function getResultDetails(params: { uidh: string }) {
   console.log("[getResultDetails] sending request to proxy", params);
 
-  const res = await fetchWithCsrf(`/api/getResults?uidh=${encodeURIComponent(params.uidh)}`, {
+  const res = await fetchWithCsrf(`/api/getResultDetails?uidh=${encodeURIComponent(params.uidh)}`, {
     method: "GET",
   });
 
@@ -148,14 +148,14 @@ export async function getResultDetails(params: { uidh: string }) {
 
 // This function automaticly shows the download prompt, so you should use it like:
 // <Button
-//   onClick={() => downloadZip({ uuid: jobUuid })}
+//   onClick={() => downloadZip({ uidh: jobuidh })}
 // >
 //   Download ZIP
 // </Button>
-export async function downloadZip(params: { uuid: string }) {
+export async function downloadZip(params: { uidh: string }) {
   console.log("[downloadZip] sending request to proxy", params);
 
-  const res = await fetchWithCsrf(`/api/downloadZip?uuid=${encodeURIComponent(params.uuid)}`, {
+  const res = await fetchWithCsrf(`/api/downloadZip?uidh=${encodeURIComponent(params.uidh)}`, {
     method: "GET",
   });
 
@@ -169,7 +169,7 @@ export async function downloadZip(params: { uuid: string }) {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = `result-${params.uuid}.zip`;
+  a.download = `result-${params.uidh}.zip`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -177,10 +177,12 @@ export async function downloadZip(params: { uuid: string }) {
 }
 
 
-export async function getActiveJobs(): Promise<any> {
+export async function getActiveJobs(params: {page: string}): Promise<any> {
   console.log("[getActiveJobs] sending request to proxy");
 
-  const res = await fetchWithCsrf("/api/getActiveJobs", { method: "GET" });
+  const res = await fetchWithCsrf(`/api/getActiveJobs?page=${encodeURIComponent(params.page)}`, {
+     method: "GET" 
+  });
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
@@ -190,10 +192,12 @@ export async function getActiveJobs(): Promise<any> {
   return res.json();
 }
 
-export async function getFinishedJobs(): Promise<any> {
+export async function getFinishedJobs(params: {page: string}): Promise<any> {
   console.log("[getFinishedJobs] sending request to proxy");
 
-  const res = await fetchWithCsrf("/api/getFinishedJobs", { method: "GET" });
+  const res = await fetchWithCsrf(`/api/getFinishedJobs?page=${encodeURIComponent(params.page)}`, { 
+    method: "GET" 
+  });
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));

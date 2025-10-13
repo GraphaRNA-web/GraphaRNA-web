@@ -7,6 +7,9 @@ const DOMAIN_URL = process.env.DOMAIN_URL || "http://localhost:3000";
 export async function GET(req: Request) {
   console.log("[PROXY] incoming request to /api/activeJobs");
   try {
+    const { searchParams } = new URL(req.url);
+    const page = searchParams.get("page");
+
     const cookieStore = await cookies();
     const csrfCookie = cookieStore.get("csrfToken")?.value;
     const csrfHeader = req.headers.get("x-csrf-token");
@@ -22,7 +25,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
     }
 
-    const res = await fetch(`${BACKEND_URL}/api/activeJobs/`, {
+    const res = await fetch(`${BACKEND_URL}/api/activeJobs?page=${page}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });

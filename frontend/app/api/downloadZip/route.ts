@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     }
 
     // Forward request to Django backend
-    const res = await fetch(`${BACKEND_URL}/api/downloadZip/?uidh=${uidh}`, {
+    const res = await fetch(`${BACKEND_URL}/api/downloadZip?uidh=${uidh}`, {
       method: "GET",
     });
 

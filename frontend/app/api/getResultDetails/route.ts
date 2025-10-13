@@ -5,7 +5,7 @@ const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 const DOMAIN_URL = process.env.ORIGIN_URL || "http://localhost:3000";
 
 export async function GET(req: Request) {
-  console.log("[PROXY] incoming request to /api/getResults");
+  console.log("[PROXY] incoming request to /api/getResultDetails");
   try {
     const { searchParams } = new URL(req.url);
     const uidh = searchParams.get("uidh");
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const res = await fetch(`${BACKEND_URL}/api/getResults/?uidh=${uidh}`, {
+    const res = await fetch(`${BACKEND_URL}/api/getResults?uidh=${uidh}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
