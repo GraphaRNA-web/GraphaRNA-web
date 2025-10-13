@@ -98,6 +98,10 @@ export default function About(){
                                     <img src='icons/person.svg'></img>
                                     <p className='name'>Bartosz Skrzypczak</p>
                                 </div>
+                                <div className='author'>
+                                    <img src='icons/person.svg'></img>
+                                    <p className='name'>Paweł Kelar</p>
+                                </div>
                             </div>
                         </div>
                     </div>
