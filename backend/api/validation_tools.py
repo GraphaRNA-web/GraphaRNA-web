@@ -3,7 +3,6 @@ from django.conf import settings
 
 
 class RnaValidator:
-
     def __init__(self, fasta_raw: str) -> None:
         self.fasta_raw: str = fasta_raw
         self.validBrackets: str = settings.VALID_BRACKETS + " "
@@ -15,8 +14,8 @@ class RnaValidator:
         self.parsingResult: bool = True
         self.errorList: list[str] = []
 
-        # for debugging purpose
-        """self.validBrackets: str = "()<>[]{}AaBbCcDd." + " "
+        """# for debugging purpose
+        self.validBrackets: str = "()<>[]{}AaBbCcDd." + " "
         self.validNucleotides: str = "AUGC" + " "
         self.validPairs: list[str] = ["GC", "CG", "AU", "UA", "GU", "UG"]
 """
@@ -30,7 +29,9 @@ class RnaValidator:
         dotBracket: str = ""
 
         inputStructureSplit: list[str] = [
-            item for item in self.fasta_raw.split("\n") if (item != "" and item[0] != "#")
+            item
+            for item in self.fasta_raw.split("\n")
+            if (item != "" and item[0] != "#")
         ]  # remove empty lines and comments
 
         potentialNameLines: list[str] = inputStructureSplit[::3]
@@ -47,9 +48,16 @@ class RnaValidator:
         if containsStrandNames:
             for i in range(0, len(inputStructureSplit), 3):
                 currentStrand: list[str] = inputStructureSplit[i : i + 3]
-                if not any(
-                    i in self.validBrackets for i in currentStrand[2]
-                ):  # verify order of lines in a strand by checking checking characters in dotbracket line
+                if len(currentStrand) < 3:
+                    self.parsingResult = False
+                    self.errorList.append("Parsing error: Missing Lines")
+                    break
+                if (
+                    not any(i in self.validBrackets for i in currentStrand[2])
+                    and all(
+                        i in self.validNucleotides for i in currentStrand[2].upper()
+                    )
+                ):  # verify order of lines in a strand by checking checking characters in dotbracket line (doesn't contain any valid brackets and contains only valid nucleotides)
                     self.parsingResult = False
                     self.errorList.append("Parsing error: Wrong line order")
                     break
@@ -62,6 +70,10 @@ class RnaValidator:
         else:  # no strand names
             for i in range(0, len(inputStructureSplit), 2):
                 currentStrand = inputStructureSplit[i : i + 2]
+                if len(currentStrand) < 2:
+                    self.parsingResult = False
+                    self.errorList.append("Parsing error: Missing Lines")
+                    break
                 if not any(
                     i in self.validBrackets for i in currentStrand[1]
                 ):  # verify order of lines in a strand by checking checking characters in dotbracket line
@@ -85,24 +97,40 @@ class RnaValidator:
         """
         Validates rna and returns a fix if needed
         """
+        validatedRna: str = ""
+        validationResult: bool = False
+        fixSuggested: bool = False
+        mismatchingBrackets: list[int] = []
+        incorrectPairs: list[tuple[int, int]] = []
+
         if not self.parsingResult:  # check for parsing errors
-            validationResult: bool = False
-            return {"Validation Result": validationResult, "Error List": self.errorList}
+            validationResult = False
+            return {
+                "Validation Result": validationResult,
+                "Error List": self.errorList,
+                "Validated RNA": validatedRna,
+                "Mismatching Brackets": mismatchingBrackets,
+                "Incorrect Pairs": incorrectPairs,
+                "Fix Suggested": fixSuggested,
+            }
 
         inputStr = self.parsedStructure
         rnaSplit: list[str] = inputStr.split("\n")
         rna: str = rnaSplit[0]
         dotBracket: str = rnaSplit[1]
 
-        validatedRna: str = ""
-        validationResult = False
-        fixSuggested: bool = False
-
         # length check
         if len(rna) == 0:
             self.errorList.append("Invalid data")
             validationResult = False
-            return {"Validation Result": validationResult, "Error List": self.errorList}
+            return {
+                "Validation Result": validationResult,
+                "Error List": self.errorList,
+                "Validated RNA": validatedRna,
+                "Mismatching Brackets": mismatchingBrackets,
+                "Incorrect Pairs": incorrectPairs,
+                "Fix Suggested": fixSuggested,
+            }
         if len(rna) != len(dotBracket):
             self.errorList.append("RNA and DotBracket not of equal lengths")
             validationResult = False
@@ -131,7 +159,14 @@ class RnaValidator:
 
         # return before stack check if rna invalid
         if len(self.errorList) > 0:
-            return {"Validation Result": validationResult, "Error List": self.errorList}
+            return {
+                "Validation Result": validationResult,
+                "Error List": self.errorList,
+                "Validated RNA": validatedRna,
+                "Mismatching Brackets": mismatchingBrackets,
+                "Incorrect Pairs": incorrectPairs,
+                "Fix Suggested": fixSuggested,
+            }
 
         # stack check
         bracketStacks: dict[str, deque[int]] = {
@@ -141,8 +176,6 @@ class RnaValidator:
         }
         openingLookup: dict[str, str] = {pair[0]: pair for pair in bracketStacks.keys()}
         closingLookup: dict[str, str] = {pair[1]: pair for pair in bracketStacks.keys()}
-        mismatchingBrackets: list[int] = []
-        incorrectPairs: list[tuple[int, int]] = []
         suggestedDotBracketFixList: list[str] = list(dotBracket)
         for i in range(len(dotBracket)):
             if dotBracket[i] in openingLookup:  # opening brackets
@@ -192,4 +225,3 @@ class RnaValidator:
             "Incorrect Pairs": incorrectPairs,
             "Fix Suggested": fixSuggested,
         }
-

@@ -1,0 +1,58 @@
+.guide-page {
+    padding-top: 100px;
+}
+
+.gp-content{
+    display: flex;
+    flex-direction: column;
+    padding-top: 30px;
+    padding-bottom: 60px;
+    padding-left: 150px;
+    padding-right: 150px;
+}
+
+@media (max-width: 768px) {
+  .gp-content {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+[class*="header-"] {
+    font-family: Raleway;
+    font-weight: 700;
+}
+
+[class*="text-"] {
+    font-family: Inter;
+    font-weight: 300;
+}
+
+.header-title{
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.header-step{
+    font-size: 30px;
+    margin-bottom: 18px;
+}
+
+.text-standard{
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.text-list{
+    font-size: 18px;
+    list-style: circle;
+    padding-left: 40px;
+}
+
+.example-image {
+  max-width: 100%;  
+  height: auto;     
+  display: block;   
+  margin: 0 auto;   
+  padding-bottom: 50px;
+}

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.celery.email.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.celery.email.name }}
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: celery
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    linkerd.io/inject: enabled
+spec:
+  replicas: {{ .Values.celery.email.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.celery.email.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.celery.email.name }}
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+      containers:
+        - name: celery-email
+          image: {{ .Values.backend.image }}
+          imagePullPolicy: {{ .Values.backend.pullPolicy }}
+          command:
+            - celery
+            - -A
+            - GraphaRNA
+            - worker
+            - -Q
+            - email
+            - --loglevel=info
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+          volumeMounts:
+            - name: tmp-dir
+              mountPath: /tmp
+            - name: tmp-dir
+              mountPath: /.config
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: {{ .Values.backend.resources.limit.memory }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: tmp-dir
+          emptyDir: {}

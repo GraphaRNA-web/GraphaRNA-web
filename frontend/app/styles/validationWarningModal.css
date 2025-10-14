@@ -1,0 +1,147 @@
+.vwm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.vwm-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 70px 100px;
+  gap: 30px;
+  width: 948px;
+  max-width: 95%;
+  background: #FFFEFA;
+  box-shadow: 0px 2px 7px #BFC2C0;
+  border-radius: 20px;
+  font-family: Inter, sans-serif;
+}
+
+.vwm-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.vwm-icon {
+  width: 50px;
+  height: 50px;
+}
+
+.vwm-title {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 38px;
+  color: #DDA15E;
+}
+
+.vwm-subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #171107;
+}
+
+.vwm-structures {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 50px;
+  gap: 30px;
+  background: #fff;
+  border: 1px solid #C8C7C1;
+  border-radius: 10px;
+  width: 100%;
+}
+
+.vwm-structure-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 30px;
+}
+
+.vwm-label {
+  width: 170px;
+  font-size: 14px;
+  color: #42361E;
+}
+
+.vwm-value {
+  flex: 1;
+  font-family: Consolas, monospace;
+  font-size: 14px;
+  color: #42361E;
+}
+
+.vwm-value.highlight {
+  color: #171107;
+}
+
+.vwm-divider {
+  border-top: 1px solid #C8C7C1;
+  width: 100%;
+}
+
+.vwm-strip {
+  background: rgba(221, 161, 94, 0.25);
+  border-radius: 10px;
+  padding: 10px 30px;
+  font-size: 14px;
+  color: #20180A;
+  width: 100%;
+}
+
+.vwm-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 20px;
+  width: 100%;
+}
+
+.vwm-btn {
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  filter: drop-shadow(0px 2px 7px #BFC2C0);
+}
+
+.vwm-btn.cancel {
+  background: transparent;
+  border: 2px solid #2E5700;
+  color: #2E5700;
+}
+
+.vwm-btn.cancel:hover {
+  background: rgba(46, 87, 0, 0.05);
+}
+
+.vwm-btn.confirm {
+  background: #2E5700;
+  border: none;
+  color: #FFFEFA;
+}
+
+.vwm-btn.confirm:hover {
+  background: #234100;
+}
+
+.rna-error {
+  color: #8D2521;
+  font-weight: bold;
+}
+
+.rna-fix {
+  color: #155724; 
+  font-weight: bold;
+}
