@@ -1,0 +1,117 @@
+.content{
+    display: flex;
+    flex-direction: column;
+    padding-top: 110px;
+    padding-left: calc(180px - (1450px - 100vw)*0.545);
+}
+
+.cite{
+    position: relative;
+    width: 1020px;
+    height: 570px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.cite-title{
+    font-family: 'Raleway';
+    font-size: 38px;
+    color: var(--brown-base);
+    font-weight: 400;
+}
+
+.cite-content{
+    position: absolute;
+    width: 1020px;
+    height: 500px;
+    top: 80px;
+}
+
+.cite-subtitle {
+    position: relative;
+    z-index: 2;
+    font-family: 'Inter';
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--brown-base);
+}
+
+.circle{
+    position: absolute;
+    z-index: 1;
+    top: -70px;
+    left: calc(700px - (1450px - 100vw)*0.45);
+}
+
+.triangle{
+    position: absolute;
+    z-index: 1;
+    top: 200px;
+    left: calc(200px - (1450px - 100vw)*0.45);
+}
+
+.green-thing{
+    position: absolute;
+    z-index: 3;
+    top: 80px;
+}
+
+.cite-text{
+    position: absolute;
+    z-index: 2;
+    height: 138px;
+    width: 950px;
+    border-radius: 20px;
+    background-color: #FFFFFFB2;
+    top: 120px;
+    left: 70px;
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    box-shadow: 0 2px 20px 0 #DFDEDAE5;
+}
+
+.cite-para{
+    padding-left: 120px;
+    padding-right: 120px;
+    padding-top: 50px;
+    color: var(--brown-base);
+    font-size: 16px;
+    font-family: 'Raleway';
+    font-weight: 400;
+}
+
+@media (max-width: 1200){
+    .content{
+        padding-left: 40px;
+    }
+
+    .cite-content{
+        width: 550px;
+    }
+
+    .cite{
+        width: 550px;
+    }
+
+    .text{
+        width: 450px;
+        height: 250px;
+    }
+
+    .circle{
+        left: calc(700px - (1450px - 100vw)*0.75);
+    }
+
+    .triangle{
+        left: calc(200px - (1450px - 100vw)*0.25);
+    }
+
+    .cite-subtitle{
+        width: 550px;
+    }
+
+    .cite-title{
+        width: 550px;
+    }
+}

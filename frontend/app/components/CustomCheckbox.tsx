@@ -27,7 +27,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
     onChange?.(newChecked);
   };
 
-  const iconSrc = currentChecked ? 'checked.svg' : 'unchecked.svg';
+  const iconSrc = currentChecked ? 'icons/checked.svg' : 'icons/unchecked.svg';
   const textColor = currentChecked ? '#668D21' : '#AEA99F'; // np. zielony vs szary
 
   return (

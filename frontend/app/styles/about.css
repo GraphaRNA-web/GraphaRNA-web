@@ -1,0 +1,353 @@
+.ap-content{
+    display: flex;
+    flex-direction: column;
+    padding-top: 130px;
+    height: 1700px;
+    width: 100%;
+    padding-left: 0px;
+    margin-left: 0px;
+}
+
+.about{
+    position: relative;
+    width: 100%;
+    height: 550px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.about-content{
+    display: flex;
+    position: relative;
+    width: 1140px;
+    height: 450px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.about-title{
+    color: var(--brown-base);
+    font-family: 'Raleway';
+    font-weight: lighter;
+    font-size: 38px;
+    height: 45px;
+    width: 100%;
+}
+
+
+.about-text {
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    top: 20px;
+    z-index: 2;
+    font-family: 'Inter';
+    font-weight: 400;
+    font-size: 16px;
+    color: var(--brown-base);
+}
+
+.circle-top{
+    position: absolute;
+    z-index: 1;
+    top: -70px;
+    left: calc(650px - (1440px - 100vw)*0.2);
+}
+
+.triangle-top{
+    position: absolute;
+    z-index: 1;
+    top: 250px;
+    left: calc(100px - (1440px - 100vw)*0.05);
+}
+
+/* sekcja srodkowa*/
+
+.authors{
+    width: 100%;
+    height: 750px;
+    background-color: var(--background-darken-5);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.authors-content{
+    padding-top: 50px;
+    width: 1140px;
+    height: 670px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.authors-title{
+    text-align: center;
+    width: 100%;
+    height: 45px;
+    font-family: 'Raleway';
+    font-size: 38px;
+    font-weight: lighter;
+    color: var(--brown-base);
+}
+
+.author-groups{
+    height: 585px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    z-index: 2;
+    justify-content: space-between;
+}
+
+.triangle-mid{
+    position: absolute;
+    z-index: 1;
+    top: 370px;
+    left: 350px;
+}
+
+.circle-mid{
+    position: absolute;
+    z-index: 1;
+    top: -20px;
+    left: calc(700px - (1440px - 100vw)*0.2);
+}
+
+.authors-profs,
+.authors-students{
+    position: relative;
+    width: 535px;
+    height: 585px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+
+.authors-rectangle, 
+.authors-rectangle1{
+    background-color: var(--background-lighten-5);
+    width: 535px;
+    height: 457px;
+    border-radius: 20px;
+    position: absolute;
+    z-index: 1;
+    top: 129px;
+    display: flex;
+    flex-direction: column;
+    padding-top: 170px;
+    gap: 30px;
+}
+
+
+.authors-circle, 
+.authors-circle1{
+    background-color: var(--background-lighten-5);
+    width: 240px;
+    height: 240px;
+    border-radius: 120px;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.web-icon{
+    position: relative;
+    z-index: 3;
+    width: 120px;
+    height: 120px;
+}
+
+.rocket-icon{
+    position: relative;
+    z-index: 3;
+    height: 105px;
+    width: 105px;
+}
+
+.graphaRNA-text{
+    top: -50px;
+    position: relative;
+    z-index: 4;
+    color: var(--primary2-darken-10);
+    font-family: 'Raleway';
+    font-size: 26px;
+    font-weight: bolder;
+    width: 100%;
+    height: 31px;
+    text-align: center;
+}
+
+.graphaRNAweb-text{
+    top: -50px;
+    position: relative;
+    z-index: 4;
+    color: var(--primary2-darken-10);
+    font-family: 'Raleway';
+    font-size: 26px;
+    font-weight: bolder;
+    width: 100%;
+    height: 31px;
+    text-align: center;
+}
+
+.rna{
+    font-weight: normal;
+}
+
+.web{
+    font-weight: lighter;
+    color: var(--primary2-base)
+}
+
+.authors-row{
+    width: 100%;
+    height: 95px;
+    display: flex;
+    flex-direction: row;
+    z-index: 5;
+    justify-content: space-evenly;
+}
+
+.author
+{
+    width: 130px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--brown-base);
+    font-size: 14px;
+    font-family: 'Inter';
+    gap: 5px;
+    text-align: center;
+}
+
+.name{
+    width: 115px;
+}
+
+/* sekcja dolna*/
+
+
+.funds{
+    height: 300px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.funds-content{
+    margin-top: 90px;
+    width: 1140px;
+    height: 104px;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.triangle-bottom{
+    position: absolute;
+    z-index: 1;
+    top: -80px;
+    left: -80px;
+}
+
+.funds-title{
+    width: 100%;
+    height: 45px;
+    z-index: 2;
+    font-size: 38px;
+    color: var(--brown-base);
+    font-family: 'Raleway';
+    font-weight: lighter;
+}
+
+.funds-text{
+    width: 100%;
+    height: 19px;
+    z-index: 2;
+    font-size: 16px;
+    color: var(--brown-base);
+    font-family: 'Inter';
+    font-weight: lighter;
+}
+
+@media (max-width: 1160px){
+
+    .ap-content{
+        height: auto;
+    }
+
+    .about{
+        height: calc(550px + (1440px - 100vw)*0.25);
+    }
+
+    .about-content{
+        width: 90vw;
+        height: 100%;
+    }
+
+    .authors{
+        height: 1440px;
+    }
+
+    .authors-content{
+        padding-top: 0px;
+        width: 575px;
+        flex-direction: column;
+        height: 1440px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .author-groups{
+        flex-direction: column;
+        height: 1200px;
+        align-items: center;
+    }
+
+    .triangle-mid{
+        left: -250px;
+        top: 1000px;
+    }
+
+    .circle-mid{
+        left: calc(400px - (1440px - 100vw)*0.5);
+        top: 200px;
+    }
+
+    .circle-top{
+        left: calc(600px - (1440px - 100vw)*0.7);
+    }
+
+    .triangle-top{
+        top: calc(100px + (1440px - 100vw)*0.4);
+    }
+
+    .funds{
+        height: 400px;
+    }
+
+    .funds-title{
+        padding-left: 20px;
+    }
+
+    .funds-text{
+        padding-left: 20px;
+        margin-top: 100px;
+    }
+}

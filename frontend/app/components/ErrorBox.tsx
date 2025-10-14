@@ -16,7 +16,7 @@ const ErrorBox: React.FC<ErrorBoxProps> = ({ errors }) => {
           <p className="error-header">Some errors appeared:</p>
           {errorList.map((err, index) => (
             <div className="error-line" key={index}>
-              <img src="error.svg" alt="Error Icon" width={24} height={24} />
+              <img src="icons/error.svg" alt="Error Icon" width={24} height={24} />
               <p>{err}</p>
             </div>
           ))}
@@ -24,7 +24,7 @@ const ErrorBox: React.FC<ErrorBoxProps> = ({ errors }) => {
         </div>
       ) : (
         <div className="error-line">
-          <img src="error.svg" alt="Error Icon" width={24} height={24} />
+          <img src="icons/error.svg" alt="Error Icon" width={24} height={24} />
           <p>{errorList[0]}</p>
         </div>
       )}

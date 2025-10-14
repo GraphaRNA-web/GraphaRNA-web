@@ -1,8 +1,8 @@
-.jobs-page{
+.submit-jobs-page{
     padding-top: 100px;
 }
 
-.jp-content{
+.sjp-content{
     display: flex;
     flex-direction: column;
     padding-top: 60px;
@@ -12,26 +12,26 @@
     gap: 60px;
 }
 
-.jp-header{
+.sjp-header{
     display: flex;
     flex-direction: column;
     gap: 42px;
 }
 
-.jp-header-top{
+.sjp-header-top{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
 }
 
-.jp-header-title{
+.sjp-header-title{
     color: var(--brown-lighten-10);
     font-size: 30px;
     font-weight: 200;
     font-family: "Raleway";
 }
 
-.jp-toggle-button{
+.sjp-toggle-button{
     display: flex;
     flex-direction: row;
     gap: 10px;
@@ -40,18 +40,18 @@
     align-items: center;
 }
 
-.jp-toggle-icon{
+.sjp-toggle-icon{
     width: 20px;
     height: 20px;
 }
 
-.jp-buttons-section{
+.sjp-buttons-section{
     display: flex;
     flex-direction: row;
     gap: 15px;
 }
 
-.jp-format-select{
+.sjp-format-select{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -61,27 +61,27 @@
     padding-top: 20px;
 }
 
-.jp-format-select-left{
+.sjp-format-select-left{
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.jp-format-top{
+.sjp-format-top{
     font-size: 24px;
     font-weight: 700;
     color: var(--brown-lighten-15);
     font-family: "Raleway";
 }
 
-.jp-format-bottom{
+.sjp-format-bottom{
     font-size: 18px;
     font-weight: 300;
     color: var(--brown-base);
     font-family: "Inter";
 }
 
-.jp-line-sep{
+.sjp-line-sep{
     width: 604px;
     height: 0px;
     border: 1px solid var(--background-darken-10);
@@ -90,7 +90,7 @@
     margin-bottom: 20px;
 }
 
-.jp-format{
+.sjp-format{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -98,31 +98,31 @@
     padding-right: 100px;
 }
 
-.jp-format-info{
+.sjp-format-info{
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-.jp-format-info-1{
+.sjp-format-info-1{
     font-family: Raleway;
     font-weight: 700;
     font-size: 20px;
 }
 
-.jp-format-info-2{
+.sjp-format-info-2{
     font-family: Inter;
     font-weight: 300;
     font-size: 14px;
 }
 
-.jp-step-0{
+.sjp-step-0{
     display: flex;
     flex-direction: column;
     gap: 60px;
 }
 
-.jp-text-input-section{
+.sjp-text-input-section{
     display: flex;
     flex-direction: column;
     background-color: var(--background-darken-5);
@@ -132,32 +132,32 @@
     gap: 50px;
 }
 
-.jp-text-input-section--error {
+.sjp-text-input-section--error {
   height: 500px;
 }
 
-.jp-text-input-examples{
+.sjp-text-input-examples{
     height: 34px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
 }
 
-.jp-examples-left{
+.sjp-examples-left{
     width: 257px;
     font-size: 14px;
     font-weight: 300;
     font-family: Inter;
 }
 
-.jp-examples-right{
+.sjp-examples-right{
     display: flex;
     flex-direction: row;
     gap: 10px;
     width: 545px;
 }
 
-.jp-input-area{
+.sjp-input-area{
     display: flex;
     flex-direction: column;
     gap: 17px;
@@ -167,25 +167,25 @@
     color: var(--brown-base)
 }
 
-.jp-opt-params{
+.sjp-opt-params{
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-.jp-opt-params-1{
+.sjp-opt-params-1{
     font-family: Raleway;
     font-weight: 700;
     font-size: 22px;
 }
 
-.jp-opt-params-2{
+.sjp-opt-params-2{
     font-family: Inter;
     font-weight: 300;
     font-size: 16px;
 }
 
-.jp-params-fields{
+.sjp-params-fields{
     margin-top: 83px;
     display: flex;
     flex-direction: column;
@@ -196,7 +196,7 @@
     margin-bottom: 83px;
 }
 
-.jp-seed-name-param{
+.sjp-seed-name-param{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -206,7 +206,7 @@
     color: var(--brown-base);
 }
 
-.jp-params-fields span{
+.sjp-params-fields span{
     font-family: Inter;
     font-size: 16px;
     font-weight: 600;
@@ -214,7 +214,7 @@
     padding-left: 10px;
 }
 
-.jp-alt-param{
+.sjp-alt-param{
     display: flex;
     flex-direction: column;
     font-family: Inter;
@@ -224,7 +224,7 @@
     gap: 10px;
 }
 
-.jp-email-param{
+.sjp-email-param{
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -235,14 +235,14 @@
     gap: 10px
 }
 
-.jp-format-info-2{
+.sjp-format-info-2{
     font-family: Inter;
     font-weight: 300;
     font-size: 14px;
     color: var(--brown-base)
 }
 
-.jp-structures-section{
+.sjp-structures-section{
     display: flex;
     flex-direction: column;
     background-color: var(--background-darken-5);
@@ -252,14 +252,14 @@
     gap: 20px;
 }
 
-.jp-structures-title{
+.sjp-structures-title{
     color: var(--brown-base);
     font-size: 18px;
     font-weight: 600;
     font-family: Inter;
 }
 
-.jp-structures-subtitle{
+.sjp-structures-subtitle{
     color: var(--brown-lighten-15);
     font-size: 18px;
     font-weight: 400;
@@ -267,7 +267,7 @@
     padding-left: 5px;
 }
 
-.jp-add-structure{
+.sjp-add-structure{
     border-radius: 10px;
     border: 2px solid var(--primary2-base);
     color: var(--primary2-base);
@@ -276,11 +276,11 @@
     justify-content: center;
 }
 
-.jp-add-structure p{
+.sjp-add-structure p{
     font-size: 20px;
 }
 
-.jp-step1-buttons{
+.sjp-step1-buttons{
     display: flex;
     flex-direction: row;
     gap: 15px;

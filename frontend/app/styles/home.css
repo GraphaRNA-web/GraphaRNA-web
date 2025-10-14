@@ -1,6 +1,6 @@
 .home-background {
   min-height: 100vh;
-  background-image: url('/bg_home.png');
+  background-image: url('/photos/bg_home.png');
   background-repeat: no-repeat;
   background-position: right center;
   background-size: auto 100%;
@@ -15,7 +15,7 @@
   flex-direction: column;
   width: 626px;
   height: 310px;
-  padding-left: 166px;
+  margin-left: calc(166px - (1440px - 100vw)*0.2);
   gap: 40px;
 }
 
@@ -52,16 +52,13 @@
   margin: 0px;
 }
 
-.intro-explore{
+.intro-explore,
+.intro-with{
   font-weight: 300;
 }
 
 .intro-world{
   font-weight: 600;
-}
-
-.intro-with{
-  font-weight: 300;
 }
 
 .intro-grapha{
@@ -76,19 +73,23 @@
 
 @media (max-width: 768px) {
   .home-container{
-    display: flex;
-    flex-direction: column;
-    padding-left: 87px;
-    width: 489px;
+    margin-left: 10px;
+    width: 490px;
+    height: 373px;
   }
 
   .home-buttons{
     display: flex;
     flex-direction: column;
     gap: 15px;
+    width: 490px;
   }
 
   .home-description-text{
-    width: 489px;
+    width: 490px;
+  }
+
+  .home-header{
+    width: 490px;
   }
 }

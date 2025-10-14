@@ -13,9 +13,9 @@ const MessageBox: React.FC<MessageBoxProps> = ({ type, messages }) => {
   const isMultiple = messageList.length > 1;
 
   const icons: Record<MessageType, string> = {
-    error: "error.svg",
-    warning: "error.svg",
-    approve: "error.svg"
+    error: "icons/error.svg",
+    warning: "icons/error.svg",
+    approve: "icons/error.svg"
   };
 
   const headers: Record<MessageType, string> = {
