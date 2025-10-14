@@ -24,7 +24,7 @@ export default function Home() {
           </div>
         </div>
         <div className='home-buttons'>
-            <Link href="/validateRNA">
+            <Link href="/submitJob">
               <Button
                 id="home-start-button"
                 color="primary"
