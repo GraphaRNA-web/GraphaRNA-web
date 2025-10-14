@@ -17,12 +17,16 @@ class Job(models.Model):
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
+    hashed_uid: models.CharField = models.CharField(
+        max_length=settings.UUID_HASH_LENGTH, unique=True, editable=False, null=True
+    )
     input_structure: models.FileField = models.FileField()
     seed: models.IntegerField = models.IntegerField()
     job_name: models.CharField = models.CharField(max_length=255)
     email: models.CharField = models.CharField(max_length=255, null=True, blank=True)
     created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
     expires_at: models.DateTimeField = models.DateTimeField(null=True)
+    sum_processing_time: models.DurationField = models.DurationField(null=True)
     status: models.TextField = models.TextField(choices=STATUS)
     alternative_conformations: models.IntegerField = models.IntegerField(
         validators=[
@@ -54,6 +58,21 @@ class JobResults(models.Model):
     result_secondary_structure_svg: models.FileField = models.FileField(null=True)
     result_tertiary_structure: models.FileField = models.FileField()
     result_arc_diagram: models.FileField = models.FileField(null=True)
+    f1: models.FloatField = models.FloatField(
+        null=True,
+        validators=[
+            MinValueValidator(0, message="Value f1 can't be lower than 0"),
+            MaxValueValidator(1, message="Value f1 can't be higher than 1"),
+        ],
+    )
+    inf: models.FloatField = models.FloatField(
+        null=True,
+        validators=[
+            MinValueValidator(0, message="Value f1 can't be lower than 0"),
+            MaxValueValidator(1, message="Value f1 can't be higher than 1"),
+        ],
+    )
+    processing_time: models.DurationField = models.DurationField(null=True)
 
     def __str__(self) -> str:
         return str(self.result_tertiary_structure)

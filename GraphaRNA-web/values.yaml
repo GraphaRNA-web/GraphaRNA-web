@@ -29,7 +29,7 @@ frontend:
 backend:
   name: backend
   image: pwlklr/grapharna:backend
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   port: 8000
 
   replicas: 1
@@ -52,10 +52,6 @@ backend:
   storage: 5Gi
 
 celery:
-  # worker:
-  #   name: celery-worker
-  #   replicas: 1
-
   grapharna:
     name: celery-grapharna
     replicas: 1
@@ -65,6 +61,14 @@ celery:
     replicas: 1
     pvc: beat-volume
     storage: 1Gi
+
+  maintenance:
+    name: celery-maintenance
+    replicas: 1
+  
+  email:
+    name: celery-email
+    replicas: 1
 
 engine:
   name: grapharna-engine

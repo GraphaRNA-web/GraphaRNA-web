@@ -1,4 +1,7 @@
 from datetime import timedelta, datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
 from django.utils import timezone
 from django.conf import settings
 from .models import Job, JobResults
@@ -14,6 +17,8 @@ from webapp.visualization_tools import (
     getDotBracket,
 )
 from celery.utils.log import get_task_logger
+from django.db.models.query import QuerySet
+from django.template import Template, Context
 
 
 def log_to_file(message: str) -> None:
@@ -23,7 +28,15 @@ def log_to_file(message: str) -> None:
 
 
 @shared_task
+def delete_expired_jobs_scheduler() -> None:
+    delete_expired_jobs.delay()
+    near_expiration_email_task.delay()
+
+
+@shared_task(queue="maintenance")
 def delete_expired_jobs() -> str:
+    logger = get_task_logger(__name__)
+
     now = timezone.now()
     expired_jobs = Job.objects.filter(expires_at__lt=now)
     count = expired_jobs.count()
@@ -38,7 +51,75 @@ def delete_expired_jobs() -> str:
 
         job.delete()
 
+    logger.info(f"Deleted {count} expired jobs.")
     return f"Deleted {count} expired jobs."
+
+
+@shared_task(queue="email")
+def near_expiration_email_task() -> None:
+    logger = get_task_logger(__name__)
+
+    now = timezone.now()
+    near_expired_jobs = Job.objects.filter(expires_at__lte=now + timedelta(days=1))
+    count = near_expired_jobs.count()
+
+    for job in near_expired_jobs:
+        if job.email:
+            url = f"{settings.RESULT_BASE_URL}?uidh={job.hashed_uid}"
+            expiration_date = job.expires_at.strftime("%d-%m-%Y %H:%M")
+            send_email_task.delay(
+                receiver_email=job.email,
+                template_path=settings.TEMPLATE_PATH_JOB_NEAR_EXPIRATION,
+                title=settings.TITLE_JOB_NEAR_EXPIRATION,
+                url=url,
+                expiration_date=expiration_date,
+            )
+
+    logger.info(f"Sent {count} near expiration emails.")
+
+
+@shared_task(queue="email")
+def send_email_task(
+    receiver_email: str,
+    template_path: str,
+    title: str,
+    url: str,
+    expiration_date: str | None = None,
+) -> bool:
+    logger = get_task_logger(__name__)
+    sender_email = settings.EMAIL_HOST_USER
+    password = settings.EMAIL_HOST_PASSWORD
+
+    template_path = os.path.join(settings.BASE_DIR, template_path)
+    try:
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_content = f.read()
+    except Exception as e:
+        logger.error(f"Error loading template: {e}")
+        return False
+    template = Template(template_content)
+    if expiration_date:
+        html_content = template.render(
+            Context({"url": url, "expiration_date": expiration_date})
+        )
+    else:
+        html_content = template.render(Context({"url": url}))
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
+    msg["Subject"] = title
+    msg.attach(MIMEText(html_content, "html"))
+
+    try:
+        with smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+        logger.info(f"Email sent to {receiver_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Error sending email: {e}")
+        return False
 
 
 @shared_task(queue="grapharna")
@@ -62,8 +143,6 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
     os.makedirs(output_dir, exist_ok=True)
 
-    logger.info("Dsadsad")
-
     try:
         job_data.status = "P"
         job_data.save()
@@ -74,6 +153,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     engine_url = settings.ENGINE_URL
 
     for i in range(job_data.alternative_conformations):
+        processing_start: datetime = timezone.now()
         response = requests.post(
             engine_url,
             data={"uuid": uuid_str, "seed": seed + i},
@@ -140,14 +220,25 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             secondary_structure_svg_path, settings.MEDIA_ROOT
         )
         relative_path_arc = os.path.relpath(arc_diagram_path, settings.MEDIA_ROOT)
+
+        processing_end: datetime = timezone.now()
         try:
+            job_result_qs: QuerySet = JobResults.objects.filter(job__exact=job_data)
+            if (
+                job_result_qs.count() + 1 == job_data.alternative_conformations
+            ):  # check if current job result is the last one
+                job_data.sum_processing_time = sum(
+                    [i.processing_time for i in job_result_qs], timedelta()
+                ) + (processing_end - processing_start)
+                job_data.save()
             JobResults.objects.create(
                 job=job_data,
                 result_tertiary_structure=relative_path_pdb,
                 result_secondary_structure_dotseq=relative_path_dotseq,
                 result_secondary_structure_svg=relative_path_svg,
                 result_arc_diagram=relative_path_arc,
-                completed_at=timezone.now(),
+                completed_at=processing_end,
+                processing_time=(processing_end - processing_start),
             )
         except Exception as e:
             logger.exception(f"Failed to create JobResults: {str(e)}")
@@ -158,6 +249,15 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     )
     job_data.status = "F"
     job_data.save()
+
+    if job_data.email:
+        url = f"{settings.RESULT_BASE_URL}?uidh={job_data.hashed_uid}"
+        send_email_task.delay(
+            receiver_email=job_data.email,
+            template_path=settings.TEMPLATE_PATH_JOB_FINISHED,
+            title=settings.TITLE_JOB_FINISHED,
+            url=url,
+        )
 
     return "OK"
 
