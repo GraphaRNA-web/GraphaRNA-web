@@ -23,13 +23,15 @@ from .api_docs import (
     validate_rna_schema,
     get_results_schema,
     get_suggested_seed_and_job_name_schema,
+    download_zip_file_schema,
+    job_pagination_schema
 )
 import zipfile
 import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
-
+@download_zip_file_schema
 @api_view(["GET"])
 def DownloadZipFile(request: Request) -> HttpResponse:
     uuid = request.query_params.get("uuid")
@@ -411,7 +413,7 @@ class JobPageNumberPagination(PageNumberPagination):
     page_size_query_param = "page_size"
     max_page_size = 100
 
-
+@job_pagination_schema
 @api_view(["GET"])
 def getActiveJobs(request: Request) -> Response:
     data = Job.objects.filter(status__in=["Q", "P"]).order_by("created_at", "uid")
@@ -420,12 +422,9 @@ def getActiveJobs(request: Request) -> Response:
     if page is not None:
         serializer = JobSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
-    print(
-        settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"])
-    )
     return paginator.get_paginated_response([])
 
-
+@job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
     data = Job.objects.filter(status__in=["F"]).order_by("created_at")
@@ -434,9 +433,6 @@ def getFinishedJobs(request: Request) -> Response:
     if page is not None:
         serializer = JobSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
-    print(
-        settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"])
-    )
     return paginator.get_paginated_response([])
 
 def getInf_F1(request: Request) -> Response:

@@ -347,3 +347,123 @@ get_suggested_seed_and_job_name_schema = swagger_auto_schema(
         )
     },
 )
+download_zip_file_schema = swagger_auto_schema(
+    method="get",
+    manual_parameters=[
+        openapi.Parameter(
+            "uuid",
+            openapi.IN_QUERY,
+            description="UUID of finished job.",
+            type=openapi.TYPE_STRING,
+            required=True,
+            example="fdf137ee-4765-4347-876c-a8a7a4cf57ae",
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="ZIP file generated successfully",
+            schema=openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format="binary",
+                description="ZIP file containing RNA structure results.",
+            ),
+            examples={
+                "api/downloadZip": "ZIP file"
+            },
+        ),
+        400: openapi.Response(
+            description="Invalid UID or job not finished",
+            schema=openapi.Schema(
+                type=openapi.TYPE_STRING,
+            ),
+            examples={
+                "text/plain": "UUID error"
+            },
+        ),
+        404: openapi.Response(
+            description="Job or file does not exist.",
+            schema=openapi.Schema(
+                type=openapi.TYPE_STRING,
+            ),
+            examples={
+                "text/plain": "Job not found"
+            },
+        ),
+    },)
+
+
+job_pagination_schema = swagger_auto_schema(
+    method="get",
+    manual_parameters=[
+        openapi.Parameter(
+            "page",
+            openapi.IN_QUERY,
+            description="Page number to retrieve",
+            type=openapi.TYPE_INTEGER,
+            required=False,
+            example=1,
+        ),
+        openapi.Parameter(
+            "page_size",
+            openapi.IN_QUERY,
+            description="Number of items per page (max 100)",
+            type=openapi.TYPE_INTEGER,
+            required=False,
+            example=10,
+        ),
+    ],
+    responses={
+        200: openapi.Response(
+            description="Paginated list of jobs (finished or still active)",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "count": openapi.Schema(type=openapi.TYPE_INTEGER),
+                    "next": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
+                    "previous": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
+                    "results": openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                "uid": openapi.Schema(type=openapi.TYPE_STRING),
+                                "hashed_uid": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
+                                "input_structure": openapi.Schema(type=openapi.TYPE_STRING),
+                                "seed": openapi.Schema(type=openapi.TYPE_INTEGER),
+                                "job_name": openapi.Schema(type=openapi.TYPE_STRING),
+                                "email": openapi.Schema(type=openapi.TYPE_STRING, format="email", nullable=True),
+                                "created_at": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                                "expires_at": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
+                                "sum_processing_time": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
+                                "status": openapi.Schema(type=openapi.TYPE_STRING),
+                                "alternative_conformations": openapi.Schema(type=openapi.TYPE_INTEGER),
+                            }
+                        ),
+                    ),
+                },
+            ),
+            examples={
+                "application/json": {
+                    "count": 4,
+                    "next": "http://127.0.0.1:8000/api/activeJobs/?page=2",
+                    "previous": None,
+                    "results": [
+                        {
+                            "uid": "94eeb28c-19cd-40b9-bb2c-ebda604a7795",
+                            "hashed_uid": None,
+                            "input_structure": "/engine_inputs/94eeb28c-19cd-40b9-bb2c-ebda604a7795.dotseq",
+                            "seed": 561573671,
+                            "job_name": "job-20250804-0",
+                            "email": "test@example.com",
+                            "created_at": "2025-08-04T21:54:01.537053+02:00",
+                            "expires_at": None,
+                            "sum_processing_time": None,
+                            "status": "P",
+                            "alternative_conformations": 1
+                        }
+                    ]
+                }
+            },
+        )
+    },
+)
