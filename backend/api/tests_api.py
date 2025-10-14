@@ -15,6 +15,8 @@ from webapp.hashing_tools import hash_uuid
 import os
 import zipfile
 import io
+import math
+from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
 
 class PostRnaDataTests(TestCase):
@@ -739,3 +741,108 @@ class JobActiveAndFinishedTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("results", response.data)
+
+class INF(TestCase):
+    def test_perfect_match_CalculateF1Inf(self):
+
+        values = CalculateF1Inf({(0, 1), (2, 3)}, {(0, 1), (2, 3)})
+        assert (values["tp"], values["fp"], values["fn"]) == (2, 0, 0)
+        print("DEBUG:", values)
+        assert math.isclose(values["inf"], 1.0)
+        assert math.isclose(values["f1"], 1.0)
+
+    def test_empty_model_CalculateF1Inf(self):
+        values = CalculateF1Inf({(0, 1), (2, 3)}, set())
+        assert (values["tp"], values["fp"], values["fn"]) == (0, 0, 2)
+        print("DEBUG:", values)
+        assert math.isclose(values["inf"], 0.0)
+        assert math.isclose(values["f1"], 0.0)
+
+    def test_partial_match_CalculateF1Inf(self):
+        values = CalculateF1Inf({(0, 1), (2, 3)}, {(0, 1), (4, 5)})
+
+        assert (values["tp"], values["fp"], values["fn"]) == (1, 1, 1)
+        print("DEBUG:", values)
+        assert math.isclose(values["inf"], 0.5)
+        assert math.isclose(values["f1"], 0.5)
+
+    def test_CalculateF1Inf_perfect_match(self):
+        target = {(0, 3), (1, 2)}
+        model = {(0, 3), (1, 2)}
+        values = CalculateF1Inf(target, model)
+        print("DEBUG perfect:", values)
+        assert (values["tp"], values["fp"], values["fn"]) == (2, 0, 0)
+        assert math.isclose(values["inf"], 1.0)
+        assert math.isclose(values["f1"], 1.0)
+
+    def test_CalculateF1Inf_partial_match(self):
+        target = {(0, 3), (1, 2)}
+        model = {(0, 3), (4, 5)}
+        values = CalculateF1Inf(target, model)
+        print("DEBUG partial:", values)
+        assert (values["tp"], values["fp"], values["fn"]) == (1, 1, 1)
+        assert round(values["f1"], 2) == 0.5
+        assert round(values["inf"], 2) == 0.5
+
+    def test_CalculateF1Inf_empty_model(self):
+        target = {(0, 3), (1, 2)}
+        model = set()
+        values = CalculateF1Inf(target, model)
+        print("DEBUG empty:", values)
+        assert (values["tp"], values["fp"], values["fn"]) == (0, 0, 2)
+        assert values["f1"] == 0.0
+        assert values["inf"] == 0.0
+
+    def test_dotbracketToPairs_simple(self):
+        input_str = ">Job\nACGU\n(())"
+        Pairs = dotbracketToPairs(input_str)
+        print("DEBUG dotbracketToPairs:", Pairs)
+        assert (0, 3) in Pairs["correctPairs"]
+        assert (1, 2) in Pairs["correctPairs"]
+        assert Pairs["incorrectPairs"] == set()
+
+    def test_perfect_match(self):
+        target_input = "ACGU\n()()"
+        model_input = "ACGU\n()()"
+
+        target_dict = dotbracketToPairs(target_input)
+        model_dict = dotbracketToPairs(model_input)
+
+        values = CalculateF1Inf(target_dict["correctPairs"], model_dict["correctPairs"])
+
+        self.assertEqual(values["tp"], 1)
+        self.assertEqual(values["fp"], 0)
+        self.assertEqual(values["fn"], 0)
+        self.assertTrue(0 <= values["f1"] <= 1)
+        self.assertTrue(0 <= values["inf"] <= 1)
+
+    def test_partial_match(self):
+        target_input = "GCGC\n()()"
+        model_input = "GCGC\n..()"
+
+        target_dict = dotbracketToPairs(target_input)
+        model_dict = dotbracketToPairs(model_input)
+
+        values = CalculateF1Inf(target_dict["correctPairs"], model_dict["correctPairs"])
+
+        print("DEBUG test_partial_match:", values)
+        self.assertEqual(values["tp"], 1)
+        self.assertEqual(values["fp"], 0)
+        self.assertEqual(values["fn"], 1)
+        self.assertTrue(0 < values["f1"] < 1)
+        self.assertTrue(0 < values["inf"] < 1)
+
+    def test_empty_model(self):
+        target_input = "GC\n()"
+        model_input = "..."
+        target_dict = dotbracketToPairs(target_input)
+        model_dict = dotbracketToPairs(model_input)
+
+        values = CalculateF1Inf(target_dict["correctPairs"], model_dict["correctPairs"])
+
+        self.assertEqual(values["tp"], 0)
+        self.assertEqual(values["fp"], 0)
+        self.assertEqual(values["fn"], 1)
+        self.assertTrue(0 <= values["f1"] <= 1)
+        self.assertTrue(0 <= values["inf"] <= 1)
+

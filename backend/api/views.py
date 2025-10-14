@@ -27,6 +27,7 @@ from .api_docs import (
 import zipfile
 import io
 from django.http import HttpResponse
+from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
 
 @api_view(["GET"])
@@ -437,6 +438,28 @@ def getFinishedJobs(request: Request) -> Response:
         settings.REST_FRAMEWORK["PAGE_SIZE"], type(settings.REST_FRAMEWORK["PAGE_SIZE"])
     )
     return paginator.get_paginated_response([])
+
+def getInf_F1(request: Request) -> Response:
+
+    uid = request.query_params.get("uid")
+    if not uid:
+        return Response({"success": False, "error": "uid missing"}, status=400)
+    job = Job.objects.get(uid=uid)
+
+    jobResult = JobResults.objects.get(job=job)
+
+    try:
+        target = job.input_structure.path
+        model = jobResult.result_secondary_structure_dotseq.path
+    except FileNotFoundError:
+        return Response({"success": False, "error": "File not found"}, status=404)
+    with open(target) as f:
+        target_dict = dotbracketToPairs(f.read())
+    with open(model) as f:
+        model_dict = dotbracketToPairs(f.read())
+    values = CalculateF1Inf(target_dict["correctPairs"], model_dict["correctPairs"])
+    return Response({"success": True, "Dane:": {values}})
+
 
 @api_view(["GET"])
 def healthcheck(request: Request) -> Response:

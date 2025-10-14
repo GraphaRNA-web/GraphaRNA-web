@@ -112,6 +112,7 @@ class RnaValidator:
                 "Mismatching Brackets": mismatchingBrackets,
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
+                "allPairs": [],
             }
 
         inputStr = self.parsedStructure
@@ -130,6 +131,7 @@ class RnaValidator:
                 "Mismatching Brackets": mismatchingBrackets,
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
+                "allPairs": [],
             }
         if len(rna) != len(dotBracket):
             self.errorList.append("RNA and DotBracket not of equal lengths")
@@ -166,41 +168,16 @@ class RnaValidator:
                 "Mismatching Brackets": mismatchingBrackets,
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
+                "allPairs": [],
             }
 
-        # stack check
-        bracketStacks: dict[str, deque[int]] = {
-            self.validBrackets[i : i + 2]: deque()
-            for i in range(0, len(self.validBrackets), 2)
-            if self.validBrackets[i] != "."
-        }
-        openingLookup: dict[str, str] = {pair[0]: pair for pair in bracketStacks.keys()}
-        closingLookup: dict[str, str] = {pair[1]: pair for pair in bracketStacks.keys()}
-        suggestedDotBracketFixList: list[str] = list(dotBracket)
-        for i in range(len(dotBracket)):
-            if dotBracket[i] in openingLookup:  # opening brackets
-                bracketStacks[openingLookup[dotBracket[i]]].append(i)
-            elif dotBracket[i] in closingLookup:  # closing brackets
-                if (
-                    len(bracketStacks[closingLookup[dotBracket[i]]]) > 0
-                ):  # check if a matching bracket exists
-                    if (
-                        rna[bracketStacks[closingLookup[dotBracket[i]]][-1]] + rna[i]
-                        in self.validPairs
-                    ):  # check if the nucleotide pair is correct
-                        bracketStacks[closingLookup[dotBracket[i]]].pop()
-                    else:  # incorrect nucleotide pair, suggest replacement to .
-                        incorrectPairs.append(
-                            (bracketStacks[closingLookup[dotBracket[i]]][-1], i)
-                        )
-                        suggestedDotBracketFixList[i] = "."
-                        suggestedDotBracketFixList[
-                            bracketStacks[closingLookup[dotBracket[i]]][-1]
-                        ] = "."
-                        bracketStacks[closingLookup[dotBracket[i]]].pop()
-                else:  # mismatched closing bracket, suggest replacement to .
-                    mismatchingBrackets.append(i)
-                    suggestedDotBracketFixList[i] = "."
+        (
+            bracketStacks,
+            suggestedDotBracketFixList,
+            mismatchingBrackets,
+            incorrectPairs,
+            allPairs,
+        ) = self.stackCheck(dotBracket, rna)
 
         for (
             stack
@@ -224,4 +201,59 @@ class RnaValidator:
             "Mismatching Brackets": mismatchingBrackets,
             "Incorrect Pairs": incorrectPairs,
             "Fix Suggested": fixSuggested,
+            "allPairs": allPairs,
         }
+
+        # stack check
+
+    def stackCheck(self, dotBracket: str, rna: str) -> tuple[
+        dict[str, deque[int]],
+        list[str],
+        list[int],
+        list[tuple[int, int]],
+        list[tuple[int, int]],
+    ]:  # Zmieniono kod aby nie trzeba było powtarzać kodu z liczeniem stacku i par
+        bracketStacks: dict[str, deque[int]] = {
+            self.validBrackets[i : i + 2]: deque()
+            for i in range(0, len(self.validBrackets), 2)
+            if self.validBrackets[i] != "."
+        }
+        allPairs: list[tuple[int, int]] = []
+        mismatchingBrackets: list[int] = []
+        incorrectPairs: list[tuple[int, int]] = []
+        openingLookup: dict[str, str] = {pair[0]: pair for pair in bracketStacks.keys()}
+        closingLookup: dict[str, str] = {pair[1]: pair for pair in bracketStacks.keys()}
+        suggestedDotBracketFixList: list[str] = list(dotBracket)
+        for i in range(len(dotBracket)):
+            if dotBracket[i] in openingLookup:  # opening brackets
+                bracketStacks[openingLookup[dotBracket[i]]].append(i)
+            elif dotBracket[i] in closingLookup:  # closing brackets
+                if (
+                    len(bracketStacks[closingLookup[dotBracket[i]]]) > 0
+                ):  # check if a matching bracket exists
+                    index = bracketStacks[closingLookup[dotBracket[i]]][-1]
+                    if (
+                        rna[bracketStacks[closingLookup[dotBracket[i]]][-1]] + rna[i]
+                        in self.validPairs
+                    ):  # check if the nucleotide pair is correct
+                        allPairs.append((index, i))
+                        bracketStacks[closingLookup[dotBracket[i]]].pop()
+                    else:  # incorrect nucleotide pair, suggest replacement to .
+                        incorrectPairs.append(
+                            (bracketStacks[closingLookup[dotBracket[i]]][-1], i)
+                        )
+                        suggestedDotBracketFixList[i] = "."
+                        suggestedDotBracketFixList[
+                            bracketStacks[closingLookup[dotBracket[i]]][-1]
+                        ] = "."
+                        bracketStacks[closingLookup[dotBracket[i]]].pop()
+                else:  # mismatched closing bracket, suggest replacement to .
+                    mismatchingBrackets.append(i)
+                    suggestedDotBracketFixList[i] = "."
+        return (
+            bracketStacks,
+            suggestedDotBracketFixList,
+            mismatchingBrackets,
+            incorrectPairs,
+            allPairs,
+        )
