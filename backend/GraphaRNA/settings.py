@@ -173,7 +173,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://guest:guest@rabbitmq:5672//")
 CELERY_RESULT_BACKEND = "rpc://"
 CELERY_TASK_QUEUES = (Queue("grapharna", durable=True),)
-CELERY_TASK_QUEUES = ((),)
 
 CELERY_TASK_DEFAULT_QUEUE = "grapharna"
 CELERY_TASK_DEFAULT_DELIVERY_MODE = "persistent"
