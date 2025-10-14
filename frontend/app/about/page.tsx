@@ -2,7 +2,7 @@ import '../styles/about.css';
 
 export default function About(){
     return(
-        <div className='content'>
+        <div className='ap-content'>
             <div className='about'>
                 <div className='about-content'>
                     <p className='about-title'>About</p>
@@ -42,65 +42,69 @@ export default function About(){
                     <img className='circle-mid' src='photos/ap_circle_mid.png'></img>
                     <div className='author-groups'>
                         <div className='authors-profs'>
-                            <div className='authors-circle'></div>
-                            <img className='rocket-icon' src='icons/rocket.svg'></img>
-                            <p className='graphaRNA-text'>GraphaRNA</p>
-                            <div className='authors-rectangle'></div>
-                            <div className='first-row'>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Marek Justyna</p>
-                                </div>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Craig Zirbel</p>
-                                </div>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Maciej Antczak</p>
-                                </div>
+                            <div className='authors-circle'>
+                                <img className='rocket-icon' src='icons/rocket.svg'></img>
                             </div>
-                            <div className='second-row'>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Marta Szachniuk</p>
+                            <p className='graphaRNA-text'>GraphaRNA</p>
+                            <div className='authors-rectangle'>
+                                <div className='authors-row'>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Marek Justyna</p>
+                                    </div>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Craig Zirbel</p>
+                                    </div>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Maciej Antczak</p>
+                                    </div>
+                                </div>
+                                <div className='authors-row'>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Marta Szachniuk</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div className='authors-students'>
-                            <div className='authors-circle1'></div>
-                            <img className='web-icon' src='icons/web.svg'></img>
+                            <div className='authors-circle1'>
+                                <img className='web-icon' src='icons/web.svg'></img>
+                            </div>
                             <p className='graphaRNAweb-text'>Grapha
                                 <span className='rna'>RNA</span>
                                 <span className='web'>-web</span>
                             </p>
-                            <div className='authors-rectangle1'></div>
-                            <div className='first-row1'>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Aleksandra Górska</p>
+                            <div className='authors-rectangle1'>
+                                <div className='authors-row'>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Aleksandra Górska</p>
+                                    </div>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Katarzyna Róg</p>
+                                    </div>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Filip Urbański</p>
+                                    </div>
                                 </div>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Katarzyna Róg</p>
-                                </div>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Filip Urbański</p>
-                                </div>
-                            </div>
-                            <div className='second-row1'>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Tymoteusz Pawłowski</p>
-                                </div>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Bartosz Skrzypczak</p>
-                                </div>
-                                <div className='author'>
-                                    <img src='icons/person.svg'></img>
-                                    <p className='name'>Paweł Kelar</p>
+                                <div className='authors-row'>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Tymoteusz Pawłowski</p>
+                                    </div>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Bartosz Skrzypczak</p>
+                                    </div>
+                                    <div className='author'>
+                                        <img src='icons/person.svg'></img>
+                                        <p className='name'>Paweł Kelar</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

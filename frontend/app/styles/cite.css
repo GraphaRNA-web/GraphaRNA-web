@@ -57,7 +57,7 @@
     top: 80px;
 }
 
-.text{
+.cite-text{
     position: absolute;
     z-index: 2;
     height: 138px;
@@ -71,7 +71,7 @@
     box-shadow: 0 2px 20px 0 #DFDEDAE5;
 }
 
-.para{
+.cite-para{
     padding-left: 120px;
     padding-right: 120px;
     padding-top: 50px;

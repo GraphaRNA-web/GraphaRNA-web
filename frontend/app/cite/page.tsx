@@ -10,8 +10,8 @@ export default function CiteUs(){
                     <img className='circle' src='photos/cp_circle.png'></img>
                     <img className='triangle' src='photos/cp_triangle.png'></img>
                     <img className='green-thing' src='icons/cp_thing.svg'></img>
-                    <div className='text'>
-                        <p className='para'>Justyna M, Zirbel CL, Antczak M, Szachniuk M (2025), Graph Neural Network and Diffusion Model for modeling RNA interatomic interactions, submitted</p>
+                    <div className='cite-text'>
+                        <p className='cite-para'>Justyna M, Zirbel CL, Antczak M, Szachniuk M (2025), Graph Neural Network and Diffusion Model for modeling RNA interatomic interactions, submitted</p>
                     </div>
                 </div>
             </div>

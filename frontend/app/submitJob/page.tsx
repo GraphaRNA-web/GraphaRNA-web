@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { validateRNA, getSuggestedData, submitJobRequest } from "@/lib/api";
 import Modal from '../components/Modal';
 import Slider from '../components/Slider';
-import '../styles/validateRNA.css';
+import '../styles/submitJob.css';
 import Button from '../components/Button';
 import StepsIndicator from '../components/StepsIndicator';
 import TextArea from '../components/TextArea';
@@ -13,7 +13,7 @@ import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
 
 
-export default function ValidateRNA() {
+export default function submitJob() {
   const [inputFormat, setInputFormat] = useState("Text");
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -255,22 +255,22 @@ const handleNext = async () => {
   }
 
   return (
-    <div className='jobs-page'>
-      <div className='jp-content'> 
-        <div className='jp-header'>
-          <div className='jp-header-top'>
-            <span className='jp-header-title'>RNA structure form</span>
-            <div className="jp-toggle-button" onClick={() => setIsExpanded(prev => !prev)}>
+    <div className='submit-jobs-page'>
+      <div className='sjp-content'> 
+        <div className='sjp-header'>
+          <div className='sjp-header-top'>
+            <span className='sjp-header-title'>RNA structure form</span>
+            <div className="sjp-toggle-button" onClick={() => setIsExpanded(prev => !prev)}>
               <span>{isExpanded ? "show less" : "show more"}</span>
               <img
                   src={isExpanded ? "icons/arrow_up.svg" : "icons/arrow_down.svg"}
                   alt="Toggle icon"
-                  className="jp-toggle-icon"
+                  className="sjp-toggle-icon"
               />
             </div>
           </div>
           {isExpanded && (
-            <p className='jp-header-bottom'>
+            <p className='sjp-header-bottom'>
               Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
               Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, 
               nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa 
@@ -283,11 +283,11 @@ const handleNext = async () => {
         <StepsIndicator totalSteps={3} currentStep ={currentStep}/>
 
         {currentStep === 0 && (
-          <div className='jp-step-0'>
-            <div className='jp-format-select'>
-              <div className='jp-format-select-left'>
-                <span className='jp-format-top'>Input format</span>
-                <span className='jp-format-bottom'>Choose a format of data input.</span>
+          <div className='sjp-step-0'>
+            <div className='sjp-format-select'>
+              <div className='sjp-format-select-left'>
+                <span className='sjp-format-top'>Input format</span>
+                <span className='sjp-format-bottom'>Choose a format of data input.</span>
               </div>
               <Slider 
                 options={["Interactive", "Text", "File"]}
@@ -295,25 +295,25 @@ const handleNext = async () => {
                 onChange={setInputFormat}
               />
             </div>
-            <div className="jp-line-sep"></div>
-            <div className='jp-hadle-choice'>
+            <div className="sjp-line-sep"></div>
+            <div className='sjp-hadle-choice'>
               {inputFormat === "Interactive" && (
-                <div className='jp-format-info'>
-                  <p className='jp-format-info-1'>
+                <div className='sjp-format-info'>
+                  <p className='sjp-format-info-1'>
                     Interactive form
                   </p>
-                  <p className='jp-format-info-2'>
+                  <p className='sjp-format-info-2'>
                     Interactive form is based on... Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
                     Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis partquat massa
                   </p>
 
                   {/* Nowa sekcja na struktury */}
-                  <div className="jp-structures-section">
-                    <p className='jp-structures-title'>Structures</p>
-                    <p className='jp-structures-subtitle'>Paste structure</p>
+                  <div className="sjp-structures-section">
+                    <p className='sjp-structures-title'>Structures</p>
+                    <p className='sjp-structures-subtitle'>Paste structure</p>
 
                     {structures.map((s, idx) => (
-                      <div key={idx} className="jp-structure-item">
+                      <div key={idx} className="sjp-structure-item">
                         <TextArea
                           rows={4}
                           value={s}
@@ -323,23 +323,23 @@ const handleNext = async () => {
                       </div>
                     ))}
 
-                    <div className="jp-add-structure" onClick={addStructure}>
+                    <div className="sjp-add-structure" onClick={addStructure}>
                       <p>+</p>
                     </div>
                   {errors.length > 0 && (
-                    <div className="jp-errors">
+                    <div className="sjp-errors">
                       <MessageBox type="error" messages={errors} />
                     </div>
                   )}
 
                   {warnings.length > 0 && (
-                    <div className="jp-warnings">
+                    <div className="sjp-warnings">
                       <MessageBox type="warning" messages={warnings} />
                     </div>
                   )}
 
                   {approves.length > 0 && (
-                    <div className="jp-approves">
+                    <div className="sjp-approves">
                       <MessageBox type="approve" messages={approves} />
                     </div>
                   )}
@@ -348,23 +348,23 @@ const handleNext = async () => {
                 )}
 
               {inputFormat === "Text" && (
-                  <div className='jp-format-info'>
-                    <p className='jp-format-info-1'>
+                  <div className='sjp-format-info'>
+                    <p className='sjp-format-info-1'>
                     Format
                     </p>
-                    <p className='jp-format-info-2'>The data should be in format... Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
+                    <p className='sjp-format-info-2'>The data should be in format... Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
                     Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis partquat massa
                     </p>
                   </div>
               )}
 
               {inputFormat === "File" && (
-                <div className='jp-format'>
-                  <div className='jp-format-info'>
-                    <p className='jp-format-info-1'>
+                <div className='sjp-format'>
+                  <div className='sjp-format-info'>
+                    <p className='sjp-format-info-1'>
                     Format
                     </p>
-                    <p className='jp-format-info-2'>A valid file should be in .fasta format.
+                    <p className='sjp-format-info-2'>A valid file should be in .fasta format.
                     </p>
                   </div>
                   <Modal/>
@@ -373,12 +373,12 @@ const handleNext = async () => {
             </div>
 
             {inputFormat ==="Text" && (
-              <div className='jp-text-input-section' style={{ height: dynamicHeight }}>
-                <div className='jp-text-input-examples'>
-                  <div className='jp-examples-left'>
+              <div className='sjp-text-input-section' style={{ height: dynamicHeight }}>
+                <div className='sjp-text-input-examples'>
+                  <div className='sjp-examples-left'>
                       <p>Choose one of the examples to try out some examplary data.</p>
                   </div>
-                  <div className='jp-examples-right'>
+                  <div className='sjp-examples-right'>
                       <Button
                         color="green1"
                         width='175px'
@@ -402,7 +402,7 @@ const handleNext = async () => {
                       />
                   </div>
                 </div>
-                <div className='jp-input-area'>
+                <div className='sjp-input-area'>
                   RNA structure
                   <TextArea
                     rows={6}
@@ -412,19 +412,19 @@ const handleNext = async () => {
                   />
                 </div>
                 {errors.length > 0 && (
-                  <div className="jp-errors">
+                  <div className="sjp-errors">
                     <MessageBox type="error" messages={errors} />
                   </div>
                 )}
 
                 {warnings.length > 0 && (
-                  <div className="jp-warnings">
+                  <div className="sjp-warnings">
                     <MessageBox type="warning" messages={warnings} />
                   </div>
                 )}
 
                 {approves.length > 0 && (
-                  <div className="jp-approves">
+                  <div className="sjp-approves">
                     <MessageBox type="approve" messages={approves} />
                   </div>
                 )}
@@ -432,7 +432,7 @@ const handleNext = async () => {
             )}
 
             {(inputFormat === "Text" || inputFormat === "Interactive") && (
-              <div className='jp-buttons-section'>
+              <div className='sjp-buttons-section'>
                 <Button
                   color='primary'
                   variant='filled'
@@ -458,19 +458,19 @@ const handleNext = async () => {
 
         {currentStep === 1 && (
           <div>
-            <div className='jp-params-section'>
-              <div className='jp-opt-params'>
-                <p className='jp-opt-params-1'>
+            <div className='sjp-params-section'>
+              <div className='sjp-opt-params'>
+                <p className='sjp-opt-params-1'>
                   Optional parameters
                 </p>
-                <p className='jp-opt-params-2'>
+                <p className='sjp-opt-params-2'>
                   You can provide some optional parameters for the calculation process
                 </p>
               </div>
 
-              <div className='jp-params-fields'>
+              <div className='sjp-params-fields'>
                 {/* --- SEED --- */}
-                  <div className='jp-seed-name-param'>
+                  <div className='sjp-seed-name-param'>
                     <p>Seed <span>{autoSeed ? seed : ""}</span></p>
                     <CustomCheckbox
                       label="auto"
@@ -488,7 +488,7 @@ const handleNext = async () => {
                   )}
 
                   {/* --- JOB NAME --- */}
-                  <div className='jp-seed-name-param'>
+                  <div className='sjp-seed-name-param'>
                     <p>Name <span>{autoName ? jobname : ""}</span></p>
                     <CustomCheckbox
                       label="auto"
@@ -507,7 +507,7 @@ const handleNext = async () => {
 
 
                 {/* --- INTEGER FIELD --- */}
-                <div className='jp-alt-param'>
+                <div className='sjp-alt-param'>
                   <IntegerField
                     min={1}
                     max={5}
@@ -519,7 +519,7 @@ const handleNext = async () => {
                 </div>
               </div>
 
-              <div className='jp-step1-buttons'>
+              <div className='sjp-step1-buttons'>
                 <Button
                   color='primary'
                   variant='filled'
@@ -545,18 +545,18 @@ const handleNext = async () => {
 
         {currentStep === 2 && (
           <div>
-            <div className='jp-params-section'>
-              <div className='jp-opt-params'>
-                <p className='jp-opt-params-1'>
+            <div className='sjp-params-section'>
+              <div className='sjp-opt-params'>
+                <p className='sjp-opt-params-1'>
                   Optional parameters
                 </p>
-                <p className='jp-opt-params-2'>
+                <p className='sjp-opt-params-2'>
                   You can provide some optional parameters for the calculation process
                 </p>
               </div>
 
-              <div className='jp-params-fields'>
-                <div className='jp-email-param'>
+              <div className='sjp-params-fields'>
+                <div className='sjp-email-param'>
                   <p>E-mail <span>(optional)</span></p>
                   <TextArea
                     rows={1}
@@ -565,21 +565,21 @@ const handleNext = async () => {
                     placeholder="your@email.com"
                   />
                 {errors.length > 0 && (
-                  <div className="jp-errors">
+                  <div className="sjp-errors">
                     {errors.length > 0 && (
-                      <div className="jp-errors">
+                      <div className="sjp-errors">
                         <MessageBox type="error" messages={errors} />
                       </div>
                     )}
 
                     {warnings.length > 0 && (
-                      <div className="jp-warnings">
+                      <div className="sjp-warnings">
                         <MessageBox type="warning" messages={warnings} />
                       </div>
                     )}
 
                     {approves.length > 0 && (
-                      <div className="jp-approves">
+                      <div className="sjp-approves">
                         <MessageBox type="approve" messages={approves} />
                       </div>
                     )}
@@ -588,7 +588,7 @@ const handleNext = async () => {
                 </div>
               </div>
 
-              <div className='jp-step1-buttons'>
+              <div className='sjp-step1-buttons'>
                 <Button
                   color='primary'
                   variant='filled'
