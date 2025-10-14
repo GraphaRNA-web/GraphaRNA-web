@@ -449,9 +449,9 @@ class JobActiveAndFinishedTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("results", response.data)
         self.assertLessEqual(
-            len(response.data["results"]), settings.REST_FRAMEWORK["PAGE_SIZE"]
+            len(response.data["results"]), int(settings.REST_FRAMEWORK["PAGE_SIZE"])
         )
-        if len(response.data["results"]) < settings.REST_FRAMEWORK["PAGE_SIZE"]:
+        if len(response.data["results"]) < int(settings.REST_FRAMEWORK["PAGE_SIZE"]):
             self.assertIsNone(response.data["next"])
 
     def test_size_finished_jobs_first_page(self):
@@ -460,9 +460,9 @@ class JobActiveAndFinishedTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("results", response.data)
         self.assertLessEqual(
-            len(response.data["results"]), settings.REST_FRAMEWORK["PAGE_SIZE"]
+            len(response.data["results"]), int(settings.REST_FRAMEWORK["PAGE_SIZE"])
         )
-        if len(response.data["results"]) < settings.REST_FRAMEWORK["PAGE_SIZE"]:
+        if len(response.data["results"]) < int(settings.REST_FRAMEWORK["PAGE_SIZE"]):
             self.assertIsNone(response.data["next"])
 
     def test_next_exists_active_jobs_page(self):
@@ -548,3 +548,32 @@ class JobActiveAndFinishedTests(TestCase):
             next_url = response_next.data["next"]
 
         self.assertEqual(ileDanych, self.finishedSize)
+
+    def test_specific_active_jobs_page(self):
+        url = reverse("getActiveJobs") + "?page=2"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("results", response.data)
+
+    def test_specific_finished_jobs_page(self):
+        url = reverse("getFinishedJobs") + "?page=2"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("results", response.data)
+    
+    def test_specific_impossible_finished_jobs_page(self):
+        url = reverse("getFinishedJobs") + "?page=999"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_specific_finished_jobs_page_size(self):
+        url = reverse("getFinishedJobs") + "?page_size=5"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("results", response.data)
+
+    def test_specific_getActiveJobs_page_size(self):
+        url = reverse("getActiveJobs") + "?page_size=5"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("results", response.data)
