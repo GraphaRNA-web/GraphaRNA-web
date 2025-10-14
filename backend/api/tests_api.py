@@ -560,7 +560,7 @@ class JobActiveAndFinishedTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("results", response.data)
-    
+
     def test_specific_impossible_finished_jobs_page(self):
         url = reverse("getFinishedJobs") + "?page=999"
         response = self.client.get(url)
