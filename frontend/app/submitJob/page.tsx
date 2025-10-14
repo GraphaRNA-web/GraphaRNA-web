@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { validateRNA, getSuggestedData, submitJobRequest } from "@/lib/api";
+import { useRouter } from "next/navigation";  
 import Modal from '../components/Modal';
 import Slider from '../components/Slider';
 import '../styles/submitJob.css';
@@ -11,13 +12,18 @@ import TextArea from '../components/TextArea';
 import CustomCheckbox from '../components/CustomCheckbox';
 import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
+import ValidationWarningModal from "../components/ValidationWarningModal";
 
 
 export default function SubmitJob() {
+  const router = useRouter();
   const [inputFormat, setInputFormat] = useState("Text");
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [text, setText] = useState('');
+  const [correctedText, setCorrectedText] = useState('');
+  const [showValidation, setShowValidation] = useState(false);
+  const [showValidationNext, setShowValidationNext] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [approves, setApproves] = useState<string[]>([]);
@@ -27,17 +33,15 @@ export default function SubmitJob() {
   const [jobname, setJobname] = useState("");
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
+  const [structures, setStructures] = useState<string[]>([""]);
+  const [mismatchingBrackets, setMismatchingBrackets] = useState<number[]>([]);
+  const [incorrectPairs, setIncorrectPairs] = useState<[number, number][]>([]);
 
-
-  const allowedCharacters = /^[ACGUacgu(.)\s\n]*$/;
-
-  const dynamicHeight = 500 + 50 * errors.length + 50 * warnings.length + 50 * approves.length
+  const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
   const emailValidator = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
-  const [structures, setStructures] = useState<string[]>([""]);
-
-const validateStructures = (): boolean => {
+  const validateStructures = (): boolean => {
   const newErrors: string[] = [];
 
   structures.forEach((s, idx) => {
@@ -62,8 +66,9 @@ const addStructure = () => {
   setStructures([...structures, ""]);
 };
 
+type ValidationResult = "error" | "warning" | "ok";
 
-const validateStructure = async (): Promise<boolean> => {
+const validateStructure = async (fromNext = false) : Promise<ValidationResult> => {
   if (inputFormat === "Text") {
     const trimmedText = text;
     console.log("[validateStructure] start", { inputFormat, text });
@@ -75,15 +80,18 @@ const validateStructure = async (): Promise<boolean> => {
 
     if (trimmedText === '') {
       setErrors(["Input cannot be empty."]);
-      return false;
+      return "error";
     }
 
     try {
       console.log("[validateStructure] calling validateRNA...");
-      const result = await validateRNA({fasta_raw: trimmedText})
+      const result = await validateRNA({fasta_raw: trimmedText});
+
+      setMismatchingBrackets(result["Mismatching Brackets"] || []);
+      setIncorrectPairs(result["Incorrect Pairs"] || []);
 
       if (!result["Validation Result"]) {
-        let errorList: string[] = ["Validation failed on server"];
+        let errorList: string[] = [];
 
         if (Array.isArray(result["Error List"]) && result["Error List"].length > 0) {
           const flatErrors = result["Error List"].flat();
@@ -92,137 +100,139 @@ const validateStructure = async (): Promise<boolean> => {
 
         console.log("ErrorList: ", errorList);
         setErrors(errorList);
-        return false;
+        return "error";
       }
 
       // always set the input to be ready for the engine
-      setText(result["Validated RNA"]);
+      setCorrectedText(result["Validated RNA"]);
 
       // jeśli backend zasugerował poprawkę → ustawiamy warning
+      
       if (result["Fix Suggested"] && result["Validated RNA"]) {
-          const warningsList: string[] = ["A fix was suggested by the server"];
-          if (result["Incorrect Pairs"]?.length > 0) {
-            const pairsMsg = result["Incorrect Pairs"]
-              .map((pair: [number, number]) => `[${pair[0]} - ${pair[1]}]`)
-              .join(", ");
-            warningsList.push(`Incorrect Pairs: ${pairsMsg}`);
-          }
-
-          if (result["Mismatching Brackets"]?.length > 0) {
-            const bracketMsg = result["Mismatching Brackets"]
-              .map((pos: number) => pos.toString())
-              .join(", ");
-            warningsList.push(`Mismatching bracket at positions: ${bracketMsg}`);
-          }
-          setWarnings(warningsList);
-        }
+        setText(trimmedText);
+        setCorrectedText(result["Validated RNA"]);
+        return "warning"
+      }
 
       // jeśli brak błędów i brak warningów → approve
       if (!result["Fix Suggested"]) {
+        setText(result["Validated RNA"])
         setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
       }
 
-      return true;
+      return "ok";
     } catch (err: any) {
       setErrors([err.message || "Server validation error"]);
-      return false;
+      return "error";
     }
   }
 
   if (inputFormat === "Interactive") {
-
-    // reset old communicates
     setErrors([]);
     setWarnings([]);
     setApproves([]);
 
     if (validateStructures()) {
-      const joinedText = structures.join("\n");
-      setText(joinedText);
+      // znormalizowany format
+      const normalized = structures
+      .map((s, idx) => {
+        const lines = s
+          .split("\n")
+          .map(l => l.trim())
+          .filter(l => l !== "" && !l.startsWith("#"));
+
+        if (lines.length === 0) return "";
+
+        if (lines[0].startsWith(">")) {
+          return lines.join("\n");
+        } else {
+          return `>auto${idx + 1}\n${lines.join("\n")}`;
+        }
+      })
+      .filter(block => block !== "")
+      .join("\n");
+
+      setText(normalized)
+
       try {
-        // send to backend for validation
         console.log("[validateStructure] calling validateRNA...");
-        const result = await validateRNA({fasta_raw: joinedText})
+        const result = await validateRNA({fasta_raw: normalized});
+
+        setMismatchingBrackets(result["Mismatching Brackets"] || []);
+        setIncorrectPairs(result["Incorrect Pairs"] || []);
 
         if (!result["Validation Result"]) {
-          const errorList: string[] = ["Validation failed on server"];
-
+          const errorList: string[] = [];
           if (result["Error List"]?.length > 0) {
-            // dodajemy każdy błąd jako osobny wpis
             result["Error List"].forEach((err: string) => {
               errorList.push(err);
             });
           }
-
           setErrors(errorList);
-          return false;
+          return "error";
         }
 
         setErrors([]);
-        // always set the input to be ready for the engine
-        setText(result["Validated RNA"]);
+        setCorrectedText(result["Validated RNA"]);
 
-        // jeśli backend zasugerował poprawkę → ustawiamy warning
         if (result["Fix Suggested"] && result["Validated RNA"]) {
-          const warningsList: string[] = ["A fix was suggested by the server"];
-          if (result["Incorrect Pairs"]?.length > 0) {
-            const pairsMsg = result["Incorrect Pairs"]
-              .map((pair: [number, number]) => `[${pair[0]} - ${pair[1]}]`)
-              .join(", ");
-            warningsList.push(`Incorrect Pairs: ${pairsMsg}`);
-          }
-
-          if (result["Mismatching Brackets"]?.length > 0) {
-            const bracketMsg = result["Mismatching Brackets"]
-              .map((pos: number) => pos.toString())
-              .join(", ");
-            warningsList.push(`Mismatching bracket at positions: ${bracketMsg}`);
-            }
-            setWarnings(warningsList);
-          }
-
-        // jeśli brak błędów i brak warningów → approve
-        if (!result["Fix Suggested"]) {
-          setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
+          setCorrectedText(result["Validated RNA"]);
+          return "warning"
         }
 
-        return true;
+        if (!result["Fix Suggested"]) {
+          setText(result["Validated RNA"])
+          setApproves([
+            "Validation passed successfully. Input was parsed to the engine's format.",
+          ]);
+        }
+
+        return "ok";
       } catch (err: any) {
         setErrors([err.message || "Server validation error"]);
-        return false;
+        return "error";
       }
-    }
-    else {
-      return false;
     }
   }
 
-  return true; // dla File brak walidacji
+  return "ok"; // dla File brak walidacji
+};
+
+const handleValidate = async () => {
+  const res = await validateStructure(false);
+  if (res === "warning") {
+    setShowValidation(true)
+  }
 };
 
 const handleNext = async () => {
   if (currentStep === 0) {
-    const isValid = await validateStructure();
-    if (isValid) {
-      setCurrentStep((prev) => prev + 1);
-
-      try {
-        const data = await getSuggestedData();
-        if (typeof data?.seed === "number") setSeed(data.seed);
-        if (data?.job_name) setJobname(data.job_name);
-        setAutoSeed(true);
-        setAutoName(true);
-      } catch (e) {
-        setSeed(34404);
-        setJobname('job-150625');
-        setAutoSeed(true);
-        setAutoName(true);
-      }
+    const res = await validateStructure(true);
+    if (res === "warning") {
+      setShowValidationNext(true)
+    } else if (res === "ok") {
+      goNext();
     }
   } else {
-    setCurrentStep((prev) => prev + 1);
+    goNext();
   }
 };
+
+const goNext = async () => {
+  setCurrentStep((prev) => prev + 1);
+  try {
+    const data = await getSuggestedData();
+    if (typeof data?.seed === "number") setSeed(data.seed);
+    if (data?.job_name) setJobname(data.job_name);
+    setAutoSeed(true);
+    setAutoName(true);
+  } catch (e) {
+    setSeed(34404);
+    setJobname("job-150625");
+    setAutoSeed(true);
+    setAutoName(true);
+  }
+  };
 
 
   const handleSubmit = async () => {
@@ -240,6 +250,7 @@ const handleNext = async () => {
         console.log("[handleSubmit] job created:", response);
         setApproves([`Job '${response.job_name}' submitted successfully.`]);
         setCurrentStep(prev => prev + 1);
+        router.push(`/results?uidh=${response.job_hash}`);
       } catch (err: any) {
         console.error("[handleSubmit] error", err);
         setErrors([err.message]);
@@ -251,7 +262,7 @@ const handleNext = async () => {
   }
 
   const handlePrev = () => {
-    setCurrentStep(prev => prev - 1)
+    setCurrentStep(prev => prev - 1);
   }
 
   return (
@@ -448,7 +459,7 @@ const handleNext = async () => {
                   width='277px'
                   height='50px'
                   label='Validate structure'
-                  action={validateStructure}
+                  action={handleValidate}
                   fontSize='18px'
                 />
               </div>
@@ -617,6 +628,38 @@ const handleNext = async () => {
             <p>{email} {text} {seed} {jobname} {structures}</p>
           </div>
         )}
+        <ValidationWarningModal
+          isOpen={showValidation || showValidationNext}
+          onClose={() => {
+            setShowValidation(false);
+            setShowValidationNext(false);
+          }}
+          onConfirm={() => {
+            // jeśli user klika Agree
+            setText(correctedText);
+
+            if (inputFormat === "Interactive") {
+              // podmiana structures na poprawione
+              const blocks = correctedText
+                .split("\n>")
+                .map((b, i) => (i === 0 ? b : ">" + b)) // zachowaj '>' dla kolejnych
+                .filter((b) => b.trim() !== "");
+
+              setStructures(blocks);
+            }
+
+            if (showValidationNext) {
+              goNext();
+            }
+
+            setShowValidation(false);
+            setShowValidationNext(false);
+          }}
+          text={text}
+          correctedText={correctedText}
+          mismatchingBrackets={mismatchingBrackets}
+          incorrectPairs={incorrectPairs}
+        />
       </div>
     </div>
   );
