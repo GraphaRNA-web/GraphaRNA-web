@@ -67,16 +67,25 @@ export default function ImageViewer({
 
   const handleMouseUp = () => setDragging(false);
 
-  // Scroll / touchpad do zoomu — naprawione: brak przewijania strony + inwersja kierunku
+  // Scroll / touchpad do zoomu — działa poprawnie na myszce i touchpadzie
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      // UWAGA: odwrócony kierunek, tak jak w PdbViewer:
-      // scroll w dół = przybliżenie, scroll w górę = oddalenie
-      const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+
+      let delta = e.deltaY;
+
+      // 🔧 Detekcja pinch-to-zoom z touchpada (ctrlKey = true)
+      // W tym przypadku deltaY ma odwrotny znak, więc odwracamy go:
+      if (e.ctrlKey) {
+        delta = -delta;
+      }
+
+      // Scroll w dół (delta > 0) = przybliżenie (tak jak w PdbViewer)
+      const zoomFactor = delta > 0 ? 1.1 : 0.9;
+
       setScale((s) => Math.min(Math.max(s * zoomFactor, 0.2), 5));
     };
 
