@@ -80,7 +80,7 @@ const validateStructure = async (): Promise<boolean> => {
 
     try {
       console.log("[validateStructure] calling validateRNA...");
-      const result = await validateRNA(trimmedText);
+      const result = await validateRNA({fasta_raw: trimmedText})
 
       if (!result["Validation Result"]) {
         let errorList: string[] = ["Validation failed on server"];
@@ -142,7 +142,7 @@ const validateStructure = async (): Promise<boolean> => {
       try {
         // send to backend for validation
         console.log("[validateStructure] calling validateRNA...");
-        const result = await validateRNA(joinedText);
+        const result = await validateRNA({fasta_raw: joinedText})
 
         if (!result["Validation Result"]) {
           const errorList: string[] = ["Validation failed on server"];
