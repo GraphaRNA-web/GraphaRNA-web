@@ -14,4 +14,6 @@ urlpatterns = [
         api.views.GetSuggestedSeedAndJobName,
         name="getSuggestedSeedAndJobName",
     ),
+    path("activeJobs/", api.views.getActiveJobs, name="getActiveJobs"),
+    path("finishedJobs/", api.views.getFinishedJobs, name="getFinishedJobs"),
 ]
