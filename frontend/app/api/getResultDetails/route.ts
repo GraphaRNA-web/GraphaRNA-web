@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
-const DOMAIN_URL = process.env.ORIGIN_URL || "http://localhost:3000";
+const DOMAIN_URL = process.env.DOMAIN_URL || "http://localhost:3000";
 
 export async function GET(req: Request) {
   console.log("[PROXY] incoming request to /api/getResultDetails");
