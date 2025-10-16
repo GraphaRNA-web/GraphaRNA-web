@@ -1,3 +1,20 @@
+.loading-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    font-size: 24px;
+    font-family: 'Raleway', sans-serif;
+    color: var(--brown-lighten-10);
+}
+
+.not-finished {
+    text-align: center;
+    padding: 50px;
+    background-color: var(--grey-lighten-40);
+    border-radius: 8px;
+}
+
 .not-found{
     display: flex;
     flex-direction: row;
@@ -105,10 +122,19 @@ p{
     margin-left: 255px;
     padding-left: 25px;
     border-radius: 40px;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s ease-in-out;
 }
 
 .download-zip:hover{
     background-color: #F9F8F4;
+}
+
+.download-zip.downloading {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .download-text{

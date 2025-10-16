@@ -8,12 +8,12 @@ declare global {
 }
 
 interface PdbViewerProps {
-  filePath: string;      // pełna ścieżka lub URL do pliku PDB
+  pdbData: string;      // zmiana na string - backend zwraca dane a nie plik
   width: number | string; 
   height: number | string;
 }
 
-export default function PdbViewer({ filePath, width, height }: PdbViewerProps) {
+export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -31,23 +31,21 @@ export default function PdbViewer({ filePath, width, height }: PdbViewerProps) {
       }
     };
 
-    const initViewer = async () => {
+    const initViewer =  () => {
       if (!containerRef.current) return;
       viewerRef.current = window.$3Dmol.createViewer(containerRef.current, {
         backgroundColor: 0xffffff,
       });
 
-      if (filePath) {
+      if (pdbData) {
         try {
-          const resp = await fetch(filePath);
-          const text = await resp.text();
           viewerRef.current.clear();
-          viewerRef.current.addModel(text, "pdb");
+          viewerRef.current.addModel(pdbData, "pdb");
           viewerRef.current.setStyle({}, { cartoon: { color: "spectrum" } });
           viewerRef.current.zoomTo();
           viewerRef.current.render();
         } catch (e: any) {
-          console.error("Nie udało się załadować PDB: ", e.message);
+          console.error("Unable to load PDB file: ", e.message);
         }
       }
 
@@ -64,7 +62,7 @@ export default function PdbViewer({ filePath, width, height }: PdbViewerProps) {
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, [filePath]);
+  }, [pdbData]);
 
   const zoomIn = () => { viewerRef.current?.zoom(1.2); viewerRef.current?.render(); };
   const zoomOut = () => { viewerRef.current?.zoom(0.8); viewerRef.current?.render(); };

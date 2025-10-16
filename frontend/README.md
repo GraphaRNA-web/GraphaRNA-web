@@ -1,7 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
-Create the .env file with the backend and origin url parameter: BACKEND_URL=http://backend:8000 ORIGIN_URL=http://127.0.0.1:3000
+Create the .env file with the backend and origin url parameter: BACKEND_URL=http://backend:8000 DOMAIN_URL=http://127.0.0.1:3000
 
 First, run the development server:
 
