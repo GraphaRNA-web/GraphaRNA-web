@@ -15,6 +15,19 @@
     border-radius: 8px;
 }
 
+.job-finished {
+    text-align: center;
+    padding: 50px;
+    background-color: var(--grey-lighten-40);
+    border-radius: 8px;
+}
+
+.job-failed .info {
+  color: var(--error);
+  font-weight: 500;
+  width: 100%;
+}
+
 .not-found{
     display: flex;
     flex-direction: row;

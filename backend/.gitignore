@@ -9,3 +9,5 @@ db.sqlite3
 celerybeat-schedule
 .mypy_cache/
 .ruff_cache/
+*.fasta
+*.pdb
