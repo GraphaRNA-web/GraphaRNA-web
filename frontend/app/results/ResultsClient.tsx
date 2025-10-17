@@ -97,6 +97,14 @@ export default function Results() {
     }
   };
 
+  const arcWidth = windowWidth < 1120 ? 550 : 1120;
+  
+  const isFound = !isLoading && jobData && !error;
+  const jobStatus = mapStatusToFrontend(jobData?.status);
+  const jobFinished = jobStatus === 'completed';
+  const isJobFailed = jobStatus === 'error';
+  const currentResult = jobData?.result_list?.[currentResultIndex];
+
 
 const handleDownload = async () => {
     if (!uidh || isDownloading || !jobFinished) return; 
@@ -116,19 +124,12 @@ const handleDownload = async () => {
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
-        date: date.toLocaleDateString('pl-PL'), // format DD-MM-YYYY
-        time: date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) // format HH:MM
+        date: date.toLocaleDateString('en-GB'), // format DD-MM-YYYY
+        time: date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) // format HH:MM
     };
   };
   
-  const arcWidth = windowWidth < 1120 ? 550 : 1120;
-  
-  const isFound = !isLoading && jobData && !error;
-  const jobStatus = mapStatusToFrontend(jobData?.status);
-  const isJobFinished = jobStatus === 'completed';
-  const isJobFailed = jobStatus === 'error';
-  const isJobPending = !isJobFinished && !isJobFailed;
-  const currentResult = jobData?.result_list?.[currentResultIndex];
+
 
   if (isLoading) {
     return <div className='whole-page'><p className='loading-info'>Loading results...</p></div>;
@@ -279,7 +280,7 @@ const formatDate = (dateString: string) => {
             </div>
           )}
 
-          {!jobFinished && (
+          {!jobFinished && !isJobFailed && (
             <div className='not-finished'>
               <p className='info'>The task is still processing. Come back later to see job results.</p>
             </div>
