@@ -351,12 +351,12 @@ download_zip_file_schema = swagger_auto_schema(
     method="get",
     manual_parameters=[
         openapi.Parameter(
-            "uuid",
+            "uidh",
             openapi.IN_QUERY,
-            description="UUID of finished job.",
+            description="UIDH of finished job.",
             type=openapi.TYPE_STRING,
             required=True,
-            example="fdf137ee-4765-4347-876c-a8a7a4cf57ae",
+            example="k5PEY",
         )
     ],
     responses={
@@ -367,29 +367,24 @@ download_zip_file_schema = swagger_auto_schema(
                 format="binary",
                 description="ZIP file containing RNA structure results.",
             ),
-            examples={
-                "api/downloadZip": "ZIP file"
-            },
+            examples={"api/downloadZip": "ZIP file"},
         ),
         400: openapi.Response(
             description="Invalid UID or job not finished",
             schema=openapi.Schema(
                 type=openapi.TYPE_STRING,
             ),
-            examples={
-                "text/plain": "UUID error"
-            },
+            examples={"text/plain": "UUID error"},
         ),
         404: openapi.Response(
             description="Job or file does not exist.",
             schema=openapi.Schema(
                 type=openapi.TYPE_STRING,
             ),
-            examples={
-                "text/plain": "Job not found"
-            },
+            examples={"text/plain": "Job not found"},
         ),
-    },)
+    },
+)
 
 
 job_pagination_schema = swagger_auto_schema(
@@ -427,17 +422,33 @@ job_pagination_schema = swagger_auto_schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 "uid": openapi.Schema(type=openapi.TYPE_STRING),
-                                "hashed_uid": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
-                                "input_structure": openapi.Schema(type=openapi.TYPE_STRING),
+                                "hashed_uid": openapi.Schema(
+                                    type=openapi.TYPE_STRING, nullable=True
+                                ),
+                                "input_structure": openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
                                 "seed": openapi.Schema(type=openapi.TYPE_INTEGER),
                                 "job_name": openapi.Schema(type=openapi.TYPE_STRING),
-                                "email": openapi.Schema(type=openapi.TYPE_STRING, format="email", nullable=True),
-                                "created_at": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
-                                "expires_at": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
-                                "sum_processing_time": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
+                                "email": openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format="email",
+                                    nullable=True,
+                                ),
+                                "created_at": openapi.Schema(
+                                    type=openapi.TYPE_STRING, format="date-time"
+                                ),
+                                "expires_at": openapi.Schema(
+                                    type=openapi.TYPE_STRING, nullable=True
+                                ),
+                                "sum_processing_time": openapi.Schema(
+                                    type=openapi.TYPE_STRING, nullable=True
+                                ),
                                 "status": openapi.Schema(type=openapi.TYPE_STRING),
-                                "alternative_conformations": openapi.Schema(type=openapi.TYPE_INTEGER),
-                            }
+                                "alternative_conformations": openapi.Schema(
+                                    type=openapi.TYPE_INTEGER
+                                ),
+                            },
                         ),
                     ),
                 },
@@ -459,9 +470,9 @@ job_pagination_schema = swagger_auto_schema(
                             "expires_at": None,
                             "sum_processing_time": None,
                             "status": "P",
-                            "alternative_conformations": 1
+                            "alternative_conformations": 1,
                         }
-                    ]
+                    ],
                 }
             },
         )
