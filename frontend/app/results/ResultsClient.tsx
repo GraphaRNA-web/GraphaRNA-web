@@ -22,7 +22,7 @@ interface JobResult {
 
 interface JobData {
   success: boolean;
-  status: 'Q' | 'P' | 'F'; // Queued, Processing, Finished
+  status: 'S' | 'Q' | 'R' | 'C' | 'E'; // Submitted, Queued, Running, Completed, Error
   job_name: string;
   input_structure: string;
   created_at: string;
@@ -77,22 +77,33 @@ export default function Results() {
 
   const mapStatusToFrontend = (backendStatus: JobData['status'] | undefined) => {
     const statusMap = {
+      'S': "submitted",
       'Q': "queued",
-      'P': "processing",
-      'F': "completed",
+      'R': "running",
+      'C': "completed",
+      'E': "error",
     };
     return backendStatus ? statusMap[backendStatus] : "unknown";
   };
 
   const getStatusColor = (status: string) => {
-  switch (status) {
-    case "queued": return "var(--waiting)";
-      case "processing": return "var(--running)";
+    switch (status) {
+      case "submitted": return "var(--submitted)";
+      case "queued": return "var(--waiting)";
+      case "running": return "var(--running)";
       case "completed": return "var(--completed)";
       case "error": return "var(--error)";
       default: return "var(--brown-lighten-10)";
-  }
-};
+    }
+  };
+
+  const arcWidth = windowWidth < 1120 ? 550 : 1120;
+  
+  const isFound = !isLoading && jobData && !error;
+  const jobStatus = mapStatusToFrontend(jobData?.status);
+  const jobFinished = jobStatus === 'completed';
+  const isJobFailed = jobStatus === 'error';
+  const currentResult = jobData?.result_list?.[currentResultIndex];
 
 
 const handleDownload = async () => {
@@ -113,17 +124,12 @@ const handleDownload = async () => {
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
-        date: date.toLocaleDateString('pl-PL'), // format DD-MM-YYYY
-        time: date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) // format HH:MM
+        date: date.toLocaleDateString('en-GB'), // format DD-MM-YYYY
+        time: date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) // format HH:MM
     };
   };
   
-  const arcWidth = windowWidth < 1120 ? 550 : 1120;
-  
-  const isFound = !isLoading && jobData && !error;
-  const jobStatus = mapStatusToFrontend(jobData?.status);
-  const jobFinished = jobStatus === 'completed';
-  const currentResult = jobData?.result_list?.[currentResultIndex];
+
 
   if (isLoading) {
     return <div className='whole-page'><p className='loading-info'>Loading results...</p></div>;
@@ -274,11 +280,17 @@ const formatDate = (dateString: string) => {
             </div>
           )}
 
-          {!jobFinished && (
+          {!jobFinished && !isJobFailed && (
             <div className='not-finished'>
               <p className='info'>The task is still processing. Come back later to see job results.</p>
             </div>
           )}
+          {isJobFailed && (
+             <div className='job-failed'>
+                <img src="icons/error.svg" alt="" width={24} height={24} /><p className='info error-info'>The job you started run into some errors. Please try requesting the task again.</p>
+             </div>
+          )}
+
         </div>
       </div>
     </div>
