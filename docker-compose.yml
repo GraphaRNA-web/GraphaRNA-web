@@ -87,6 +87,8 @@ services:
     container_name: grapha_rabbit
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_CONSUMER_TIMEOUT=0
     ports:
       - "5672:5672"
       - "15672:15672"
