@@ -35,11 +35,11 @@ from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 @download_zip_file_schema
 @api_view(["GET"])
 def DownloadZipFile(request: Request) -> HttpResponse:
-    uuid = request.query_params.get("uidh")
+    uidh = request.query_params.get("uidh")
     if not uuid:
         return HttpResponse("Missing uidh", status=400)
     try:
-        job = Job.objects.get(hashed_uid=uuid)
+        job = Job.objects.get(hashed_uid=uidh)
     except Job.DoesNotExist:
         return HttpResponse("Job not found", status=404)
 
