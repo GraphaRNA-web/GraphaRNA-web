@@ -176,7 +176,9 @@ class GetResultsTests(TestCase):
             patch("api.views.Job.objects.get", return_value=self.job),
             patch("api.views.JobResults.objects.filter", return_value=mock_empty_qs),
         ):
-            response: Response = self.client.get(self.url, {"uidh": str(self.job.hashed_uid)})
+            response: Response = self.client.get(
+                self.url, {"uidh": str(self.job.hashed_uid)}
+            )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.data
@@ -523,30 +525,46 @@ class DownloadZipFileTests(TestCase):
 
         # Mock jobs
         self.job_queued = MagicMock(uid=uuid.uuid4(), status="Q", job_name="queued")
-        self.job_finished = MagicMock(uid=uuid.uuid4(), status="F", job_name="finished")
+        self.job_queued.hashed_uid = hash_uuid(str(self.job_queued.uuid))
 
-        # Mock JobResults
+        self.job_finished = MagicMock(uid=uuid.uuid4(), status="F", job_name="finished")
+        self.job_finished.hashed_uid = hash_uuid(str(self.job_finished.uuid))
+
         self.result = MagicMock(job=self.job_finished)
         self.result.result_secondary_structure_dotseq.name = "dotseq.txt"
+        self.result.result_secondary_structure_dotseq.path = "/fake/path/dotseq.txt"
         self.result.result_secondary_structure_svg.name = "structure.svg"
+        self.result.result_secondary_structure_svg.path = "/fake/path/structure.svg"
         self.result.result_tertiary_structure.name = "tertiary.txt"
+        self.result.result_tertiary_structure.path = "/fake/path/tertiary.txt"
+
+        self.result2 = MagicMock(job=self.job_finished)
+        self.result2.result_secondary_structure_dotseq.name = "dotseq2.txt"
+        self.result2.result_secondary_structure_dotseq.path = "/fake/path/dotseq2.txt"
+        self.result2.result_secondary_structure_svg.name = "structure2.svg"
+        self.result2.result_secondary_structure_svg.path = "/fake/path/structure2.svg"
+        self.result2.result_tertiary_structure.name = "tertiary2.txt"
+        self.result2.result_tertiary_structure.path = "/fake/path/tertiary2.txt"
 
         # Patch Job.objects.get
         patcher_job_get = patch(
             "webapp.models.Job.objects.get",
-            side_effect=lambda pk=None, **kwargs: self.job_finished
-            if str(pk) == str(self.job_finished.uid)
-            else self.job_queued,
+            side_effect=lambda hashed_uid=None: (
+                self.job_finished
+                if str(hashed_uid) == str(self.job_finished.hashed_uid)
+                else self.job_queued
+            ),
         )
         self.mock_job_get = patcher_job_get.start()
         self.addCleanup(patcher_job_get.stop)
 
         # Patch JobResults.objects.get
-        patcher_results_get = patch(
-            "webapp.models.JobResults.objects.get", return_value=self.result
+        patcher_results_filter = patch(
+            "webapp.models.JobResults.objects.filter",
+            return_value=[self.result, self.result2],
         )
-        self.mock_results_get = patcher_results_get.start()
-        self.addCleanup(patcher_results_get.stop)
+        self.mock_results_get = patcher_results_filter.start()
+        self.addCleanup(patcher_results_filter.stop)
 
         # Patch filesystem
         patcher_exists = patch("os.path.exists", return_value=True)
@@ -563,13 +581,13 @@ class DownloadZipFileTests(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_download_zip_job_not_finished(self):
-        url = reverse("downloadZip") + f"?uuid={self.job_queued.uid}"
+        url = reverse("downloadZip") + f"?uidh={self.job_queued.hashed_uid}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
         self.assertIn(b"Job is not finished", response.content)
 
     def test_download_zip_success(self):
-        url = reverse("downloadZip") + f"?uuid={self.job_finished.uid}"
+        url = reverse("downloadZip") + f"?uidh={self.job_finished.hashed_uid}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/zip")
@@ -742,6 +760,7 @@ class JobActiveAndFinishedTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("results", response.data)
 
+
 class INF(TestCase):
     def test_perfect_match_CalculateF1Inf(self):
 
@@ -845,4 +864,3 @@ class INF(TestCase):
         self.assertEqual(values["fn"], 1)
         self.assertTrue(0 <= values["f1"] <= 1)
         self.assertTrue(0 <= values["inf"] <= 1)
-

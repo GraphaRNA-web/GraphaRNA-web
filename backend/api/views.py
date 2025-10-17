@@ -24,50 +24,61 @@ from .api_docs import (
     get_results_schema,
     get_suggested_seed_and_job_name_schema,
     download_zip_file_schema,
-    job_pagination_schema
+    job_pagination_schema,
 )
 import zipfile
 import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
+
 @download_zip_file_schema
 @api_view(["GET"])
 def DownloadZipFile(request: Request) -> HttpResponse:
-    uuid = request.query_params.get("uuid")
-    if not uuid:
-        return HttpResponse("UUID error", status=400)
+    uidh = request.query_params.get("uidh")
+    if not uidh:
+        return HttpResponse("Missing uidh", status=400)
     try:
-        job = Job.objects.get(pk=uuid)
+        job = Job.objects.get(hashed_uid=uidh)
     except Job.DoesNotExist:
         return HttpResponse("Job not found", status=404)
 
     if job.status != "F":
         return HttpResponse("Job is not finished", status=400)
-    instance = JobResults.objects.get(job=job)
-    filePathSecondaryDotseq = instance.result_secondary_structure_dotseq.path
-    filePathSecondarySvg = instance.result_secondary_structure_svg.path
-    filePathTertiary = instance.result_tertiary_structure.path
-    if not os.path.exists(filePathSecondaryDotseq):
-        return HttpResponse("File does not exist", status=404)
-    if not os.path.exists(filePathSecondarySvg):
-        return HttpResponse("File does not exist", status=404)
-    if not os.path.exists(filePathTertiary):
-        return HttpResponse("File does not exist", status=404)
-
+    instances = JobResults.objects.filter(job=job)
     zip_buffer = io.BytesIO()
+    job_name_path = job.job_name.replace(" ", "_")
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        with open(filePathSecondaryDotseq, "rb") as f:
-            zip_file.writestr(instance.result_secondary_structure_dotseq.name, f.read())
-        with open(filePathSecondarySvg, "rb") as f:
-            zip_file.writestr(instance.result_secondary_structure_svg.name, f.read())
-        with open(filePathTertiary, "rb") as f:
-            zip_file.writestr(instance.result_tertiary_structure.name, f.read())
-    zip_buffer.seek(0)
+        for idx, instance in enumerate(instances, start=1):
+            filePathSecondaryDotseq = instance.result_secondary_structure_dotseq.path
+            filePathSecondarySvg = instance.result_secondary_structure_svg.path
+            filePathTertiary = instance.result_tertiary_structure.path
 
+            if not os.path.exists(filePathSecondaryDotseq):
+                return HttpResponse("File does not exist", status=404)
+            if not os.path.exists(filePathSecondarySvg):
+                return HttpResponse("File does not exist", status=404)
+            if not os.path.exists(filePathTertiary):
+                return HttpResponse("File does not exist", status=404)
+
+            folder_name = f"{job_name_path}/instance_{idx}"
+            name_dotseq = os.path.basename(
+                instance.result_secondary_structure_dotseq.name
+            )
+            name_svg = os.path.basename(instance.result_secondary_structure_svg.name)
+            name_ter = os.path.basename(instance.result_tertiary_structure.name)
+
+            with open(filePathSecondaryDotseq, "rb") as f:
+                zip_file.writestr(f"{folder_name}/{name_dotseq}", f.read())
+            with open(filePathSecondarySvg, "rb") as f:
+                zip_file.writestr(f"{folder_name}/{name_svg}", f.read())
+            with open(filePathTertiary, "rb") as f:
+                zip_file.writestr(f"{folder_name}/{name_ter}", f.read())
+
+    zip_buffer.seek(0)
     response = HttpResponse(zip_buffer.read(), content_type="application/zip")
     response["Content-Disposition"] = (
-        f'attachment; filename="{job.job_name}-result.zip"'
+        f'attachment; filename="{job_name_path}-result.zip"'
     )
     return response
 
@@ -289,12 +300,22 @@ def ProcessRequestData(request: Request) -> Response:
             url=url,
         )
         return Response(
-            {"success": True, "Job": job.job_name, "email_sent": True, "job_hash": job.hashed_uid},
+            {
+                "success": True,
+                "Job": job.job_name,
+                "email_sent": True,
+                "job_hash": job.hashed_uid,
+            },
             status=status.HTTP_200_OK,
         )
     else:
         return Response(
-            {"success": True, "Job": job.job_name, "email_sent": False, "job_hash": job.hashed_uid},
+            {
+                "success": True,
+                "Job": job.job_name,
+                "email_sent": False,
+                "job_hash": job.hashed_uid,
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -408,10 +429,12 @@ def hello_view(request: Request) -> Response:
     name: str = request.GET.get("name", "Guest")
     return Response({"message": f"Cześć, {name}!"})
 
+
 class JobPageNumberPagination(PageNumberPagination):
     page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = 100
+
 
 @job_pagination_schema
 @api_view(["GET"])
@@ -424,6 +447,7 @@ def getActiveJobs(request: Request) -> Response:
         return paginator.get_paginated_response(serializer.data)
     return paginator.get_paginated_response([])
 
+
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
@@ -434,6 +458,7 @@ def getFinishedJobs(request: Request) -> Response:
         serializer = JobSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
     return paginator.get_paginated_response([])
+
 
 def getInf_F1(request: Request) -> Response:
 

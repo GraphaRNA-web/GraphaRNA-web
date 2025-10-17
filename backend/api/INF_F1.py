@@ -2,6 +2,7 @@ import math
 from api.validation_tools import RnaValidator
 from typing import Mapping, Union
 
+
 def CalculateF1Inf(
     target: set[tuple[int, int]], model: set[tuple[int, int]]
 ) -> Mapping[str, Union[int, float]]:
@@ -18,7 +19,7 @@ def CalculateF1Inf(
         "fp": fp,
         "fn": fn,
         "inf": inf,
-        "f1": f1
+        "f1": f1,
     }
     return values
 
@@ -32,8 +33,8 @@ def dotbracketToPairs(input: str) -> dict[str, set[tuple[int, int]]]:
     print(correctPairs, allPairs, incorrectPairs)
 
     Pairs: dict[str, set[tuple[int, int]]] = {
-    "correctPairs":correctPairs,
-    "incorrectPairs": incorrectPairs,
-    "allPairs": allPairs
+        "correctPairs": correctPairs,
+        "incorrectPairs": incorrectPairs,
+        "allPairs": allPairs,
     }
     return Pairs
