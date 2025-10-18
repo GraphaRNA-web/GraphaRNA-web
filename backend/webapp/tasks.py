@@ -264,11 +264,11 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
         else: 
-            processing_end: datetime = timezone.now()
+            processing_end = timezone.now()
             relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
 
             try:
-                job_result_qs: QuerySet = JobResults.objects.filter(job__exact=job_data)
+                job_result_qs = JobResults.objects.filter(job__exact=job_data)
                 if (
                     job_result_qs.count() + 1 == job_data.alternative_conformations
                 ):  # check if current job result is the last one
