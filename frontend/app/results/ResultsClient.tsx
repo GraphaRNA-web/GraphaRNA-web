@@ -7,6 +7,7 @@ import '../styles/results.css';
 import PdbViewer from "../components/PdbViewer";
 import DotsIndicator from '../components/DotsIndicator';
 import ImageViewer from '../components/ImageViewer';
+import JobStatus from '../components/JobStatus';
 
 interface JobResult {
   completed_at: string;
@@ -29,6 +30,38 @@ interface JobData {
   sum_processing_time: string;
   result_list: JobResult[];
 }
+
+const formatProcessingTime = (timeInSeconds: string | null | undefined): string => {
+  if (!timeInSeconds) {
+    return "N/A";
+  }
+  
+  const totalSeconds = parseInt(timeInSeconds, 10);
+  
+  if (isNaN(totalSeconds) || totalSeconds <= 0) {
+    return "N/A";
+  }
+
+  const totalMinutes = Math.round(totalSeconds / 60);
+
+  if (totalMinutes === 0) {
+    return "< 1min";
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const parts = [];
+  if (hours > 0) {
+    parts.push(`${hours}h`);
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes}min`);
+  }
+
+  return parts.join(' ');
+};
+
 
 export default function Results() {
   const searchParams = useSearchParams();
@@ -84,17 +117,6 @@ export default function Results() {
       'E': "error",
     };
     return backendStatus ? statusMap[backendStatus] : "unknown";
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "submitted": return "var(--submitted)";
-      case "queued": return "var(--waiting)";
-      case "running": return "var(--running)";
-      case "completed": return "var(--completed)";
-      case "error": return "var(--error)";
-      default: return "var(--brown-lighten-10)";
-    }
   };
 
   const arcWidth = windowWidth < 1120 ? 550 : 1120;
@@ -165,14 +187,11 @@ const formatDate = (dateString: string) => {
             <div className='top-left'>
               <div className='status'>
                 <p className='field-name'>Status</p>
-                <div className='dot-and-text'>
-                  <div className="dot" style={{ backgroundColor: getStatusColor(jobStatus) }}></div>
-                  <p className='field-value'>{jobStatus}</p>
-                </div>
+                <JobStatus status={jobStatus} />
               </div>
               <div className='proc-time'>
                 <p className='field-name'>Total processing time</p>
-                <p className='field-value'>{jobData.sum_processing_time || "N/A"}</p>
+                <p className='field-value'>{formatProcessingTime(jobData.sum_processing_time)}</p>
               </div>
               <div className='rep-date'>
                 <p className='field-name'>Reported date</p>

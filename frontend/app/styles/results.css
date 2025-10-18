@@ -214,22 +214,6 @@ p{
     text-align: right;
 }
 
-.dot-and-text{
-    width: 100px;
-    padding-left: 0px;
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    align-items: center;
-}
-
-.dot{
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
 .job-name{
     display: flex;
     flex-direction: row;
