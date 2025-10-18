@@ -165,7 +165,10 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
         if response.status_code != 200:
             logger.error(f"Grapharna API error: {response.text}")
+            job_data.status = "E"
+            job_data.save()
             raise
+            
 
         data = response.json()
         output_path_pdb = data.get("pdbFilePath")
@@ -185,7 +188,6 @@ def run_grapharna_task(uuid_param: UUID) -> str:
 
             dotbracket_from_annotator = json_data.get("dotBracket", "")
             dotbracket_path = os.path.join(output_dir, f"{uuid_str}_{seed}.dotseq")
-
             if dotbracket_from_annotator:
                 with open(dotbracket_path, "w") as dbn_file:
                     dbn_file.write(dotbracket_from_annotator + "\n")
@@ -196,70 +198,93 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             raise
         os.remove(output_path_json)
 
-        secondary_structure_svg_path = os.path.join(
-            output_dir, f"{uuid_str}_{seed + i}.svg"
-        )
-        try:
-            drawVARNAgraph(dotbracket_path, secondary_structure_svg_path)
-        except Exception as e:
-            logger.error(f"Failed to generate secondary structure: {e}")
-            raise
-
-        arc_diagram_path = os.path.join(output_dir, f"{uuid_str}_{seed + i}_arc.svg")
-        logger.info(f"{job_data.input_structure}")
-        try:
-            input_dotbracket = getDotBracket(job_data.input_structure.path)
-            output_dotbracket = getDotBracket(dotbracket_path)
-            generateRchieDiagram(input_dotbracket, output_dotbracket, arc_diagram_path)
-
-        except Exception as e:
-            logger.error(f"Error generating arc diagram{e}")
-            raise
-        try:
-            target = job_data.input_structure.path
-            model = dotbracket_path
-            with open(target) as f:
-                target_dict = dotbracketToPairs(f.read())
-            with open(model) as f:
-                model_dict = dotbracketToPairs(f.read())
-            values = CalculateF1Inf(
-                target_dict["correctPairs"], model_dict["correctPairs"]
+        if dotbracket_from_annotator:
+            secondary_structure_svg_path = os.path.join(
+                output_dir, f"{uuid_str}_{seed + i}.svg"
             )
-        except Exception as e:
-            logger.error(f"Error with generating F1 and INF value {e}")
-            raise
+            try:
+                drawVARNAgraph(dotbracket_path, secondary_structure_svg_path)
+            except Exception as e:
+                logger.error(f"Failed to generate secondary structure: {e}")
+                raise
 
-        relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
-        relative_path_dotseq = os.path.relpath(dotbracket_path, settings.MEDIA_ROOT)
-        relative_path_svg = os.path.relpath(
-            secondary_structure_svg_path, settings.MEDIA_ROOT
-        )
-        relative_path_arc = os.path.relpath(arc_diagram_path, settings.MEDIA_ROOT)
+            arc_diagram_path = os.path.join(output_dir, f"{uuid_str}_{seed + i}_arc.svg")
+            logger.info(f"{job_data.input_structure}")
+            try:
+                input_dotbracket = getDotBracket(job_data.input_structure.path)
+                output_dotbracket = getDotBracket(dotbracket_path)
+                generateRchieDiagram(input_dotbracket, output_dotbracket, arc_diagram_path)
 
-        processing_end: datetime = timezone.now()
-        try:
-            job_result_qs: QuerySet = JobResults.objects.filter(job__exact=job_data)
-            if (
-                job_result_qs.count() + 1 == job_data.alternative_conformations
-            ):  # check if current job result is the last one
-                job_data.sum_processing_time = sum(
-                    [i.processing_time for i in job_result_qs], timedelta()
-                ) + (processing_end - processing_start)
-                job_data.save()
-            JobResults.objects.create(
-                job=job_data,
-                result_tertiary_structure=relative_path_pdb,
-                result_secondary_structure_dotseq=relative_path_dotseq,
-                result_secondary_structure_svg=relative_path_svg,
-                result_arc_diagram=relative_path_arc,
-                completed_at=processing_end,
-                inf=values["inf"],
-                f1=values["f1"],
-                processing_time=(processing_end - processing_start),
+            except Exception as e:
+                logger.error(f"Error generating arc diagram{e}")
+                raise
+            try:
+                target = job_data.input_structure.path
+                model = dotbracket_path
+                with open(target) as f:
+                    target_dict = dotbracketToPairs(f.read())
+                with open(model) as f:
+                    model_dict = dotbracketToPairs(f.read())
+                values = CalculateF1Inf(
+                    target_dict["correctPairs"], model_dict["correctPairs"]
+                )
+            except Exception as e:
+                logger.error(f"Error with generating F1 and INF value {e}")
+                raise
+
+            relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
+            relative_path_dotseq = os.path.relpath(dotbracket_path, settings.MEDIA_ROOT)
+            relative_path_svg = os.path.relpath(
+                secondary_structure_svg_path, settings.MEDIA_ROOT
             )
-        except Exception as e:
-            logger.exception(f"Failed to create JobResults: {str(e)}")
-            raise
+            relative_path_arc = os.path.relpath(arc_diagram_path, settings.MEDIA_ROOT)
+
+            processing_end: datetime = timezone.now()
+            try:
+                job_result_qs: QuerySet = JobResults.objects.filter(job__exact=job_data)
+                if (
+                    job_result_qs.count() + 1 == job_data.alternative_conformations
+                ):  # check if current job result is the last one
+                    job_data.sum_processing_time = sum(
+                        [i.processing_time for i in job_result_qs], timedelta()
+                    ) + (processing_end - processing_start)
+                    job_data.save()
+                JobResults.objects.create(
+                    job=job_data,
+                    result_tertiary_structure=relative_path_pdb,
+                    result_secondary_structure_dotseq=relative_path_dotseq,
+                    result_secondary_structure_svg=relative_path_svg,
+                    result_arc_diagram=relative_path_arc,
+                    completed_at=processing_end,
+                    inf=values["inf"],
+                    f1=values["f1"],
+                    processing_time=(processing_end - processing_start),
+                )
+            except Exception as e:
+                logger.exception(f"Failed to create JobResults: {str(e)}")
+                raise
+        else: 
+            processing_end: datetime = timezone.now()
+            relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
+
+            try:
+                job_result_qs: QuerySet = JobResults.objects.filter(job__exact=job_data)
+                if (
+                    job_result_qs.count() + 1 == job_data.alternative_conformations
+                ):  # check if current job result is the last one
+                    job_data.sum_processing_time = sum(
+                        [i.processing_time for i in job_result_qs], timedelta()
+                    ) + (processing_end - processing_start)
+                    job_data.save()
+                JobResults.objects.create(
+                    job=job_data,
+                    result_tertiary_structure=relative_path_pdb,
+                    completed_at=processing_end,
+                    processing_time=(processing_end - processing_start),
+                )
+            except Exception as e:
+                logger.exception(f"Failed to create JobResults: {str(e)}")
+                raise
 
     job_data.expires_at = timezone.now() + timedelta(
         weeks=settings.JOB_EXPIRATION_WEEKS

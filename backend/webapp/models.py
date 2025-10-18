@@ -13,7 +13,7 @@ def default_expiration() -> datetime:
 
 
 class Job(models.Model):
-    STATUS = {"Q": "Queued", "P": "Processing", "F": "Finished"}
+    STATUS = {"Q": "Queued", "P": "Processing", "F": "Finished", "E": "Error"}
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
@@ -56,7 +56,7 @@ class JobResults(models.Model):
     )
     result_secondary_structure_dotseq: models.FileField = models.FileField(null=True)
     result_secondary_structure_svg: models.FileField = models.FileField(null=True)
-    result_tertiary_structure: models.FileField = models.FileField()
+    result_tertiary_structure: models.FileField = models.FileField(null=True)
     result_arc_diagram: models.FileField = models.FileField(null=True)
     f1: models.FloatField = models.FloatField(
         null=True,
