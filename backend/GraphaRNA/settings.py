@@ -177,6 +177,12 @@ CELERY_TASK_QUEUES = (Queue("grapharna", durable=True),)
 CELERY_TASK_DEFAULT_QUEUE = "grapharna"
 CELERY_TASK_DEFAULT_DELIVERY_MODE = "persistent"
 
+# Safeguard against long jobs
+CELERY_BROKER_HEARTBEAT = 0
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'visibility_timeout': 86400
+}
+
 # Module settings
 MODEL_NAME = os.getenv("MODEL_NAME")
 EPOCHS = int(os.getenv("MODEL_EPOCHS", 800))

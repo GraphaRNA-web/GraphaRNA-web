@@ -1,6 +1,10 @@
 # Docker setup
 
-First pull the repository. Make sure that both the ./GraphaRNA and ./GraphaRNA/RiNALMo are present. 
+First pull the repository. Make sure that the ./GraphaRNA, ./GraphaRNA/RiNALMo and /GraphaRNA/Arena are present. 
+If any of them are missing clone the following repos:
+`https://github.com/GraphaRNA-web/GraphaRNA.git`
+`https://github.com/lbcb-sci/RiNALMo.git`
+`https://github.com/pylelab/Arena.git`
 On the ./GraphaRNA branch use ```git checkout main``` and make sure that you've got the most current version.  
 In .GraphaRNA download the pre-trained model: 
 
