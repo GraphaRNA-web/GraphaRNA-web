@@ -13,7 +13,13 @@ def default_expiration() -> datetime:
 
 
 class Job(models.Model):
-    STATUS = {"Q": "Queued", "P": "Processing", "F": "Finished", "E": "Error"}
+    STATUS = {
+        "S": "Submitted",
+        "Q": "Queued",
+        "R": "Running",
+        "F": "Finished",
+        "E": "Error",
+    }
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
