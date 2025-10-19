@@ -145,7 +145,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     os.makedirs(output_dir, exist_ok=True)
 
     try:
-        job_data.status = "P"
+        job_data.status = "R"
         job_data.save()
     except Exception as e:
         logger.exception(f"Failed to update job status: {str(e)}")
@@ -168,7 +168,6 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             job_data.status = "E"
             job_data.save()
             raise
-            
 
         data = response.json()
         output_path_pdb = data.get("pdbFilePath")
@@ -208,12 +207,16 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 logger.error(f"Failed to generate secondary structure: {e}")
                 raise
 
-            arc_diagram_path = os.path.join(output_dir, f"{uuid_str}_{seed + i}_arc.svg")
+            arc_diagram_path = os.path.join(
+                output_dir, f"{uuid_str}_{seed + i}_arc.svg"
+            )
             logger.info(f"{job_data.input_structure}")
             try:
                 input_dotbracket = getDotBracket(job_data.input_structure.path)
                 output_dotbracket = getDotBracket(dotbracket_path)
-                generateRchieDiagram(input_dotbracket, output_dotbracket, arc_diagram_path)
+                generateRchieDiagram(
+                    input_dotbracket, output_dotbracket, arc_diagram_path
+                )
 
             except Exception as e:
                 logger.error(f"Error generating arc diagram{e}")
@@ -263,7 +266,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             except Exception as e:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
-        else: 
+        else:
             processing_end = timezone.now()
             relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
 

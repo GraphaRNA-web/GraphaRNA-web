@@ -8,6 +8,7 @@ class JobAdmin(admin.ModelAdmin):
         "uid",
         "hashed_uid",
         "job_name",
+        "status",
         "email",
         "created_at",
         "expires_at",

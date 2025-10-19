@@ -24,12 +24,13 @@ from .api_docs import (
     get_results_schema,
     get_suggested_seed_and_job_name_schema,
     download_zip_file_schema,
-    job_pagination_schema
+    job_pagination_schema,
 )
 import zipfile
 import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
+
 
 @download_zip_file_schema
 @api_view(["GET"])
@@ -289,12 +290,22 @@ def ProcessRequestData(request: Request) -> Response:
             url=url,
         )
         return Response(
-            {"success": True, "Job": job.job_name, "email_sent": True, "job_hash": job.hashed_uid},
+            {
+                "success": True,
+                "Job": job.job_name,
+                "email_sent": True,
+                "job_hash": job.hashed_uid,
+            },
             status=status.HTTP_200_OK,
         )
     else:
         return Response(
-            {"success": True, "Job": job.job_name, "email_sent": False, "job_hash": job.hashed_uid},
+            {
+                "success": True,
+                "Job": job.job_name,
+                "email_sent": False,
+                "job_hash": job.hashed_uid,
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -408,21 +419,26 @@ def hello_view(request: Request) -> Response:
     name: str = request.GET.get("name", "Guest")
     return Response({"message": f"Cześć, {name}!"})
 
+
 class JobPageNumberPagination(PageNumberPagination):
     page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = 100
 
+
 @job_pagination_schema
 @api_view(["GET"])
 def getActiveJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["Q", "P"]).order_by("created_at", "uid")
+    data = Job.objects.filter(status__in=["E", "S", "Q", "P"]).order_by(
+        "created_at", "uid"
+    )
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:
         serializer = JobSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
     return paginator.get_paginated_response([])
+
 
 @job_pagination_schema
 @api_view(["GET"])
@@ -434,6 +450,7 @@ def getFinishedJobs(request: Request) -> Response:
         serializer = JobSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
     return paginator.get_paginated_response([])
+
 
 def getInf_F1(request: Request) -> Response:
 
