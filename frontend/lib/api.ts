@@ -1,24 +1,71 @@
-export async function validateRNA(rna: string) {
-  console.log("[validateRNA] sending to /api/validateRNA", rna);
-  const res = await fetch("/api/validateRNA", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ RNA: rna }),
-  });
-  console.log("[validateRNA] response status", res.status);
+export async function fetchWithCsrf(input: RequestInfo, init: RequestInit = {}) {
+  let csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+  if (!csrf) {
+    const res = await fetch("/api/csrf", { credentials: "include" });
+    const data = await res.json();
+    csrf = data.csrfToken;
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
+    if (meta && csrf) {
+      meta.content = csrf;
+    }
+  }
 
+  const mergedHeaders = {
+    ...(init.headers || {}),
+    "x-csrf-token": csrf || "",
+  };
+
+  return fetch(input, {
+    ...init,
+    headers: mergedHeaders,
+    credentials: "include",
+  });
+}
+
+export async function validateRNA(params: { fasta_raw?: string; fasta_file?: File }) {
+  console.log("[validateRNA] sending to /api/validateRNA", params);
+
+  let body: BodyInit;
+  const headers: Record<string, string> = {};
+
+  if (params.fasta_file) {
+    // multipart/form-data
+    const form = new FormData();
+    form.append("fasta_file", params.fasta_file, params.fasta_file.name);
+    body = form;
+  } else {
+    // JSON
+    body = JSON.stringify({ fasta_raw: params.fasta_raw });
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetchWithCsrf("/api/validateRNA", {
+    method: "POST",
+    headers,
+    body,
+  });
+
+  console.log("[validateRNA] response status", res.status);
   const data = await res.json();
   console.log("[validateRNA] parsed data", data);
   return data;
 }
 
 
+
+
 export type SuggestedData = { seed: number; job_name: string };
 
 export async function getSuggestedData(): Promise<SuggestedData> {
-  const res = await fetch("/api/getSuggestedData", {
+  const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "x-csrf-token": csrf || "",
+  };
+
+  const res = await fetchWithCsrf("/api/getSuggestedData", {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers,
   });
 
   if (!res.ok) {
@@ -29,36 +76,133 @@ export async function getSuggestedData(): Promise<SuggestedData> {
   return res.json();
 }
 
+
 export async function submitJobRequest(params: {
-  fasta_raw: string;
+  fasta_raw?: string;
+  fasta_file?: File;
   seed: number;
   job_name: string;
   email?: string;
   alternative_conformations?: number;
 }) {
+  console.log("[submitJobRequest] sending to /api/submitRequest", params);
 
-  const bodyToSend: any = { ...params };
-  if (!bodyToSend.email) {
-    delete bodyToSend.email;
+  const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+  const headers: Record<string, string> = { "x-csrf-token": csrf || "" };
+
+  let body: BodyInit;
+  if (params.fasta_file) {
+    // Multipart upload (plik)
+    const form = new FormData();
+    form.append("fasta_file", params.fasta_file, params.fasta_file.name);
+    if (params.fasta_raw) form.append("fasta_raw", params.fasta_raw);
+    if (params.seed !== undefined) form.append("seed", String(params.seed));
+    if (params.job_name) form.append("job_name", params.job_name);
+    if (params.email) form.append("email", params.email);
+    if (params.alternative_conformations !== undefined)
+      form.append("alternative_conformations", String(params.alternative_conformations));
+    body = form;
+  } else {
+    const json: any = { ...params };
+    delete json.fasta_file;
+    body = JSON.stringify(json);
+    headers["Content-Type"] = "application/json";
   }
 
-  console.log("[submitJobRequest] sending request to proxy", params);
-
-  const res = await fetch("/api/submitRequest", {
+  const res = await fetchWithCsrf("/api/submitRequest", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(bodyToSend),
+    headers,
+    body,
   });
 
-  console.log("[submitJobRequest] response status", res.status);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Could not submit job request");
+  }
+
+  return res.json();
+}
+
+
+
+export async function getResultDetails(params: { uidh: string }) {
+  console.log("[getResultDetails] sending request to proxy", params);
+
+  const res = await fetchWithCsrf(`/api/getResultDetails?uidh=${encodeURIComponent(params.uidh)}`, {
+    method: "GET",
+  });
+
+  console.log("[getResultDetails] response status", res.status);
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || "Could not submit job request");
+    throw new Error(errorData.error || "Could not fetch job results");
   }
 
   const data = await res.json();
-  console.log("[submitJobRequest] parsed data", data);
+  console.log("[getResultDetails] parsed data", data);
 
   return data;
+}
+
+
+// This function automaticly shows the download prompt, so you should use it like:
+// <Button
+//   onClick={() => downloadZip({ uidh: jobuidh })}
+// >
+//   Download ZIP
+// </Button>
+export async function downloadZip(params: { uidh: string }) {
+  console.log("[downloadZip] sending request to proxy", params);
+
+  const res = await fetchWithCsrf(`/api/downloadZip?uidh=${encodeURIComponent(params.uidh)}`, {
+    method: "GET",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Could not download ZIP");
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `result-${params.uidh}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+
+export async function getActiveJobs(params: {page: string}): Promise<any> {
+  console.log("[getActiveJobs] sending request to proxy");
+
+  const res = await fetchWithCsrf(`/api/getActiveJobs?page=${encodeURIComponent(params.page)}`, {
+     method: "GET" 
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Could not fetch active jobs");
+  }
+
+  return res.json();
+}
+
+export async function getFinishedJobs(params: {page: string}): Promise<any> {
+  console.log("[getFinishedJobs] sending request to proxy");
+
+  const res = await fetchWithCsrf(`/api/getFinishedJobs?page=${encodeURIComponent(params.page)}`, { 
+    method: "GET" 
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || "Could not fetch finished jobs");
+  }
+
+  return res.json();
 }

@@ -33,11 +33,28 @@ ENGINE_TEST_URL = os.getenv("ENGINE_TEST_URL", "http://grapharna-engine:8080/tes
 
 ENGINE_URL = os.getenv("ENGINE_URL", "http://grapharna-engine:8080/run")
 
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+RESULT_BASE_URL = os.getenv("RESULT_BASE_URL")
+
+TEMPLATE_PATH_JOB_CREATED = os.getenv("TEMPLATE_PATH_JOB_CREATED")
+TEMPLATE_PATH_JOB_FINISHED = os.getenv("TEMPLATE_PATH_JOB_FINISHED")
+TEMPLATE_PATH_JOB_NEAR_EXPIRATION = os.getenv("TEMPLATE_PATH_JOB_NEAR_EXPIRATION")
+
+TITLE_JOB_CREATED = os.getenv("EMAIL_TITLE_JOB_CREATED")
+TITLE_JOB_FINISHED = os.getenv("EMAIL_TITLE_JOB_FINISHED")
+TITLE_JOB_NEAR_EXPIRATION = os.getenv("EMAIL_TITLE_JOB_NEAR_EXPIRATION")
+
+UUID_HASH_LENGTH = int(os.getenv("UUID_HASH_LENGTH", 5))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
@@ -57,6 +74,7 @@ INSTALLED_APPS = [
     "webapp",
     "rest_framework",
     "api",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -102,6 +120,11 @@ DATABASES = {
         "HOST": os.getenv("DATABASE_HOST"),
         "PORT": os.getenv("DATABASE_PORT"),
     }
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": os.getenv("PAGE_SIZE", 10),
 }
 
 # Password validation
@@ -153,6 +176,12 @@ CELERY_TASK_QUEUES = (Queue("grapharna", durable=True),)
 
 CELERY_TASK_DEFAULT_QUEUE = "grapharna"
 CELERY_TASK_DEFAULT_DELIVERY_MODE = "persistent"
+
+# Safeguard against long jobs
+CELERY_BROKER_HEARTBEAT = 0
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'visibility_timeout': 86400
+}
 
 # Module settings
 MODEL_NAME = os.getenv("MODEL_NAME")

@@ -1,0 +1,120 @@
+.guide-page {
+    padding-top: 100px;
+}
+
+.gp-content{
+    display: flex;
+    flex-direction: column;
+    padding-top: 30px;
+    padding-bottom: 60px;
+    padding-left: 250px;
+    padding-right: 250px;
+}
+
+@media (max-width: 768px) {
+  .gp-content {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+[class*="header-"] {
+    font-family: Raleway;
+    font-weight: 700;
+}
+
+[class*="text-"] {
+    font-family: Inter;
+    font-weight: 400;
+}
+
+.header-title{
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.header-step{
+    font-size: 30px;
+    margin-bottom: 18px;
+    font-weight: 400;
+}
+
+.text-standard{
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.text-list{
+    font-size: 18px;
+    list-style: circle;
+    padding-left: 40px;
+}
+.step-list{
+    padding-left: 40px;
+}
+.step-list-dot{
+    padding-left: 40px;
+    list-style: circle;
+}
+
+.example-image {
+  max-width: 100%;  
+  height: auto;     
+  display: block;   
+  margin: 0 auto;   
+  padding-bottom: 50px;
+}
+
+#next-example{
+  max-width: 30%;  
+      
+}
+
+.guide-toc {
+  background-color: var(--background-darken-15); 
+  border-radius: 12px;
+  padding: 25px 30px;
+  margin-bottom: 40px;
+}
+
+.header-guide-toc-title {
+  font-size: 32px; 
+  margin-bottom: 15px;
+  font-weight: 400;
+  color: white;
+  padding-left: 40px; 
+}
+
+.guide-toc-list {
+  padding-left: 40px; 
+}
+
+.guide-toc-list li {
+  margin-bottom: 8px; 
+}
+
+.guide-toc-list a {
+  color: inherit; 
+  text-decoration: underline;
+}
+
+.guide-toc-list a:hover {
+  color: #000;
+}
+
+.text-standard-toc{
+    color: white;
+    font-weight: 600;
+}
+
+.guide-toc-title{
+    color: white;
+}
+
+.bold{
+  font-weight: 700;
+}
+
+.paragraph{
+  padding-left: 40px;
+}

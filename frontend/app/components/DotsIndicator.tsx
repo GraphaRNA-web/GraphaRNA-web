@@ -1,22 +1,24 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import '../styles/DotsIndicator.css';
 
 interface DotsIndicatorProps {
   count: number;
+  activeIndex: number; // Prop do odbierania aktualnego indeksu
+  onIndexChange: (newIndex: number) => void; // Prop do informowania rodzica o zmianie
 }
 
-const DotsIndicator: React.FC<DotsIndicatorProps> = ({ count }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-
+const DotsIndicator: React.FC<DotsIndicatorProps> = ({ count, activeIndex, onIndexChange }) => {
   if (count <= 1) return null;
 
   const handlePrev = () => {
-    setActiveIndex(prev => (prev === 0 ? count - 1 : prev - 1));
+    const newIndex = activeIndex === 0 ? count - 1 : activeIndex - 1;
+    onIndexChange(newIndex); // Poinformuj rodzica o nowym indeksie
   };
 
   const handleNext = () => {
-    setActiveIndex(prev => (prev === count - 1 ? 0 : prev + 1));
+    const newIndex = activeIndex === count - 1 ? 0 : activeIndex + 1;
+    onIndexChange(newIndex); // Poinformuj rodzica o nowym indeksie
   };
 
   return (
@@ -32,7 +34,7 @@ const DotsIndicator: React.FC<DotsIndicatorProps> = ({ count }) => {
           <span
             key={idx}
             className={`dot ${idx === activeIndex ? 'active' : ''}`}
-            onClick={() => setActiveIndex(idx)}
+            onClick={() => onIndexChange(idx)} // Poinformuj rodzica o kliknięciu kropki
           ></span>
         ))}
       </div>

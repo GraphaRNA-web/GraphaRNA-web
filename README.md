@@ -1,6 +1,10 @@
 # Docker setup
 
-First pull the repository. Make sure that both the ./GraphaRNA and ./GraphaRNA/RiNALMo are present. 
+First pull the repository. Make sure that the ./GraphaRNA, ./GraphaRNA/RiNALMo and /GraphaRNA/Arena are present. 
+If any of them are missing clone the following repos:
+`https://github.com/GraphaRNA-web/GraphaRNA.git`
+`https://github.com/lbcb-sci/RiNALMo.git`
+`https://github.com/pylelab/Arena.git`
 On the ./GraphaRNA branch use ```git checkout main``` and make sure that you've got the most current version.  
 In .GraphaRNA download the pre-trained model: 
 
@@ -61,7 +65,7 @@ DATABASE_PORT=5432
 CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
 
 VALID_BRACKETS=()<>[]{}AaBbCcDd.
-VALID_NUCLEOTIDES=AUGC
+VALID_NUCLEOTIDES=AUGCT
 VALID_PAIRS = "GCCGAUUAGUUG"
 
 ENGINE_TEST_URL = http://grapharna-engine:8080/test
@@ -69,8 +73,24 @@ ENGINE_URL = http://grapharna-engine:8080/test
 
 JOB_EXPIRATION_WEEKS=2
 
+UUID_HASH_LENGTH=5
+
 MODEL_NAME=model_800.h5
 MODEL_EPOCHS=800
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+EMAIL_HOST_USER=grapharnaput@gmail.com
+EMAIL_HOST_PASSWORD=luqmkuabzqhfpyib
+
+RESULT_BASE_URL=http://localhost:8000/api/getResults/
+
+TEMPLATE_PATH_JOB_CREATED=email_templates/template_job_created.html
+TEMPLATE_PATH_JOB_FINISHED=email_templates/template_job_finished.html
+TEMPLATE_PATH_JOB_NEAR_EXPIRATION=email_templates/template_job_near_expiration.html
+EMAIL_TITLE_JOB_CREATED=Your job has been created!
+EMAIL_TITLE_JOB_FINISHED=Your job is finished!
+EMAIL_TITLE_JOB_NEAR_EXPIRATION=Your job is about to expire!
  ```
 
 
@@ -80,6 +100,10 @@ To run the Django Project run command:
 
 ```python manage.py runserver```
 
+## Documentations
+
+Swagger documentation visible at ```/swagger/```, ```/swagger.json/``` and ```/swagger.yaml/``` 
+Redoc documentation at ```/redoc/``` 
 
 ## Code Audit
 
