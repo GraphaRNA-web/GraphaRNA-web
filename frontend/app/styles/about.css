@@ -50,6 +50,15 @@
     color: var(--brown-base);
 }
 
+.about-p1, .about-p2, .about-p3{
+    width: 100%;
+    font-family: Inter;
+    font-weight: 400;
+    font-style: Regular;
+    font-size: 18px;
+    color: var(--brown-base);
+}
+
 .circle-top{
     position: absolute;
     z-index: 1;
