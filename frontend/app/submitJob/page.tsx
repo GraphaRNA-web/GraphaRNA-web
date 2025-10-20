@@ -30,7 +30,7 @@ export default function SubmitJob() {
   const [autoSeed, setAutoSeed] = useState(true);
   const [autoName, setAutoName] = useState(true);
   const [seed, setSeed] = useState(0);
-  const [jobname, setJobname] = useState("");
+  const [jobname, setJobname] = useState("job-155555");
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
   const [structures, setStructures] = useState<string[]>([""]);
@@ -64,6 +64,10 @@ const handleStructureChange = (index: number, newValue: string) => {
 
 const addStructure = () => {
   setStructures([...structures, ""]);
+};
+
+const removeStructure = (index: number) => {
+  setStructures(prev => prev.filter((_, i) => i !== index));
 };
 
 type ValidationResult = "error" | "warning" | "ok";
@@ -265,10 +269,22 @@ const goNext = async () => {
     setCurrentStep(prev => prev - 1);
   }
 
+  const handleExampleClick1 = async () => {
+      setText("CCGAGUAGGUA\n((.....))..");
+  };
+
+  const handleExampleClick2 = async () => {
+      setText("GACUUAUAGAU UGAGUCC\n(((((..(... )))))).");
+  };
+
+  const handleExampleClick3 = async () => {
+      setText("UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)");
+  };
+
   return (
     <div className='submit-jobs-page'>
       <div className='sjp-content'> 
-        <div className='sjp-header'>
+        <div className='sjp-header' style={{ height: isExpanded ? 'auto' : '35px', overflow: 'hidden' }}>
           <div className='sjp-header-top'>
             <span className='sjp-header-title'>RNA structure form</span>
             <div className="sjp-toggle-button" onClick={() => setIsExpanded(prev => !prev)}>
@@ -296,149 +312,154 @@ const goNext = async () => {
         {currentStep === 0 && (
           <div className='sjp-step-0'>
             <div className='sjp-format-select'>
-              <div className='sjp-format-select-left'>
-                <span className='sjp-format-top'>Input format</span>
-                <span className='sjp-format-bottom'>Choose a format of data input.</span>
-              </div>
-              <Slider 
-                options={["Interactive", "Text", "File"]}
-                selectedOption={inputFormat}
-                onChange={setInputFormat}
-              />
+                <p className='sjp-format-top'>Input format</p>
+                <Slider 
+                  options={["Interactive", "Text", "File"]}
+                  selectedOption={inputFormat}
+                  onChange={setInputFormat}
+                />
             </div>
-            <div className="sjp-line-sep"></div>
-            <div className='sjp-hadle-choice'>
-              {inputFormat === "Interactive" && (
-                <div className='sjp-format-info'>
-                  <p className='sjp-format-info-1'>
-                    Interactive form
-                  </p>
-                  <p className='sjp-format-info-2'>
-                    Interactive form is based on... Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
-                    Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis partquat massa
-                  </p>
-
-                  {/* Nowa sekcja na struktury */}
-                  <div className="sjp-structures-section">
-                    <p className='sjp-structures-title'>Structures</p>
-                    <p className='sjp-structures-subtitle'>Paste structure</p>
-
-                    {structures.map((s, idx) => (
-                      <div key={idx} className="sjp-structure-item">
-                        <TextArea
-                          rows={4}
-                          value={s}
-                          onChange={(val) => handleStructureChange(idx, val)}
-                          placeholder={`CGCGGAACG CGGGACGCG\n((((...(( ))...))))`}
-                        />
-                      </div>
-                    ))}
-
-                    <div className="sjp-add-structure" onClick={addStructure}>
-                      <p>+</p>
-                    </div>
-                  {errors.length > 0 && (
-                    <div className="sjp-errors">
-                      <MessageBox type="error" messages={errors} />
-                    </div>
-                  )}
-
-                  {warnings.length > 0 && (
-                    <div className="sjp-warnings">
-                      <MessageBox type="warning" messages={warnings} />
-                    </div>
-                  )}
-
-                  {approves.length > 0 && (
-                    <div className="sjp-approves">
-                      <MessageBox type="approve" messages={approves} />
-                    </div>
-                  )}
-                    </div>
-                  </div>
-                )}
-
-              {inputFormat === "Text" && (
-                  <div className='sjp-format-info'>
-                    <p className='sjp-format-info-1'>
-                    Format
-                    </p>
-                    <p className='sjp-format-info-2'>The data should be in format... Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
-                    Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis partquat massa
-                    </p>
-                  </div>
-              )}
-
-              {inputFormat === "File" && (
-                <div className='sjp-format'>
-                  <div className='sjp-format-info'>
-                    <p className='sjp-format-info-1'>
-                    Format
-                    </p>
-                    <p className='sjp-format-info-2'>A valid file should be in .fasta format.
-                    </p>
-                  </div>
-                  <Modal/>
+            
+            {/*Sekcja na szarym tle INTERACTIVE*/}
+            {inputFormat === "Interactive" && (
+              <div className='sjp-int-gray-box'>
+                <div className='sjp-int-hint'>
+                  <p className='sjp-hint-title'>Interactive form hint</p>
+                  <p className='sjp-hint-text'>Interactive form is based on... Lorem ipsum dolor sit amet, 
+                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque 
+                    penatibus et magnis dis partquat massa</p>
                 </div>
-              )}
-            </div>
 
-            {inputFormat ==="Text" && (
-              <div className='sjp-text-input-section' style={{ height: dynamicHeight }}>
-                <div className='sjp-text-input-examples'>
-                  <div className='sjp-examples-left'>
-                      <p>Choose one of the examples to try out some examplary data.</p>
-                  </div>
-                  <div className='sjp-examples-right'>
-                      <Button
-                        color="green1"
-                        width='175px'
-                        height='30px'
-                        label='Example 1'
-                        fontSize='12px'
-                      />
-                      <Button
-                        color="green2"
-                        width='175px'
-                        height='30px'
-                        label='Example 2'
-                        fontSize='12px'
-                      />
-                      <Button
-                        color="green3"
-                        width='175px'
-                        height='30px'
-                        label='Example 3'
-                        fontSize='12px'
-                      />
-                  </div>
+                <div className='sjp-int-input-title'>
+                  <p className='sjp-rna-structure-title'>RNA structure</p>
+                  <p className='sjp-rna-structure-text'>Paste sequence with dotbracket and add another if needed.</p>
                 </div>
-                <div className='sjp-input-area'>
-                  RNA structure
-                  <TextArea
-                    rows={6}
-                    value={text}
-                    onChange={setText}
-                    placeholder={`CGCGGAACG CGGGACGCG\n((((...(( ))...))))`}
-                  />
+
+                {structures.map((s, idx) => (
+                  <div key={idx} className="sjp-structure-item" style={{ position: 'relative', marginBottom: '20px' }}>
+                    <TextArea
+                      rows={4}
+                      value={s}
+                      onChange={(val) => handleStructureChange(idx, val)}
+                      placeholder={`CGCGGAACG CGGGACGCG\n((((...(( ))...))))`}
+                    />
+
+                    {structures.length > 1 && (
+                      <img
+                        src="/icons/delete.svg"
+                        alt="Usuń"
+                        onClick={() => removeStructure(idx)}
+                        style={{
+                          position: 'absolute',
+                          top: '20px',
+                          right: '18px',
+                          width: '18px',
+                          height: '18px',
+                          cursor: 'pointer'
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+
+                <div className="sjp-add-structure" onClick={addStructure}>
+                  <p>+</p>
                 </div>
                 {errors.length > 0 && (
-                  <div className="sjp-errors">
+                    <div className="sjp-errors" style={{marginTop: '20px'}} >
+                      <MessageBox type="error" messages={errors} />
+                    </div>
+                )}
+
+                {warnings.length > 0 && (
+                    <div className="sjp-warnings" style={{marginTop: '20px'}}>
+                      <MessageBox type="warning" messages={warnings} />
+                    </div>
+                )}
+
+                {approves.length > 0 && (
+                    <div className="sjp-approves" style={{marginTop: '20px'}}>
+                      <MessageBox type="approve" messages={approves} />
+                    </div>
+                )}
+              </div>
+            )}
+            
+            {/*Sekcja na szarym tle TEXT*/}
+            {inputFormat === "Text" && (
+              <div className='sjp-int-gray-box'>
+                <div className='sjp-int-hint'>
+                  <p className='sjp-hint-title'>Format hint</p>
+                  <p className='sjp-hint-text'>Interactive form is based on... Lorem ipsum dolor sit amet, 
+                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque 
+                    penatibus et magnis dis partquat massa</p>
+                </div>
+
+                <div className='sjp-text-input-title'>
+                  <p className='sjp-rna-structure-title'>RNA structure</p>
+                  <div className='sjp-text-examples'>
+                    <Button
+                      color="green1"
+                      width='175px'
+                      height='30px'
+                      label='Example 1'
+                      fontSize='12px'
+                      action={handleExampleClick1}
+                    />
+                    <Button
+                      color="green2"
+                      width='175px'
+                      height='30px'
+                      label='Example 2'
+                      fontSize='12px'
+                      action={handleExampleClick2}
+                    />
+                    <Button
+                      color="green3"
+                      width='175px'
+                      height='30px'
+                      label='Example 3'
+                      fontSize='12px'
+                      action={handleExampleClick3}
+                    />
+                  </div>
+                </div>
+                <TextArea
+                  rows={6}
+                  value={text}
+                  onChange={setText}
+                 placeholder={"CGCGGAACG CGGGACGCG\n((((...(( ))...))))"}
+                />
+
+                {errors.length > 0 && (
+                  <div className="sjp-errors" style={{marginTop: '20px'}} >
                     <MessageBox type="error" messages={errors} />
                   </div>
                 )}
 
                 {warnings.length > 0 && (
-                  <div className="sjp-warnings">
+                  <div className="sjp-warnings" style={{marginTop: '20px'}}>
                     <MessageBox type="warning" messages={warnings} />
                   </div>
                 )}
 
                 {approves.length > 0 && (
-                  <div className="sjp-approves">
+                  <div className="sjp-approves" style={{marginTop: '20px'}}>
                     <MessageBox type="approve" messages={approves} />
                   </div>
                 )}
+              </div>
+            )}
+
+            {inputFormat === "File" && (
+              <div className='sjp-int-gray-box'>
+                <div className='sjp-hint-upload'>
+                  <div className='sjp-file-hint'>
+                    <p className='sjp-hint-title'>Format hint</p>
+                    <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
+                  </div>
+                  <Modal/>
+                </div>
               </div>
             )}
 
@@ -447,20 +468,20 @@ const goNext = async () => {
                 <Button
                   color='primary'
                   variant='filled'
-                  width='201px'
-                  height='50px'
+                  width='160px'
+                  height='40px'
                   label='Next'
-                  fontSize='18px'
+                  fontSize='16px'
                   action={handleNext}
                 />
                 <Button
                   color='primary'
                   variant='outlined'
-                  width='277px'
-                  height='50px'
+                  width='230px'
+                  height='40px'
                   label='Validate structure'
                   action={handleValidate}
-                  fontSize='18px'
+                  fontSize='16px'
                 />
               </div>
             )}
@@ -500,7 +521,7 @@ const goNext = async () => {
 
                   {/* --- JOB NAME --- */}
                   <div className='sjp-seed-name-param'>
-                    <p>Name <span>{autoName ? jobname : ""}</span></p>
+                    <p>Name <span>{autoName ? jobname : "job"}</span></p>
                     <CustomCheckbox
                       label="auto"
                       size={45}
@@ -519,10 +540,11 @@ const goNext = async () => {
 
                 {/* --- INTEGER FIELD --- */}
                 <div className='sjp-alt-param'>
+                  <p>#Alternative conformations</p>
                   <IntegerField
                     min={1}
                     max={5}
-                    width="975px"
+                    width="100%"
                     height="50px"
                     defaultValue={alternativeConformations}
                     onChange={(val) => setAlternativeConformations(val)}
@@ -534,19 +556,19 @@ const goNext = async () => {
                 <Button
                   color='primary'
                   variant='filled'
-                  width='201px'
-                  height='50px'
+                  width='160px'
+                  height='40px'
                   label='Next'
-                  fontSize='18px'
+                  fontSize='16px'
                   action={handleNext}
                 />
                 <Button
                   color='primary'
                   variant='outlined'
-                  width='277px'
-                  height='50px'
+                  width='230px'
+                  height='40px'
                   label='Previous'
-                  fontSize='18px'
+                  fontSize='16px'
                   action={handlePrev}
                 />
               </div>
@@ -603,19 +625,19 @@ const goNext = async () => {
                 <Button
                   color='primary'
                   variant='filled'
-                  width='201px'
-                  height='50px'
+                  width='160px'
+                  height='40px'
                   label='Submit'
-                  fontSize='18px'
+                  fontSize='16px'
                   action={handleSubmit}
                 />
                 <Button
                   color='primary'
                   variant='outlined'
-                  width='277px'
-                  height='50px'
+                  width='230px'
+                  height='40px'
                   label='Previous'
-                  fontSize='18px'
+                  fontSize='16px'
                   action={handlePrev}
                 />
               </div>
@@ -635,14 +657,12 @@ const goNext = async () => {
             setShowValidationNext(false);
           }}
           onConfirm={() => {
-            // jeśli user klika Agree
             setText(correctedText);
 
             if (inputFormat === "Interactive") {
-              // podmiana structures na poprawione
               const blocks = correctedText
                 .split("\n>")
-                .map((b, i) => (i === 0 ? b : ">" + b)) // zachowaj '>' dla kolejnych
+                .map((b, i) => (i === 0 ? b : ">" + b))
                 .filter((b) => b.trim() !== "");
 
               setStructures(blocks);

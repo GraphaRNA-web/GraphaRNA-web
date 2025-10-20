@@ -63,19 +63,15 @@
   background-color: var(--background-lighten-5);
   border: 1px solid var(--background-darken-15);
   border-radius: 10px;
-  padding-top: 40px;
-  padding-bottom: 40px;
-  padding-left: 50px;
-  padding-right: 50px;
   gap: 10px;
-  cursor: pointer;
   transition: border-color 0.2s;
   width: 760px;
   height: 297px;
   display: flex;
+  padding-top: 30px;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .file-dropzone:hover {
@@ -87,6 +83,7 @@
   font-weight: 400;
   font-size: 24px;
   color: var(--brown-lighten-5);
+  text-align: center;
 }
 
 .dropzone-instruction-2{
@@ -139,4 +136,202 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
+}
+
+.upload-and-examples{
+  display: flex;
+  flex-direction: row;
+  gap: 50px;
+  width: 100%;
+}
+
+.upload-left-section{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 55%;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.modal-line-and-or{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+}
+
+.modal-line-part{
+  height: 100px;
+  width: 1px;
+  background-color: var(--background-darken-15);
+}
+
+.modal-line-sep{
+  color: var(--background-darken-15);
+  font-family: Inter;
+  font-weight: 300;
+  font-style: Light;
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: 0%;
+}
+
+.example-file-div{
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.upload-right-section{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 190px;
+  justify-content: center;
+}
+
+.example-files-description{
+  font-family: Inter;
+  font-weight: 300;
+  font-style: Light;
+  font-size: 12px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: var(--brown-lighten-15);
+}
+
+.modal-download-icon {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.modal-download-icon:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.uploaded-file-item-with-remove {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120px;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 5px;
+}
+
+.uploaded-file-item-with-remove:hover{
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.uploaded-file-icon {
+  width: 50px;
+  height: 50px;
+}
+
+.uploaded-file-name {
+  margin-top: 5px;
+  font-size: 14px;
+  text-align: center;
+  word-break: break-all;
+}
+
+.remove-uploaded-icon {
+  position: absolute;
+  top: 0px;
+  left: 100px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.remove-uploaded-icon:hover {
+  opacity: 1;
+}
+
+.uploaded-files-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-left: 20px;
+}
+
+@media (max-width: 960px){
+
+  .modal{
+    width: calc(100% - 20px);
+    height: auto;
+    padding-left: calc(100px - (960px - 100%)*0.15);
+    padding-right: calc(100px - (960px - 100%)*0.15);
+  }
+
+  .modal-top-text{
+    width: 100%;
+    height: auto;
+  }
+
+  .file-dropzone{
+    width: 100%;
+  }
+
+  .upload-left-section{
+    width: 40%;
+  }
+
+  .error-message{
+    width: 100%;
+  }
+
+  .modal-buttons{
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px){
+  .upload-and-examples{
+    flex-direction: column;
+    height: auto;
+    gap: 20px;
+  }
+
+  .file-dropzone{
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .modal-line-and-or{
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-line-part{
+    height: 1px;
+    width: 40%;
+  }
+
+  .upload-left-section{
+    align-self: center;
+  }
+
+  .upload-right-section{
+    align-self: center;
+  }
+}
+
+@media (max-width: 505px){
+  .modal-buttons{
+    flex-direction: column;
+    height: auto;
+    align-items: flex-end;
+  }
 }

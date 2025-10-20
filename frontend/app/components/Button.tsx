@@ -26,7 +26,7 @@ const Button: React.FC<ButtonProps> = ({
   type = 'button',
   action,
   id,
-  icon, // <--- destrukturyzujemy
+  icon,
 }) => {
   const variantClass = `button--${color}-${variant}`;
   const disabledClass = disabled ? 'button--disabled' : '';
