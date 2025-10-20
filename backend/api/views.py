@@ -43,7 +43,7 @@ def DownloadZipFile(request: Request) -> HttpResponse:
     except Job.DoesNotExist:
         return HttpResponse("Job not found", status=404)
 
-    if job.status != "F":
+    if job.status != "C":
         return HttpResponse("Job is not finished", status=400)
     instances = JobResults.objects.filter(job=job)
     zip_buffer = io.BytesIO()
@@ -342,7 +342,7 @@ def GetResults(request: Request) -> Response:
 
     results_list: list = []
 
-    if job.status == "F":
+    if job.status == "C":
         job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
 
         seed_counter: int = job.seed
@@ -453,7 +453,7 @@ def getActiveJobs(request: Request) -> Response:
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["F"]).order_by("created_at")
+    data = Job.objects.filter(status__in=["C"]).order_by("created_at")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:

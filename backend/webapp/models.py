@@ -12,14 +12,15 @@ def default_expiration() -> datetime:
     return timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
 
 
+class Status(models.TextChoices):
+    Submitted = "S", "Submitted"
+    Queued = "Q", "Queued"
+    Running = "R", "Running"
+    Finished = "C", "Completed"
+    Error = "E", "Error"
+
+
 class Job(models.Model):
-    STATUS = {
-        "S": "Submitted",
-        "Q": "Queued",
-        "R": "Running",
-        "F": "Finished",
-        "E": "Error",
-    }
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
     )
@@ -33,7 +34,7 @@ class Job(models.Model):
     created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
     expires_at: models.DateTimeField = models.DateTimeField(null=True)
     sum_processing_time: models.DurationField = models.DurationField(null=True)
-    status: models.TextField = models.TextField(choices=STATUS)
+    status: models.TextField = models.TextField(choices=Status)
     alternative_conformations: models.IntegerField = models.IntegerField(
         validators=[
             MinValueValidator(

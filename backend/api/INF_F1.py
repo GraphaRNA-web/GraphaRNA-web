@@ -30,7 +30,6 @@ def dotbracketToPairs(input: str) -> dict[str, set[tuple[int, int]]]:
     incorrectPairs = set(result["Incorrect Pairs"])
     allPairs = set(result["allPairs"])
     correctPairs = allPairs - incorrectPairs
-    print(correctPairs, allPairs, incorrectPairs)
 
     Pairs: dict[str, set[tuple[int, int]]] = {
         "correctPairs": correctPairs,

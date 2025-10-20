@@ -149,7 +149,7 @@ class GetResultsTests(TestCase):
         self.job.uid = uuid.uuid4()
         self.job.hashed_uid = hash_uuid(str(self.job.uid))
         self.job.input_structure.read.return_value = b">Job\nACBC"
-        self.job.status = "F"
+        self.job.status = "C"
         self.job.job_name = "Job"
         self.job.seed = 42
         self.job.created_at = timezone.now()
@@ -527,7 +527,7 @@ class DownloadZipFileTests(TestCase):
         self.job_queued = MagicMock(uid=uuid.uuid4(), status="Q", job_name="queued")
         self.job_queued.hashed_uid = hash_uuid(str(self.job_queued.uuid))
 
-        self.job_finished = MagicMock(uid=uuid.uuid4(), status="F", job_name="finished")
+        self.job_finished = MagicMock(uid=uuid.uuid4(), status="C", job_name="finished")
         self.job_finished.hashed_uid = hash_uuid(str(self.job_finished.uuid))
 
         self.result = MagicMock(job=self.job_finished)
@@ -620,7 +620,7 @@ class JobActiveAndFinishedTests(TestCase):
                 uid=uuid.uuid4(),
                 seed=i,
                 job_name=f"Finished Job {i}",
-                status="F",
+                status="C",
                 alternative_conformations=2,
                 created_at=timezone.now(),
             )
@@ -766,14 +766,12 @@ class INF(TestCase):
 
         values = CalculateF1Inf({(0, 1), (2, 3)}, {(0, 1), (2, 3)})
         assert (values["tp"], values["fp"], values["fn"]) == (2, 0, 0)
-        print("DEBUG:", values)
         assert math.isclose(values["inf"], 1.0)
         assert math.isclose(values["f1"], 1.0)
 
     def test_empty_model_CalculateF1Inf(self):
         values = CalculateF1Inf({(0, 1), (2, 3)}, set())
         assert (values["tp"], values["fp"], values["fn"]) == (0, 0, 2)
-        print("DEBUG:", values)
         assert math.isclose(values["inf"], 0.0)
         assert math.isclose(values["f1"], 0.0)
 
@@ -781,7 +779,6 @@ class INF(TestCase):
         values = CalculateF1Inf({(0, 1), (2, 3)}, {(0, 1), (4, 5)})
 
         assert (values["tp"], values["fp"], values["fn"]) == (1, 1, 1)
-        print("DEBUG:", values)
         assert math.isclose(values["inf"], 0.5)
         assert math.isclose(values["f1"], 0.5)
 
@@ -789,7 +786,6 @@ class INF(TestCase):
         target = {(0, 3), (1, 2)}
         model = {(0, 3), (1, 2)}
         values = CalculateF1Inf(target, model)
-        print("DEBUG perfect:", values)
         assert (values["tp"], values["fp"], values["fn"]) == (2, 0, 0)
         assert math.isclose(values["inf"], 1.0)
         assert math.isclose(values["f1"], 1.0)
@@ -798,7 +794,6 @@ class INF(TestCase):
         target = {(0, 3), (1, 2)}
         model = {(0, 3), (4, 5)}
         values = CalculateF1Inf(target, model)
-        print("DEBUG partial:", values)
         assert (values["tp"], values["fp"], values["fn"]) == (1, 1, 1)
         assert round(values["f1"], 2) == 0.5
         assert round(values["inf"], 2) == 0.5
@@ -807,7 +802,6 @@ class INF(TestCase):
         target = {(0, 3), (1, 2)}
         model = set()
         values = CalculateF1Inf(target, model)
-        print("DEBUG empty:", values)
         assert (values["tp"], values["fp"], values["fn"]) == (0, 0, 2)
         assert values["f1"] == 0.0
         assert values["inf"] == 0.0
@@ -815,7 +809,6 @@ class INF(TestCase):
     def test_dotbracketToPairs_simple(self):
         input_str = ">Job\nACGU\n(())"
         Pairs = dotbracketToPairs(input_str)
-        print("DEBUG dotbracketToPairs:", Pairs)
         assert (0, 3) in Pairs["correctPairs"]
         assert (1, 2) in Pairs["correctPairs"]
         assert Pairs["incorrectPairs"] == set()
@@ -844,7 +837,6 @@ class INF(TestCase):
 
         values = CalculateF1Inf(target_dict["correctPairs"], model_dict["correctPairs"])
 
-        print("DEBUG test_partial_match:", values)
         self.assertEqual(values["tp"], 1)
         self.assertEqual(values["fp"], 0)
         self.assertEqual(values["fn"], 1)

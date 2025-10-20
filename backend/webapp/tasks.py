@@ -292,7 +292,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
     job_data.expires_at = timezone.now() + timedelta(
         weeks=settings.JOB_EXPIRATION_WEEKS
     )
-    job_data.status = "F"
+    job_data.status = "C"
     job_data.save()
 
     if job_data.email:
