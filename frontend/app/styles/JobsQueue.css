@@ -157,3 +157,69 @@ tbody td {
   margin-top: 15px;
   gap: 10px;
 }
+.content {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  min-height: 100vh;
+}
+
+.cite {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: visible;
+}
+
+.cite-header {
+  margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cite-title {
+  margin: 24;
+  padding: 0.25rem 0;
+  font-weight: 600;
+  line-height: 1.2;
+  display: block;
+  font-family: 'Raleway';
+  font-size: 38px;
+  color: var(--brown-base);
+}
+
+.cite table {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  z-index: 5;
+}
+
+.pagination button {
+  cursor: pointer;
+}
+
+.pagination button.active {
+  width: 32px;
+  height: 32px;
+  background: green;
+  color: white;
+  border: 1px solid rgba(0,0,0,0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+button {
+  pointer-events: auto;
+}
