@@ -306,7 +306,7 @@ const formatDate = (dateString: string) => {
           )}
           {isJobFailed && (
              <div className='job-failed'>
-                <img src="icons/error.svg" alt="" width={24} height={24} /><p className='info error-info'>The job you started run into some errors. Please try requesting the task again.</p>
+                <p className='info error-info'><img src="icons/error.svg" alt="" width={24} height={24} />The job you started run into some errors. Please try requesting the task again.</p>
              </div>
           )}
 
