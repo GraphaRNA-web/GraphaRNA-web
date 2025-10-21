@@ -31,6 +31,7 @@
 .header-title{
     font-size: 36px;
     margin-bottom: 20px;
+    scroll-margin-top: 100px;
 }
 
 .header-step{
