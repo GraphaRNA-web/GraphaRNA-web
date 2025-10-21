@@ -2,30 +2,83 @@
 import { useState, useEffect } from "react";
 import "../styles/JobsQueue.css";
 import JobsTable from "../components/JobsTable";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from "next/navigation";
+import { getActiveJobs, getFinishedJobs } from "@/lib/api";
 
+interface JobResult {
+  uid?: string;
+  id?: number;
+  created_at?: string;
+  completed_at?: string;
+  seed?: number;
+  status?: string;
+
+  result_tetriary_structure?: string;
+  result_secondary_structure_dotseq?: string | null;
+  result_secondary_structure_svg?: string | null;
+  result_arc_diagram?: string | null;
+  f1?: number | null;
+  inf?: number | null;
+  processing_time?: string;
+}
+
+interface PaginatedJobs {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: JobResult[];
+}
+
+type JobRowForTable = {
+  id: number;
+  seed: number;
+  status: string;
+  conformations: number;
+  created: string;
+  priority: string;
+};
 
 export default function JobsQueue() {
   const searchParams = useSearchParams();
-  const uidh = searchParams.get('uidh');
+  const uidh = searchParams.get("uidh");
+
+  const [jobDataActive, setJobDataActive] = useState<PaginatedJobs | null>(null);
+  const [jobDataFinished, setJobDataFinished] = useState<PaginatedJobs | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+
   useEffect(() => {
     const fetchData = async () => {
-      if (!uidh) {
-        setError("No task identifier (uidh) in URL parameters!");
-        setIsLoading(false);
-        return;
-      }
+      setError(null);
+      setIsLoading(true);
 
       try {
-        setIsLoading(true);
-        const data = await getResultDetails({ uidh });
-        if (data.success) {
-          setJobData(data);
+        const [activeResp, finishedResp] = await Promise.all([
+          getActiveJobs({ page: "1" }),
+          getFinishedJobs({ page: "1" }),
+        ]);
+        
+        console.log("[JobsQueue] activeResp:", activeResp);
+        console.log("[JobsQueue] finishedResp:", finishedResp);
+
+        
+        if (activeResp && Array.isArray(activeResp.results)) {
+          setJobDataActive(activeResp as PaginatedJobs);
         } else {
-          setError(data.error || "Unable to download task data.");
+          console.warn("Unexpected activeResp shape:", activeResp);
+          setJobDataActive(null);
+        }
+
+        if (finishedResp && Array.isArray(finishedResp.results)) {
+          setJobDataFinished(finishedResp as PaginatedJobs);
+        } else {
+          console.warn("Unexpected finishedResp shape:", finishedResp);
+          setJobDataFinished(null);
         }
       } catch (err: any) {
-        setError(err.message || "Unexpected error.");
+        console.error("Fetch error:", err);
+        setError(err?.message || "Błąd pobierania danych z API");
       } finally {
         setIsLoading(false);
       }
@@ -34,89 +87,52 @@ export default function JobsQueue() {
     fetchData();
   }, [uidh]);
 
+  const activeRows: JobRowForTable[] =
+    jobDataActive?.results.map((job, idx) => ({
+      id: idx + 1,
+      seed: job.seed ?? 0,
+      status: job.status ?? "Q",
+      conformations: 1,
+      created: job.created_at ?? job.completed_at ?? "-",
+      priority: "",
+    })) ?? [];
 
-
-
-  const rows = Array.from({ length: 25 }, (_, i) => ({
-    id: i + 1,
-    seed: Math.floor(Math.random() * 100),
-    status: i % 2 === 0 ? "Q" : "P",
-    created: `2025-10-${String(i + 1).padStart(2, "0")}`,
-  }));
-
-  const pageSize = 3;
-
-  const [activePage, setActivePage] = useState(0);
-  const [finishedPage, setFinishedPage] = useState(0);
-
-  const totalPages = Math.ceil(rows.length / pageSize);
-
-  const getPageNumbers = (page: number) => {
-    const delta = 2;
-    const range: (number | string)[] = [];
-
-    for (let i = Math.max(0, page - delta); i <= Math.min(totalPages - 1, page + delta); i++) {
-      range.push(i);
-    }
-    if (!range.includes(0)) range.unshift(0, "...");
-    if (!range.includes(totalPages - 1)) range.push("...", totalPages - 1);
-
-    return range;
-  };
-
-  const pagedRows = (page: number) => rows.slice(page * pageSize, (page + 1) * pageSize);
-
-  const renderPagination = (page: number, setPage: (p: number) => void) => (
-    <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "1rem" }}>
-      <button onClick={() => setPage(Math.max(page - 1, 0))} disabled={page === 0} style={{ marginRight: "1rem" }}>
-         &lt;   Previous
-      </button>
-
-      {getPageNumbers(page).map((pNum, idx) =>
-        pNum === "..." ? (
-          <span key={idx}>...</span>
-        ) : (
-          <button
-            key={idx}
-            onClick={() => setPage(Number(pNum))}
-            style={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "50%",
-            backgroundColor: page === pNum ? "green" : "transparent",
-            color: page === pNum ? "white" : "black",
-            cursor: "pointer",
-          }}
-          >
-            {Number(pNum) + 1}
-          </button>
-        )
-      )}
-
-      <button onClick={() => setPage(Math.min(page + 1, totalPages - 1))} disabled={page === totalPages - 1} style={{ marginLeft: "1rem" }}>
-        Next &gt;   
-      </button>
-    </div>
-  );
+  const finishedRows: JobRowForTable[] =
+    jobDataFinished?.results.map((job, idx) => ({
+      id: idx + 1,
+      seed: job.seed ?? 0,
+      status: job.status ?? "F",
+      conformations: 1,
+      created: job.created_at ?? job.completed_at ?? "-",
+      priority: "",
+    })) ?? [];
+  if (isLoading) {
+    return <div className="content"><p>Ładowanie danych…</p></div>;
+  }
+  if (error) {
+    return <div className="content"><p style={{ color: "red" }}>Błąd: {error}</p></div>;
+  }
 
   return (
     <div className="content">
+      <div style={{ marginBottom: 12 }}>
+        <strong>Debug:</strong>
+        <div>active count: {jobDataActive?.count ?? "—"}</div>
+        <div>finished count: {jobDataFinished?.count ?? "—"}</div>
+      </div>
+
       <div className="cite">
         <div className="cite-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p className="cite-title">Active jobs queue</p>
         </div>
-
-        <JobsTable rows={pagedRows(activePage)} />
-        {renderPagination(activePage, setActivePage)}
+        <JobsTable rows={activeRows} />
       </div>
 
       <div className="cite">
         <div className="cite-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p className="cite-title">Finished jobs queue</p>
         </div>
-
-        <JobsTable rows={pagedRows(finishedPage)} />
-        {renderPagination(finishedPage, setFinishedPage)}
+        <JobsTable rows={finishedRows} />
       </div>
     </div>
   );
