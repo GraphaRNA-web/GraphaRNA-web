@@ -382,44 +382,46 @@ p{
 }
 
 @media (max-width: 1120px){
-    /* Sekcja .found - usunięto padding-left */
+    .found{
+        padding-left: 0px;
+    }
 
     .top-section{
-        flex-direction: column; /* Zmiana na kolumnę */
-        height: auto; /* Elastyczna wysokość */
-        width: 100%; /* Elastyczna szerokość */
+        flex-direction: column;
+        height: 470px;
+        width: 605px;
     }
 
     .top-right{
-        flex-direction: row; /* Wiersz dla download + name/seed */
-        align-items: center; /* Wyrównanie w pionie */
-        flex-wrap: wrap; /* Zezwól na zawijanie na bardzo małych ekranach */
-        width: 100%; /* Elastyczna szerokość */
+        flex-direction: row;
     }
 
     .images-2d3d{
-        flex-direction: column; /* Kolumna dla obrazków */
-        width: 100%;
-        align-items: center; /* Wycentrowanie */
+        flex-direction: column;
+        width: 605;
+        align-items: center;
     }
 
     .download-zip{
-        flex-direction: column; /* Kolumna dla ikony i tekstu */
-        gap: 10px; /* Zmniejszony odstęp */
+        flex-direction: column;
+        gap: 15px;
         align-items: center;
         justify-content: center;
         height: 100px;
-        width: 100px; /* Zmieniono na kwadrat */
-        order: 1; /* Ustawienie kolejności */
-        margin: 20px auto 0; /* Wycentrowanie i margines */
-        padding: 10px; /* Dodano padding */
+        width: 115px;
+        order: 1;
+        margin-left: 0px;
+        margin-top: 35px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        padding-left: 0px;
         border-radius: 10px;
     }
 
     .download-text{
-        font-size: 14px; /* Mniejsza czcionka */
+        font-size: 16px;
         text-align: center;
-        width: auto; /* Automatyczna szerokość */
+        width: 110px;
     }
 
     .download-icon{
@@ -427,55 +429,23 @@ p{
         width: 20px;
     }
 
-    .name-and-seed { /* Dopasowanie sekcji name/seed do flexa */
-       flex: 1; /* Pozwól rosnąć */
-       min-width: 250px; /* Minimalna szerokość, aby się nie ściskało za bardzo */
-       margin-top: 20px; /* Dodano margines */
-       width: auto; /* Usuń stałą szerokość */
-    }
-
     .pagination{
         margin-right: 0px;
-        margin-top: 20px; /* Zmniejszony margines */
-        justify-content: center; /* Upewnij się, że jest wycentrowane */
-        width: 100%; /* Pełna szerokość */
+        margin-top: 0px;
     }
-
     .content{
-        width: 100%; /* Elastyczna szerokość */
-        max-width: 610px; /* Zachowaj maksymalną szerokość */
+        width: 610px;
         display: flex;
         flex-direction: column;
         margin: 0 auto;
-        padding: 0 20px; /* Zwiększony padding boczny */
     }
 
     .input-data{
-        width: 100%; /* Elastyczna szerokość */
-        padding: 25px; /* Mniejszy padding */
+        width: 605px;
     }
 
     .arc-diagram{
-        margin-left: 0px;
+        margin-left: 25px;
         margin-right: 0px;
-        width: 100%; /* Elastyczna szerokość */
-    }
-
-    /* Upewnij się, że pola tekstowe nie są za szerokie */
-    .status,
-    .rep-time,
-    .rep-date,
-    .proc-time,
-    .job-name,
-    .seed {
-        width: 100%; /* Elastyczna szerokość */
-    }
-
-    /* Wycentrowanie info o błędzie/ładowaniu */
-    .info {
-        margin-left: auto;
-        margin-right: auto;
-        width: 100%;
-        max-width: 90%; /* Ograniczenie szerokości */
     }
 }
