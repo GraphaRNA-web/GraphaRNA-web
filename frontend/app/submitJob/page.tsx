@@ -197,6 +197,9 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
         return "error";
       }
     }
+    else {
+      return "error";
+    }
   }
 
   return "ok"; // dla File brak walidacji

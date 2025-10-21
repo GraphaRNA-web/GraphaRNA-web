@@ -266,17 +266,19 @@ p{
 }
 
 .input-data{
-    width: 1120px;
-    height: 393px;
+    max-width: 1120px;
+    width: 100%;
     gap: 30px;
     border-radius: 15px;
     padding-top: 50px;
+    padding-bottom: 50px;
     padding-right: 40px;
     padding-left: 40px;
     margin-top: 40px;
     background-color: #F9F8F4;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
 }
 
 .input-field-name2{
@@ -307,18 +309,22 @@ p{
     line-height: 100%;
     letter-spacing: 0%;
     color: var(--brown-base);
+    white-space: nowrap;
+    max-width: fit-content;
 }
 
 .input-structure{
     display: flex;
     flex-direction: column;
     gap: 17px;
+    width: 100%;
 }
 
 .result-structure{
     display: flex;
     flex-direction: column;
     gap: 17px;
+    width: 100%;
 }
 
 .input-value{
@@ -330,22 +336,35 @@ p{
     line-height: 100%;
     letter-spacing: 0%;
     color: var(--brown-lighten-10);
+    white-space: pre-wrap;
+    word-break: break-all;
 }
 
 .inf-val{
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 20px;
+    width: fit-content; 
 }
 
 .f1-val{
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 20px;
+    width: fit-content; 
+}
+
+.seed-val{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    width: fit-content; 
 }
 
 .input-value2{
-    margin-left: -450px;
     font-family: Inter;
     font-weight: 400;
     font-style: Regular;
@@ -353,7 +372,6 @@ p{
     leading-trim: NONE;
     line-height: 100%;
     letter-spacing: 0%;
-
 }
 
 .pagination{
@@ -364,46 +382,44 @@ p{
 }
 
 @media (max-width: 1120px){
-    .found{
-        padding-left: 0px;
-    }
+    /* Sekcja .found - usunięto padding-left */
 
     .top-section{
-        flex-direction: column;
-        height: 470px;
-        width: 605px;
+        flex-direction: column; /* Zmiana na kolumnę */
+        height: auto; /* Elastyczna wysokość */
+        width: 100%; /* Elastyczna szerokość */
     }
 
     .top-right{
-        flex-direction: row;
+        flex-direction: row; /* Wiersz dla download + name/seed */
+        align-items: center; /* Wyrównanie w pionie */
+        flex-wrap: wrap; /* Zezwól na zawijanie na bardzo małych ekranach */
+        width: 100%; /* Elastyczna szerokość */
     }
 
     .images-2d3d{
-        flex-direction: column;
-        width: 605;
-        align-items: center;
+        flex-direction: column; /* Kolumna dla obrazków */
+        width: 100%;
+        align-items: center; /* Wycentrowanie */
     }
 
     .download-zip{
-        flex-direction: column;
-        gap: 15px;
+        flex-direction: column; /* Kolumna dla ikony i tekstu */
+        gap: 10px; /* Zmniejszony odstęp */
         align-items: center;
         justify-content: center;
         height: 100px;
-        width: 115px;
-        order: 1;
-        margin-left: 0px;
-        margin-top: 35px;
-        padding-top: 0px;
-        padding-bottom: 0px;
-        padding-left: 0px;
+        width: 100px; /* Zmieniono na kwadrat */
+        order: 1; /* Ustawienie kolejności */
+        margin: 20px auto 0; /* Wycentrowanie i margines */
+        padding: 10px; /* Dodano padding */
         border-radius: 10px;
     }
 
     .download-text{
-        font-size: 16px;
+        font-size: 14px; /* Mniejsza czcionka */
         text-align: center;
-        width: 110px;
+        width: auto; /* Automatyczna szerokość */
     }
 
     .download-icon{
@@ -411,23 +427,55 @@ p{
         width: 20px;
     }
 
+    .name-and-seed { /* Dopasowanie sekcji name/seed do flexa */
+       flex: 1; /* Pozwól rosnąć */
+       min-width: 250px; /* Minimalna szerokość, aby się nie ściskało za bardzo */
+       margin-top: 20px; /* Dodano margines */
+       width: auto; /* Usuń stałą szerokość */
+    }
+
     .pagination{
         margin-right: 0px;
-        margin-top: 0px;
+        margin-top: 20px; /* Zmniejszony margines */
+        justify-content: center; /* Upewnij się, że jest wycentrowane */
+        width: 100%; /* Pełna szerokość */
     }
+
     .content{
-        width: 610px;
+        width: 100%; /* Elastyczna szerokość */
+        max-width: 610px; /* Zachowaj maksymalną szerokość */
         display: flex;
         flex-direction: column;
         margin: 0 auto;
+        padding: 0 20px; /* Zwiększony padding boczny */
     }
 
     .input-data{
-        width: 605px;
+        width: 100%; /* Elastyczna szerokość */
+        padding: 25px; /* Mniejszy padding */
     }
 
     .arc-diagram{
-        margin-left: 25px;
+        margin-left: 0px;
         margin-right: 0px;
+        width: 100%; /* Elastyczna szerokość */
+    }
+
+    /* Upewnij się, że pola tekstowe nie są za szerokie */
+    .status,
+    .rep-time,
+    .rep-date,
+    .proc-time,
+    .job-name,
+    .seed {
+        width: 100%; /* Elastyczna szerokość */
+    }
+
+    /* Wycentrowanie info o błędzie/ładowaniu */
+    .info {
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        max-width: 90%; /* Ograniczenie szerokości */
     }
 }
