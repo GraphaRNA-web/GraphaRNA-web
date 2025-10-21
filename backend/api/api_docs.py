@@ -253,6 +253,7 @@ get_results_schema = swagger_auto_schema(
                         type=openapi.TYPE_STRING,
                         description="Total processing time (timedelta, formatted as 'HH:MM:SS.ssssss')",
                     ),
+                    "job_seed": openapi.Schema(type=openapi.TYPE_INTEGER),
                     "result_list": openapi.Schema(
                         type=openapi.TYPE_ARRAY,
                         items=openapi.Schema(
@@ -293,6 +294,7 @@ get_results_schema = swagger_auto_schema(
                     "input_structure": ">my_rna_job\nACGC\n....",
                     "created_at": "2025-09-15T21:27:57.298011Z",
                     "sum_processing_time": "4.530384",
+                    "job_seed": 123456,
                     "result_list": [
                         {
                             "completed_at": "2025-09-15T21:28:01.851603Z",

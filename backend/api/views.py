@@ -405,6 +405,7 @@ def GetResults(request: Request) -> Response:
             "created_at": job.created_at,
             "sum_processing_time": job.sum_processing_time,
             "result_list": results_list,
+            "job_seed": job.seed,
         }
     )
 
