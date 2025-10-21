@@ -1,41 +1,4 @@
-.content{
-    display: flex;
-    flex-direction: column;
-    padding-top: 110px;
-    padding-left: calc(180px - (1450px - 100vw)*0.545);
-}
 
-.cite{
-    position: relative;
-    width: 1020px;
-    height: 570px;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-}
-
-.cite-title{
-    font-family: 'Raleway';
-    font-size: 38px;
-    color: var(--brown-base);
-    font-weight: 400;
-}
-
-.cite-content{
-    position: absolute;
-    width: 1120px;
-    height: 673px;
-    top: 80px;
-}
-
-.cite-subtitle {
-    position: relative;
-    z-index: 2;
-    font-family: 'Inter';
-    font-weight: 400;
-    font-size: 14px;
-    color: var(--brown-base);
-}
 
 .circle{
     position: absolute;
@@ -44,18 +7,7 @@
     left: calc(700px - (1450px - 100vw)*0.45);
 }
 
-.triangle{
-    position: absolute;
-    z-index: 1;
-    top: 200px;
-    left: calc(200px - (1450px - 100vw)*0.45);
-}
 
-.green-thing{
-    position: absolute;
-    z-index: 3;
-    top: 80px;
-}
 
 .text{
     position: absolute;
@@ -128,6 +80,7 @@ table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: auto;
 }
 
 .table-header-row th {
@@ -151,12 +104,7 @@ tbody tr:nth-child(even) {
 tbody td {
   padding: 10px 20px;
 }
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 15px;
-  gap: 10px;
-}
+
 .content {
   display: block;
   width: 100%;
@@ -167,9 +115,16 @@ tbody td {
 
 .cite {
   width: 100%;
-  margin-bottom: 1.5rem;
-  position: relative;
-  overflow: visible;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.cite table {
+  width: 100%;
+  table-layout: auto;
 }
 
 .cite-header {
@@ -189,11 +144,6 @@ tbody td {
   color: var(--brown-base);
 }
 
-.cite table {
-  width: 100%;
-  table-layout: auto;
-  border-collapse: collapse;
-}
 
 .pagination {
   display: flex;

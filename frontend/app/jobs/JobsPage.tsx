@@ -6,9 +6,38 @@ import { useSearchParams } from "next/navigation";
 import { getActiveJobs, getFinishedJobs } from "@/lib/api";
 import Button from "../components/Button";
 
-interface JobResult { uid?: string; id?: number; created_at?: string; completed_at?: string; seed?: number; status?: string; }
-interface PaginatedJobs { count: number; next: string | null; previous: string | null; results: JobResult[]; }
-type JobRowForTable = { id: number; seed: number; status: string; conformations: number; created: string; priority: string; };
+interface JobResult {
+  uid: string;
+  hashed_uid?: string | null;
+  input_structure?: string;
+  seed?: number;
+  job_name: string;
+  email?: string;
+  created_at?: string;
+  expires_at?: string;
+  sum_processing_time?: string;
+  status?: string;
+  alternative_conformations?: number;
+}
+interface PaginatedJobs {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: JobResult[];
+}
+type JobRowForTableActive = {
+  id: number;
+  status: string;
+  created: string;
+  job_name: string;
+};
+type JobRowForTableFinished = {
+  id: number;
+  status: string;
+  created: string;
+  job_name: string;
+  processing_time: string;
+};
 
 export default function JobsQueue() {
   const searchParams = useSearchParams();
@@ -96,22 +125,19 @@ export default function JobsQueue() {
   useEffect(() => { if (activePage > totalPagesActive) setActivePage(totalPagesActive); }, [totalPagesActive]); 
   useEffect(() => { if (finishedPage > totalPagesFinished) setFinishedPage(totalPagesFinished); }, [totalPagesFinished]);
 
-  const activeRows: JobRowForTable[] = jobDataActive?.results.map((job, idx) => ({
+  const activeRows: JobRowForTableActive[] = jobDataActive?.results.map((job, idx) => ({
     id: idx + 1 + (activePage - 1) * pageSize,
-    seed: job.seed ?? 0,
     status: job.status ?? "Q",
-    conformations: 1,
-    created: job.created_at ?? job.completed_at ?? "-",
-    priority: "",
+    created: job.created_at ?? "-",
+    job_name: job.job_name ?? "-",
   })) ?? [];
 
-  const finishedRows: JobRowForTable[] = jobDataFinished?.results.map((job, idx) => ({
+  const finishedRows: JobRowForTableFinished[] = jobDataFinished?.results.map((job, idx) => ({
     id: idx + 1 + (finishedPage - 1) * pageSize,
-    seed: job.seed ?? 0,
     status: job.status ?? "F",
-    conformations: 1,
-    created: job.created_at ?? job.completed_at ?? "-",
-    priority: "",
+    created: job.created_at ?? "-",
+    job_name: job.job_name ?? "-",
+    processing_time: job.sum_processing_time ?? "-",
   })) ?? [];
 
   const getPageRange = (current: number, total: number, delta = 2) => {
@@ -167,19 +193,18 @@ export default function JobsQueue() {
         variant="filled" 
         width="220px" 
         height="36px"
-        action={() => console.log("start a job")}
+        action={() => {window.location.href = "/submitJob";}}
       />
       <Button 
         label="Guide" 
         variant="outlined" 
         width="150px" 
         height="36px"
-        action={() => console.log("Guide")}
+        action={() => {window.location.href = "/guide";}}
       />
     </div>
         </div>
         <JobsTable rows={activeRows} />
-
          <div className="pagination">
           <button onClick={handleActivePrev} disabled={!jobDataActive?.previous && activePage <= 1}>&lt; Previous</button>
 
@@ -201,8 +226,7 @@ export default function JobsQueue() {
         <div className="cite-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p className="cite-title">Finished jobs queue</p>
         </div>
-        <JobsTable rows={finishedRows} />
-
+        <JobsTable rows={finishedRows} isFinishedTable />
        <div className="pagination">
           <button onClick={handleFinishedPrev} disabled={!jobDataFinished?.previous && finishedPage <= 1}>&lt; Previous</button>
 
