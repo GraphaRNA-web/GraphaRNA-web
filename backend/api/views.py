@@ -30,6 +30,8 @@ import zipfile
 import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
+from django.utils import timezone
+from datetime import datetime, timedelta
 
 
 @download_zip_file_schema
@@ -453,7 +455,12 @@ def getActiveJobs(request: Request) -> Response:
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["C"]).order_by("created_at")
+    now = timezone.now()
+    time_threshold = now - timedelta(hours=24)
+    Job.objects.filter(status__in=["C","F"], created_at__gte=time_threshold)
+    if not data.exists():
+        fallback_threshold = now - timedelta(days=5)
+        data = Job.objects.filter(status="C", created_at__gte=fallback_threshold).order_by("created_at")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:
