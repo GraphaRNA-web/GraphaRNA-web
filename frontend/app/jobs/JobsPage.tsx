@@ -4,6 +4,7 @@ import "../styles/JobsQueue.css";
 import JobsTable from "../components/JobsTable";
 import { useSearchParams } from "next/navigation";
 import { getActiveJobs, getFinishedJobs } from "@/lib/api";
+import Button from "../components/Button";
 
 interface JobResult { uid?: string; id?: number; created_at?: string; completed_at?: string; seed?: number; status?: string; }
 interface PaginatedJobs { count: number; next: string | null; previous: string | null; results: JobResult[]; }
@@ -160,6 +161,22 @@ export default function JobsQueue() {
       <div className="cite" style={{ marginTop: 100 }}>
         <div className="cite-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p className="cite-title">Active jobs queue</p>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+      <Button 
+        label="Start a job" 
+        variant="filled" 
+        width="220px" 
+        height="36px"
+        action={() => console.log("start a job")}
+      />
+      <Button 
+        label="Guide" 
+        variant="outlined" 
+        width="150px" 
+        height="36px"
+        action={() => console.log("Guide")}
+      />
+    </div>
         </div>
         <JobsTable rows={activeRows} />
 
@@ -180,7 +197,7 @@ export default function JobsQueue() {
       </div>
       
 
-      <div className="cite" style={{ marginTop: 24 }}>
+      <div className="cite" style={{ marginTop: 100 }}>
         <div className="cite-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <p className="cite-title">Finished jobs queue</p>
         </div>
