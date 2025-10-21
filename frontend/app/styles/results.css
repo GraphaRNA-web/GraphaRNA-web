@@ -8,6 +8,12 @@
     color: var(--brown-lighten-10);
 }
 
+.info.error-info {
+  display: flex;
+  align-items: center;  
+  gap: 10px;
+}
+
 .not-finished {
     text-align: center;
     padding: 50px;

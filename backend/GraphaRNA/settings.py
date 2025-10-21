@@ -179,9 +179,7 @@ CELERY_TASK_DEFAULT_DELIVERY_MODE = "persistent"
 
 # Safeguard against long jobs
 CELERY_BROKER_HEARTBEAT = 0
-CELERY_BROKER_TRANSPORT_OPTIONS = {
-    'visibility_timeout': 86400
-}
+CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 86400}
 
 # Module settings
 MODEL_NAME = os.getenv("MODEL_NAME")
