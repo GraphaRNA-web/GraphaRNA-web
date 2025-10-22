@@ -1,9 +1,3 @@
-.github/
-.env
-celerybeat-schedule
-./backend/celerybeat-schedule
-*.crt
-*.key
 
 # Playwright
 node_modules/
