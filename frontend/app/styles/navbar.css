@@ -95,3 +95,17 @@
     font-size: 20px;
   }
 }
+
+@media (max-width: 500px) {
+
+  .navbar{
+    padding-left: 40px;
+  }
+}
+
+@media (max-width: 400px) {
+
+  .navbar{
+    padding-left: 30px;
+  }
+}
