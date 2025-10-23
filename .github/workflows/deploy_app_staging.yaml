@@ -90,6 +90,16 @@ jobs:
                 scan-type: image
                 format: table
                 severity: HIGH,CRITICAL
+
+            - name: Push Backend Image
+              run: |
+                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest
+
+            - name: Push Frontend Image
+              run: |
+                 docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+                 docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest
             
 
     #deploy to host server (Only possible after we have a server to deploy to :))
