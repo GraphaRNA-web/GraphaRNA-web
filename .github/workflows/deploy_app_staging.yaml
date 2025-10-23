@@ -91,12 +91,6 @@ jobs:
                 format: table
                 severity: HIGH,CRITICAL
             
-            - name: Upload Trivy scan results to GitHub Security tab
-              uses: github/codeql-action/upload-sarif@v3
-              with:
-                sarif_file: |
-                  trivy-results-backend.sarif
-                  trivy-results-frontend.sarif
 
     #deploy to host server (Only possible after we have a server to deploy to :))
     # deploy-to-server:
