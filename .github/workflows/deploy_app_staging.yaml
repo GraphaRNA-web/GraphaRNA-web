@@ -50,7 +50,7 @@ jobs:
             - name: Scan Backend Dependencies (pip-audit)
               run: |
                 pip install pip-audit
-                pip-audit -r backend/requirements.txt --fail-on HIGH
+                pip-audit -r backend/requirements.txt
 
             - name: Scan Frontend Dependencies (npm audit)
               run: |
@@ -97,6 +97,7 @@ jobs:
                 sarif_file: |
                   trivy-results-backend.sarif
                   trivy-results-frontend.sarif
+
     #deploy to host server (Only possible after we have a server to deploy to :))
     # deploy-to-server:
     #   name: Deploy to staging server
