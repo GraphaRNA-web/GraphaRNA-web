@@ -1,0 +1,124 @@
+name: Deployment
+on:
+    push:
+        branches:
+          - 'Deploy'
+    
+
+jobs:
+    build-scan-push:
+        name: Build scan and push images
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+            security-events: write
+            id-token: write 
+            issues: write 
+            pull-requests: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Determine Docker Image Tag (SHA)
+              id: determine_tag
+              run: |
+                TAG_VALUE="${GITHUB_SHA::7}"
+                echo "Using commit SHA for image tag: $TAG_VALUE"
+                echo "IMAGE_TAG_SHA=$TAG_VALUE" >> $GITHUB_OUTPUT
+
+            - name: TruffleHog OSS 
+              id: trufflehog 
+              uses: trufflesecurity/trufflehog@main
+              continue-on-error: true 
+              with: 
+                path: ./ 
+                base: ${{ github.event.before }}
+                head: ${{ github.sha }}
+                extra_args: --debug --only-verified
+            
+            - name: Scan Backend Dependencies (pip-audit)
+              run: |
+                pip install pip-audit
+                pip-audit -r backend/requirements.txt --fail-on HIGH
+
+            - name: Scan Frontend Dependencies (npm audit)
+              run: |
+                cd frontend
+                npm install --package-lock-only
+                npm audit --audit-level=high
+                cd ..
+
+            - name: Build backend image
+              run: |
+                docker build \
+                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
+                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest \
+                  --file backend/Dockerfile \
+                  ./backend
+
+            - name: Build frontend image
+              run: |
+                docker build \
+                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
+                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest \
+                  --file frontend/Dockerfile \
+                  ./frontend
+
+            - name: Scan backend image
+              uses: aquasecurity/trivy-action@master
+              with:
+                image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}'
+                scan-type: image
+                format: table
+                severity: HIGH,CRITICAL
+
+            - name: Scan frontend image
+              uses: aquasecurity/trivy-action@master
+              with:
+                image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}'
+                scan-type: image
+                format: table
+                severity: HIGH,CRITICAL
+            
+            - name: Upload Trivy scan results to GitHub Security tab
+              uses: github/codeql-action/upload-sarif@v3
+              with:
+                sarif_file: |
+                  trivy-results-backend.sarif
+                  trivy-results-frontend.sarif
+    #deploy to host server (Only possible after we have a server to deploy to :))
+    # deploy-to-server:
+    #   name: Deploy to staging server
+    #   runs-on: ubuntu-latest
+
+    #   steps:
+    #     - name: Deploy using SSH
+    #       uses: appleboy/ssh-action@master
+    #       with:
+    #         host: ${{ secrets.SERVER_HOST }}
+    #         username: ${{ secrets.SERVER_USERNAME }}
+    #         key: ${{ secrets.SERVER_SSH_KEY }}
+    #         port: ${{ secrets.SERVER_PORT || 22 }}
+    #         script: |
+    #           cd /GraphaRNA-web
+    #           echo "Pulling images"
+    #           docker compose pull backend frontend grapharna-engine
+    #           echo "Restarting containers"
+    #           docker compose up -d --remove-orphans
+    #           echo "Cleaning up old images..."
+    #           docker image prune -f
+    #           echo "Done!"
+
+
+

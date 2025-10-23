@@ -56,10 +56,10 @@ services:
       - backend
 
   grapharna-engine:
-    build:
-      context: ./GraphaRNA
-      dockerfile: Dockerfile
-    image: grapharna-engine:latest
+    # build:
+    #   context: ./GraphaRNA
+    #   dockerfile: Dockerfile
+    image: grapharnaweb/grapharna-web:grapharna-engine
     container_name: grapha_engine
     volumes:
       - shared_volume:/shared
