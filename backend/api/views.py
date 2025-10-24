@@ -1,3 +1,4 @@
+from pathlib import Path
 from django.conf import settings
 from webapp.hashing_tools import hash_uuid
 from rest_framework.decorators import api_view
@@ -8,7 +9,7 @@ from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
 from typing import Optional
 import random
-from datetime import date
+from datetime import date, timedelta
 from webapp.models import Job, JobResults
 from webapp.tasks import run_grapharna_task, send_email_task
 from uuid import UUID, uuid4
@@ -25,11 +26,157 @@ from .api_docs import (
     get_suggested_seed_and_job_name_schema,
     download_zip_file_schema,
     job_pagination_schema,
+    setup_test_job_schema,
+    setup_test_job_results_schema,
+    cleanup_test_jobs_schema,
 )
 import zipfile
 import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
+from django.core.files import File
+
+
+@setup_test_job_schema
+@api_view(["POST"])
+def SetupTestJob(request: Request) -> Response:
+    fasta_file_name: Optional[str] = request.data.get("fasta_file_name")
+    seed = request.data.get("seed")
+    email: Optional[str] = request.data.get("email")
+    job_alternative_conformations = request.data.get("alternative_conformations")
+    job_name = request.data.get("job_name")
+    job_status = request.data.get("job_status")
+    file_path = Path(f"/app/test_files/{fasta_file_name}")
+    sum_processing_time = request.data.get("sum_processing_time")
+    try:
+        with open(file_path, "rb") as f:
+            job = Job.objects.create(
+                uid=uuid4(),
+                hashed_uid=hash_uuid(str(uuid4())),
+                input_structure=File(f, name=fasta_file_name),
+                seed=seed,
+                job_name=job_name,
+                email=email,
+                status=job_status,
+                alternative_conformations=job_alternative_conformations,
+                sum_processing_time=timedelta(seconds=int(sum_processing_time)),
+            )
+        return Response(
+            {
+                "success": True,
+                "message": "Test data setup completed.",
+                "job_uuid": job.uid,
+                "job_hashed_uid": job.hashed_uid,
+            },
+            status=status.HTTP_200_OK,
+        )
+    except Exception as e:
+        return Response(
+            {"success": False, "error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@setup_test_job_results_schema
+@api_view(["POST"])
+def SetupTestJobResults(request: Request) -> Response:
+    job_uid = request.data.get("job_uid")
+    result_files = {
+        "result_secondary_structure_dotseq": request.data.get(
+            "result_secondary_structure_dotseq"
+        ),
+        "result_secondary_structure_svg": request.data.get(
+            "result_secondary_structure_svg"
+        ),
+        "result_tertiary_structure": request.data.get("result_tertiary_structure"),
+        "result_arc_diagram": request.data.get("result_arc_diagram"),
+    }
+    f1 = request.data.get("f1")
+    inf = request.data.get("inf")
+    processing_time = request.data.get("processing_time")
+
+    if not job_uid:
+        return Response(
+            {"success": False, "error": "Missing required field: job_uid."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        job = Job.objects.get(uid=job_uid)
+    except Job.DoesNotExist:
+        return Response(
+            {"success": False, "error": "Job not found with provided UID."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        job_results = JobResults.objects.create(
+            job=job,
+            f1=f1,
+            inf=inf,
+            processing_time=processing_time,
+        )
+
+        for field, filename in result_files.items():
+            if filename:
+                file_path = Path(f"/app/test_files/{filename}")
+                with open(file_path, "rb") as f:
+                    django_file = File(f, name=filename)
+                    getattr(job_results, field).save(filename, django_file, save=False)
+
+        job_results.save()
+
+        return Response(
+            {"success": True, "message": "JobResults test data setup completed."},
+            status=status.HTTP_200_OK,
+        )
+
+    except Exception as e:
+        return Response(
+            {"success": False, "error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@cleanup_test_jobs_schema
+@api_view(["DELETE"])
+def CleanupTestData(request: Request) -> Response:
+    huids = request.data.get("hashed_uids")
+
+    if not huids or not isinstance(huids, list):
+        return Response(
+            {"success": False, "error": "Missing or invalid 'hashed_uids' list."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        jobs_to_delete = Job.objects.filter(hashed_uid__in=huids)
+        count = jobs_to_delete.count()
+
+        if count == 0:
+            return Response(
+                {
+                    "success": False,
+                    "error": "No jobs found matching provided hashed_uids.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        deleted_count, _ = jobs_to_delete.delete()
+
+        return Response(
+            {
+                "success": True,
+                "message": f"Deleted {deleted_count} record(s) for provided hashed_uids.",
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except Exception as e:
+        return Response(
+            {"success": False, "error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @download_zip_file_schema
