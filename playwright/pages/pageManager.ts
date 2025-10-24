@@ -26,6 +26,9 @@ export class PageManager {
     get onNavigationPage() {
         return this.navigationPage ?? (this.navigationPage = new NavigationPage(this.page));
     }
+    get currentPage() {
+        return this.page;
+    }
 
     get onHomePage() {
         return this.homePage ?? (this.homePage = new HomePage(this.page));
