@@ -150,6 +150,10 @@ setup_test_job_schema = swagger_auto_schema(
                 type=openapi.TYPE_STRING,
                 description="Job status flag (e.g., 'Q' for queued, 'R' for running).",
             ),
+            "sum_processing_time": openapi.Schema(
+                type=openapi.TYPE_INTEGER,
+                description="Total processing time for the job in seconds.",
+            ),
         },
         example={
             "fasta_file_name": "example_sequence.fasta",
@@ -158,6 +162,7 @@ setup_test_job_schema = swagger_auto_schema(
             "alternative_conformations": 2,
             "job_name": "test_job_1",
             "job_status": "Q",
+            "sum_processing_time": 60,
         },
     ),
     responses={
@@ -328,9 +333,9 @@ setup_test_job_results_schema = swagger_auto_schema(
                 example=0.88,
             ),
             "processing_time": openapi.Schema(
-                type=openapi.TYPE_STRING,
-                description="Processing time in ISO 8601 duration format (e.g., '00:01:23').",
-                example="00:01:23",
+                type=openapi.TYPE_INTEGER,
+                description="Processing time in seconds.",
+                example=123,
             ),
         },
         example={
@@ -341,7 +346,7 @@ setup_test_job_results_schema = swagger_auto_schema(
             "result_arc_diagram": "test_result_arc.svg",
             "f1": 0.97,
             "inf": 0.90,
-            "processing_time": "00:00:42",
+            "processing_time": 42,
         },
     ),
     responses={

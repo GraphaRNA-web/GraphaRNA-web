@@ -8,6 +8,8 @@ test.describe("Navigation Menu", () => {
     test.beforeEach(async ({ page, baseURL }) => {
         
         const urlToOpen = baseURL || "https://your-app-base-url.com/";
+        console.log("Navigating to:", urlToOpen);
+
         await page.goto(urlToOpen);
     });
 

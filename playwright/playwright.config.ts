@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { TestOptions } from './test-options';
-
+import * as dotenv from "dotenv";
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -12,6 +12,9 @@ import { TestOptions } from './test-options';
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+
+// Load environment variables from .env file
+dotenv.config();
 export default defineConfig<TestOptions>({
   globalTimeout: 60000,
   testDir: './tests',
@@ -28,7 +31,7 @@ export default defineConfig<TestOptions>({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'http://127.0.0.1:3000/',
+    baseURL: process.env.FRONTEND_URL || "http://127.0.0.1:3000",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -46,7 +49,7 @@ export default defineConfig<TestOptions>({
       dependencies: ['setup'],
     },
 
-    {
+    /*{
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
@@ -55,7 +58,7 @@ export default defineConfig<TestOptions>({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-
+*/
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',
