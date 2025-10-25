@@ -114,7 +114,7 @@ def SetupTestJobResults(request: Request) -> Response:
             job=job,
             f1=f1,
             inf=inf,
-            processing_time=processing_time,
+            processing_time=timedelta(seconds=int(processing_time)),
         )
 
         for field, filename in result_files.items():

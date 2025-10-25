@@ -4,6 +4,7 @@ celerybeat-schedule
 ./backend/celerybeat-schedule
 *.crt
 *.key
+/GraphaRNA/
 
 # Playwright
 node_modules/
