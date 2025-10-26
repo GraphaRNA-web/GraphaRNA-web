@@ -19,7 +19,7 @@ export default function SubmitJob() {
   const router = useRouter();
   const [inputFormat, setInputFormat] = useState("Text");
   const [isExpanded, setIsExpanded] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(2);
   const [text, setText] = useState('');
   const [correctedText, setCorrectedText] = useState('');
   const [showValidation, setShowValidation] = useState(false);
@@ -286,7 +286,18 @@ const goNext = async () => {
       <div className='sjp-content'> 
         <div className='sjp-header' style={{ height: isExpanded ? 'auto' : '35px', overflow: 'hidden' }}>
           <div className='sjp-header-top'>
-            <span className='sjp-header-title'>RNA structure form</span>
+            <div className='sjp-header-title-div'>
+              {currentStep > 0 && currentStep < 3 && (
+                <img
+                  src="icons/arrow_back.svg"
+                  alt="Next step"
+                  className="sjp-step-arrow"
+                  style={{ width: "20px", height: "20px" }}
+                  onClick={handlePrev}
+                />
+              )}
+              <p className='sjp-header-title'>RNA structure form</p>
+            </div>
             <div className="sjp-toggle-button" onClick={() => setIsExpanded(prev => !prev)}>
               <span>{isExpanded ? "show less" : "show more"}</span>
               <img

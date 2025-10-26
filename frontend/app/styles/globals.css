@@ -46,6 +46,7 @@ body {
   background: var(--background-base);
   color: var(--brown-lighten-10);
   font-family: Arial, Helvetica, sans-serif;
+  cursor: var(--brown-lighten-25);
 }
 
 
@@ -68,4 +69,8 @@ main {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+*{
+  caret-color: var(--brown-lighten-25);
 }
