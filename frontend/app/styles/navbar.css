@@ -8,8 +8,8 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 10px;
-  padding-right: 50px;
-  padding-left: 77px;
+  padding-right: 25px;
+  padding-left: 25px;
   padding-bottom: 10px;
   backdrop-filter: blur(20px);
   box-shadow: 0 2px 20px 0 rgba(223, 222, 218, 1);
@@ -67,7 +67,7 @@
   .navbar__hamburger {
     display: block;
     position: absolute;
-    right: 30px;
+    right: 25px;
   }
 
   .navbar__right {

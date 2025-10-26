@@ -26,6 +26,13 @@
     justify-content: space-between;
 }
 
+.sjp-header-title-div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+}
+
 .sjp-header-bottom{
     height: auto;
     font-family: Inter;
@@ -48,7 +55,7 @@
     display: flex;
     flex-direction: row;
     gap: 10px;
-    font-size: 20px;
+    font-size: 18px;
     color: var(--primary2-base);
     align-items: center;
     cursor: pointer;
@@ -429,6 +436,10 @@
     .sjp-text-input-title{
         flex-direction: row;
         height: auto;
+    }
+
+    .sjp-header-title{
+        font-size: 24px;
     }
 }
 
