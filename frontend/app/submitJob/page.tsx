@@ -19,7 +19,7 @@ export default function SubmitJob() {
   const router = useRouter();
   const [inputFormat, setInputFormat] = useState("Text");
   const [isExpanded, setIsExpanded] = useState(false);
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(0);
   const [text, setText] = useState('');
   const [correctedText, setCorrectedText] = useState('');
   const [showValidation, setShowValidation] = useState(false);
