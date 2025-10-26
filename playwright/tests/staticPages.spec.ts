@@ -13,25 +13,34 @@ test.describe("Navigation on static pages", () => {
 
     test("navigate to Guide Page", async ({ page, pageManager }) => {
         await pageManager.onNavigationPage.guide.validateElement(true, true, "Guide");
-        await pageManager.onNavigationPage.toGuide();
         
-        await expect(page).toHaveURL(/.*\/guide/);
+        await Promise.all([
+            page.waitForURL(/.*\/guide/),
+            pageManager.onNavigationPage.toGuide()
+        ]);
+        
         await pageManager.onGuidePage.shouldBeOpened();
     });
 
     test("navigate to About Page", async ({ page, pageManager }) => {
         await pageManager.onNavigationPage.about.validateElement(true, true, "About");
-        await pageManager.onNavigationPage.toAbout();
-        
-        await expect(page).toHaveURL(/.*\/about/);
+
+        await Promise.all([
+            page.waitForURL(/.*\/about/),
+            pageManager.onNavigationPage.toAbout()
+        ]);
+
         await pageManager.onAboutPage.shouldBeOpened();
     });
 
     test("navigate to Cite Page", async ({ page, pageManager }) => {
         await pageManager.onNavigationPage.cite.validateElement(true, true, "Cite Us");
-        await pageManager.onNavigationPage.toCite();
         
-        await expect(page).toHaveURL(/.*\/cite/);
+        await Promise.all([
+            page.waitForURL(/.*\/cite/),
+            pageManager.onNavigationPage.toCite()
+        ]);
+
         await pageManager.onCitePage.shouldBeOpened();
     });
 });
