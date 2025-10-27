@@ -34,7 +34,7 @@
 }
 
 @media (max-width: 1200){
-    .content{
+    .jobsPageContent{
         padding-left: 40px;
     }
 
@@ -63,7 +63,7 @@
         width: 550px;
     }
 
-    .cite-title{
+    .jobsPage-title{
         width: 550px;
     }
 }
@@ -105,7 +105,7 @@ tbody td {
   padding: 10px 20px;
 }
 
-.content {
+.jobsPageContent {
   display: block;
   width: 100%;
   box-sizing: border-box;
@@ -113,7 +113,7 @@ tbody td {
   min-height: 100vh;
 }
 
-.cite {
+.jobsPage-main{
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -122,18 +122,18 @@ tbody td {
   gap: 30px;
 }
 
-.cite table {
+.jobsPage-maintable {
   width: 100%;
   table-layout: auto;
 }
 
-.cite-header {
+.jobsPage-header {
   margin-bottom: 0.75rem;
   position: relative;
   z-index: 1;
 }
 
-.cite-title {
+.jobsPage-title {
   margin: 24;
   padding: 0.25rem 0;
   font-weight: 600;
