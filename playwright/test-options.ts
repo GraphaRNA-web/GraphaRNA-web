@@ -1,6 +1,6 @@
 import { test as base } from "@playwright/test";
 import { PageManager } from "./pages/pageManager";
-import { DatabaseClient } from "./config/database";
+// import { DatabaseClient } from "./config/database";
 
 export type TestOptions = {
     globalUrl: string;
