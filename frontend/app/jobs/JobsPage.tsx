@@ -174,19 +174,14 @@ export default function JobsQueue() {
     else setFinishedPage((p) => Math.min(totalPagesFinished, p + 1));
   };
 
-  if (isLoading) return <div className="content"><p>Ładowanie danych…</p></div>;
-  if (error) return <div className="content"><p style={{ color: "red" }}>Błąd: {error}</p></div>;
+  if (isLoading) return <div className="jobsPageConetnt"><p>Ładowanie danych…</p></div>;
+  if (error) return <div className="jobsPageConetnt"><p style={{ color: "red" }}>Błąd: {error}</p></div>;
 
   return (
-    <div className="content">
-
-
-
-
-      
-      <div className="cite" style={{ marginTop: 100 }}>
-        <div className="cite-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p className="cite-title">Active jobs queue</p>
+    <div className="jobsPageContent">
+      <div className="jobsPage-main" style={{ marginTop: 100 }}>
+        <div className="jobsPage-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <p className="jobsPage-title">Active jobs queue</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
       <Button 
         label="Start a job" 
@@ -222,9 +217,9 @@ export default function JobsQueue() {
       </div>
       
 
-      <div className="cite" style={{ marginTop: 100 }}>
-        <div className="cite-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p className="cite-title">Finished jobs queue</p>
+      <div className="jobsPage-main" style={{ marginTop: 100 }}>
+        <div className="jobsPage-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <p className="jobsPage-title">Finished jobs queue</p>
         </div>
         <JobsTable rows={finishedRows} isFinishedTable />
        <div className="pagination">
