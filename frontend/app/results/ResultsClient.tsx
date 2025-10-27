@@ -29,17 +29,18 @@ interface JobData {
   created_at: string;
   sum_processing_time: string;
   result_list: JobResult[];
+  job_seed: string;
 }
 
 const formatProcessingTime = (timeInSeconds: string | null | undefined): string => {
   if (!timeInSeconds) {
-    return "N/A";
+    return "-";
   }
   
   const totalSeconds = parseInt(timeInSeconds, 10);
   
   if (isNaN(totalSeconds) || totalSeconds <= 0) {
-    return "N/A";
+    return "-";
   }
 
   const totalMinutes = Math.round(totalSeconds / 60);
@@ -191,7 +192,7 @@ const formatDate = (dateString: string) => {
               </div>
               <div className='proc-time'>
                 <p className='field-name'>Total processing time</p>
-                <p className='field-value'>{formatProcessingTime(jobData.sum_processing_time)}</p>
+                <p className='field-value'>{jobData.sum_processing_time ? formatProcessingTime(jobData.sum_processing_time) : '-'}</p>
               </div>
               <div className='rep-date'>
                 <p className='field-name'>Reported date</p>
@@ -219,7 +220,7 @@ const formatDate = (dateString: string) => {
                 </div>
                 <div className='seed'>
                   <p className='field-name'>Seed</p>
-                  <p className='field-value'>{currentResult?.seed ?? 'N/A'}</p>
+                  <p className='field-value'>{jobData.job_seed}</p>
                 </div>
               </div>
             </div>
@@ -256,6 +257,12 @@ const formatDate = (dateString: string) => {
                     <div className='f1-val'>
                       <p className='input-field-name3'>F1</p>
                       <p className='input-value2'>{currentResult.f1.toFixed(3)}</p>
+                    </div>
+                  )}
+                  {currentResult.seed !== null && (
+                    <div className='seed-val'>
+                      <p className='input-field-name3'>Current conformation seed</p>
+                      <p className='input-value2'>{currentResult.seed}</p>
                     </div>
                   )}
                 </div>

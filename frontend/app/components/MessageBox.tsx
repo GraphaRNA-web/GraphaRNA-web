@@ -15,7 +15,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({ type, messages }) => {
   const icons: Record<MessageType, string> = {
     error: "icons/error.svg",
     warning: "icons/error.svg",
-    approve: "icons/error.svg"
+    approve: ""
   };
 
   const headers: Record<MessageType, string> = {
@@ -37,7 +37,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({ type, messages }) => {
           <p className="message-header">{headers[type]}</p>
           {messageList.map((msg, index) => (
             <div className="message-line" key={index}>
-              <img src={icons[type]} alt={`${type} icon`} width={24} height={24} />
+              <img src={icons[type]} width={24} height={24} />
               <p>{msg}</p>
             </div>
           ))}
@@ -47,7 +47,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({ type, messages }) => {
         </div>
       ) : (
         <div className="message-line">
-          <img src={icons[type]} alt={`${type} icon`} width={24} height={24} />
+          <img src={icons[type]} width={24} height={24} />
           <p>{messageList[0]}</p>
         </div>
       )}
