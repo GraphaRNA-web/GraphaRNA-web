@@ -174,69 +174,107 @@ export default function JobsQueue() {
     else setFinishedPage((p) => Math.min(totalPagesFinished, p + 1));
   };
 
-  if (isLoading) return <div className="jobsPageConetnt"><p>Ładowanie danych…</p></div>;
+  // if (isLoading) return <div className="jobsPageConetnt"><p>Ładowanie danych…</p></div>;
   if (error) return <div className="jobsPageConetnt"><p style={{ color: "red" }}>Błąd: {error}</p></div>;
 
   return (
-    <div className="jobsPageContent">
-      <div className="jobsPage-main" style={{ marginTop: 100 }}>
-        <div className="jobsPage-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p className="jobsPage-title">Active jobs queue</p>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-      <Button 
-        label="Start a job" 
-        variant="filled" 
-        width="220px" 
-        height="36px"
-        action={() => {window.location.href = "/submitJob";}}
-      />
-      <Button 
-        label="Guide" 
-        variant="outlined" 
-        width="150px" 
-        height="36px"
-        action={() => {window.location.href = "/guide";}}
-      />
-    </div>
+  <div className="jobsPageContent">
+    <div className="jobsPage-main" style={{ marginTop: 100 }}>
+      <div className="jobsPage-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <p className="jobsPage-title">Active jobs queue</p>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <Button 
+            label="Start a job" 
+            variant="filled" 
+            width="220px" 
+            height="36px"
+            action={() => {window.location.href = "/submitJob";}}
+          />
+          <Button 
+            label="Guide" 
+            variant="outlined" 
+            width="150px" 
+            height="36px"
+            action={() => {window.location.href = "/guide";}}
+          />
         </div>
+      </div>
+
+      {/* tu zmiana */}
+      {isLoading ? (
+        <p style={{ textAlign: "center", padding: "2rem" }}>Ładowanie aktywnych zadań…</p>
+      ) : (
         <JobsTable rows={activeRows} />
-         <div className="pagination">
-          <button onClick={handleActivePrev} disabled={!jobDataActive?.previous && activePage <= 1}>&lt; Previous</button>
+      )}
 
-          {getPageRange(activePage, totalPagesActive).map((p, idx) =>
-            p === "..." ? (<span key={idx}>...</span>) : (
-              <button key={idx} onClick={() => { console.log("click page", p); setActivePage(Number(p)); }}
-                style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: activePage === p ? "green" : "transparent", color: activePage === p ? "white" : "black" }}>
-                {p}
-              </button>
-            )
-          )}
-
-          <button onClick={handleActiveNext} disabled={!jobDataActive?.next && activePage >= totalPagesActive}>Next &gt;</button>
-        </div>
-      </div>
-      
-
-      <div className="jobsPage-main" style={{ marginTop: 100 }}>
-        <div className="jobsPage-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p className="jobsPage-title">Finished jobs queue</p>
-        </div>
-        <JobsTable rows={finishedRows} isFinishedTable />
-       <div className="pagination">
-          <button onClick={handleFinishedPrev} disabled={!jobDataFinished?.previous && finishedPage <= 1}>&lt; Previous</button>
-
-          {getPageRange(finishedPage, totalPagesFinished).map((p, idx) =>
-            p === "..." ? (<span key={idx}>...</span>) : (
-              <button key={idx} onClick={() => { console.log("click finished page", p); setFinishedPage(Number(p)); }}
-                style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: finishedPage === p ? "green" : "transparent", color: finishedPage === p ? "white" : "black" }}>
-                {p}
-              </button>
-            )
-          )}
-
-          <button onClick={handleFinishedNext} disabled={!jobDataFinished?.next && finishedPage >= totalPagesFinished}>Next &gt;</button>
-        </div>
+      <div className="pagination">
+        <button onClick={handleActivePrev} disabled={!jobDataActive?.previous && activePage <= 1}>
+          &lt; Previous
+        </button>
+        {getPageRange(activePage, totalPagesActive).map((p, idx) =>
+          p === "..." ? (
+            <span key={idx}>...</span>
+          ) : (
+            <button
+              key={idx}
+              onClick={() => setActivePage(Number(p))}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                backgroundColor: activePage === p ? "green" : "transparent",
+                color: activePage === p ? "white" : "black",
+              }}
+            >
+              {p}
+            </button>
+          )
+        )}
+        <button onClick={handleActiveNext} disabled={!jobDataActive?.next && activePage >= totalPagesActive}>
+          Next &gt;
+        </button>
       </div>
     </div>
-  );
-}
+
+    {/* FINISHED JOBS */}
+    <div className="jobsPage-main" style={{ marginTop: 100 }}>
+      <div className="jobsPage-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <p className="jobsPage-title">Finished jobs queue</p>
+      </div>
+
+      {isLoading ? (
+        <p style={{ textAlign: "center", padding: "2rem" }}>Ładowanie zakończonych zadań…</p>
+      ) : (
+        <JobsTable rows={finishedRows} isFinishedTable />
+      )}
+
+      <div className="pagination">
+        <button onClick={handleFinishedPrev} disabled={!jobDataFinished?.previous && finishedPage <= 1}>
+          &lt; Previous
+        </button>
+        {getPageRange(finishedPage, totalPagesFinished).map((p, idx) =>
+          p === "..." ? (
+            <span key={idx}>...</span>
+          ) : (
+            <button
+              key={idx}
+              onClick={() => setFinishedPage(Number(p))}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                backgroundColor: finishedPage === p ? "green" : "transparent",
+                color: finishedPage === p ? "white" : "black",
+              }}
+            >
+              {p}
+            </button>
+          )
+        )}
+        <button onClick={handleFinishedNext} disabled={!jobDataFinished?.next && finishedPage >= totalPagesFinished}>
+          Next &gt;
+        </button>
+      </div>
+    </div>
+  </div>
+);
