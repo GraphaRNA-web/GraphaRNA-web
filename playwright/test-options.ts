@@ -3,6 +3,7 @@ import { PageManager } from "./pages/pageManager";
 //import { DatabaseClient } from "./config/database";
 import * as dotenv from "dotenv";
 dotenv.config();
+// import { DatabaseClient } from "./config/database";
 
 export type TestOptions = {
     frontendUrl: string;

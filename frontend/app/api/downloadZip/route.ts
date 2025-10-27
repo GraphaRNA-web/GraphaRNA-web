@@ -1,55 +1,70 @@
+// app/api/downloadZip/route.ts
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 const DOMAIN_URL = process.env.DOMAIN_URL || "http://localhost:3000";
 
+function forwardHeaders(req: Request): Headers {
+  const headers = new Headers();
+  const cookie = req.headers.get("cookie");
+  if (cookie) {
+    headers.set("cookie", cookie);
+  }
+  // Add other headers to forward if needed
+  return headers;
+}
+
 export async function GET(req: Request) {
-  console.log("[PROXY] incoming request to /api/downloadZip");
+  const endpoint = "/api/downloadZip";
+  console.log(`[PROXY] incoming GET to ${req.url}`);
+
   try {
-    const { searchParams } = new URL(req.url);
-    const uidh = searchParams.get("uidh");
-
-    // CSRF check
-    const cookieStore = await cookies();
-    const csrfCookie = cookieStore.get("csrfToken")?.value;
-    const csrfHeader = req.headers.get("x-csrf-token");
-    if (!csrfCookie || csrfCookie !== csrfHeader) {
-      return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
-    }
-
-    // Origin / Referer check
     const origin = req.headers.get("origin");
     const referer = req.headers.get("referer");
     if (!(origin === DOMAIN_URL || referer?.startsWith(DOMAIN_URL))) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
     }
+
+    const { searchParams } = new URL(req.url);
+    const uidh = searchParams.get("uidh");
 
     if (!uidh) {
-      return NextResponse.json(
-        { success: false, error: "Missing uidh param" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Missing uidh param" }, { status: 400 });
     }
 
-    // Forward request to Django backend
-    const res = await fetch(`${BACKEND_URL}/api/downloadZip?uidh=${uidh}`, {
+    const headersToForward = forwardHeaders(req);
+    const backendUrl = `${BACKEND_URL}${endpoint}?${searchParams.toString()}`;
+
+    const backendRes = await fetch(backendUrl, {
       method: "GET",
+      headers: headersToForward,
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      return new NextResponse(text, { status: res.status });
+    if (!backendRes.ok) {
+      const text = await backendRes.text();
+      // Forward error response headers
+      const responseHeaders = new Headers(backendRes.headers);
+      responseHeaders.delete('transfer-encoding');
+      return new NextResponse(text, { status: backendRes.status, headers: responseHeaders });
     }
 
-    const buffer = await res.arrayBuffer();
+    const buffer = await backendRes.arrayBuffer();
+    // Forward success response headers, adding specific ones for download
+    const responseHeaders = new Headers(backendRes.headers);
+    responseHeaders.delete('transfer-encoding');
+    responseHeaders.set('Content-Type', 'application/zip');
+    responseHeaders.set('Content-Disposition', `attachment; filename="result-${uidh}.zip"`);
+    
+    const setCookie = backendRes.headers.get("set-cookie");
+    if (setCookie) {
+        responseHeaders.set("set-cookie", setCookie);
+    }
+
     return new NextResponse(buffer, {
       status: 200,
-      headers: {
-        "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="result-${uidh}.zip"`,
-      },
+      headers: responseHeaders,
     });
+
   } catch (err: any) {
     console.error("[PROXY] proxy error", err);
     return NextResponse.json(

@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     padding-top: 130px;
-    height: 1700px;
+    height: auto;
     width: 100%;
     padding-left: 0px;
     margin-left: 0px;
@@ -47,6 +47,15 @@
     font-family: 'Inter';
     font-weight: 400;
     font-size: 16px;
+    color: var(--brown-base);
+}
+
+.about-p1, .about-p2, .about-p3{
+    width: 100%;
+    font-family: Inter;
+    font-weight: 400;
+    font-style: Regular;
+    font-size: 18px;
     color: var(--brown-base);
 }
 
@@ -256,6 +265,7 @@
     z-index: 2;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 40px;
 }
 
@@ -288,36 +298,38 @@
 
 @media (max-width: 1160px){
 
-    .ap-content{
+    .ap-content, .about, .funds, .authors, .funds-content, .authors-content{
         height: auto;
-    }
-
-    .about{
-        height: calc(550px + (1440px - 100vw)*0.25);
     }
 
     .about-content{
         width: 90vw;
-        height: 100%;
+        height: auto;
     }
 
-    .authors{
-        height: 1440px;
+    .about, .about-content{
+        margin-bottom: 20px;
     }
 
     .authors-content{
-        padding-top: 0px;
+        padding-top: 20px;
         width: 575px;
         flex-direction: column;
-        height: 1440px;
+        height: auto;
         justify-content: center;
         align-items: center;
     }
 
+    .authors{
+        padding-bottom: 20px;
+        height: auto;
+    }
+
     .author-groups{
         flex-direction: column;
-        height: 1200px;
+        height: auto;
         align-items: center;
+        gap: 20px;
     }
 
     .triangle-mid{
@@ -338,16 +350,115 @@
         top: calc(100px + (1440px - 100vw)*0.4);
     }
 
-    .funds{
-        height: 400px;
-    }
-
     .funds-title{
         padding-left: 20px;
+        height: auto;
     }
 
     .funds-text{
         padding-left: 20px;
-        margin-top: 100px;
+        margin-top: 20px;
+        height: auto;
+        margin-bottom: 20px;
+    }
+
+    .funds-content{
+        width: 100%;
+        margin-top: 50px;
+    }
+}
+
+@media (max-width: 575px){
+    .authors-rectangle, .authors-rectangle1{
+        width: calc(100% - 40px);
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    .authors{
+        height: auto;
+    }
+
+    .authors-content{
+        width: 100%;
+        height: auto;
+    }
+
+    .author-groups{
+        height: auto;
+    }
+
+    .authors-profs, .authors-students{
+        width: 100%;
+        height: 500px; /*AUTO*/
+    }
+
+    .funds-text{
+        width: 100%;
+    }
+
+    .about-text p{
+        font-size: 14px;
+    }
+
+    .authors-circle, .authors-circle1{
+        width: 180px;
+        height: 180px;
+        border-radius: 90px;
+    }
+
+    .rocket-icon{
+        width: 70px;
+        height: 70px;
+    }
+
+    .web-icon{
+        width: 75px;
+        height: 75px;
+    }
+
+    .graphaRNA-text, .graphaRNAweb-text{
+        font-size: 16px;
+    }
+
+    .authors-rectangle, .authors-rectangle1{
+        padding-top: 70px;
+        padding-bottom: 20px;
+        height: auto;
+        gap: 5px;
+    }
+
+    .triangle-mid, .circle-top, .triangle-bottom, .circle-mid{
+        width: 0px;
+        height: 0px;
+    }
+}
+
+@media (max-width: 390px){
+    .authors-row{
+        flex-direction: column;
+        height: auto;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .authors-students{
+        height: 800px;
+    }
+
+    .authors-profs{
+        height: 580px;
+    }
+
+    .funds-title{
+        padding-left: 5px;
+        font-size: 30px;
+    }
+}
+
+@media (max-width: 320px) {
+    .triangle-top{
+        width: 0px;
+        height: 0px;
     }
 }

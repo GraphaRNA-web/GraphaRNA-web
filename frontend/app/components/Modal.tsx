@@ -6,7 +6,7 @@ import Button from './Button';
 
 const Modal: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,15 +34,14 @@ const Modal: React.FC = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (isValidFile(file)) {
-        setSelectedFile(file);
-        setErrorMessage(null);
-      } else {
-        setSelectedFile(null);
-        setErrorMessage('File has other type than .fasta');
-      }
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(isValidFile);
+
+    if (validFiles.length > 0) {
+      setUploadedFiles((prev) => [...prev, ...validFiles]);
+      setErrorMessage(null);
+    } else {
+      setErrorMessage('File has other type than .fasta');
     }
   };
 
@@ -50,23 +49,60 @@ const Modal: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      if (isValidFile(file)) {
-        setSelectedFile(file);
-        setErrorMessage(null);
-      } else {
-        setSelectedFile(null);
-        setErrorMessage('File has other type than .fasta');
-      }
+
+    const files = Array.from(e.dataTransfer.files || []);
+    const validFiles = files.filter(isValidFile);
+
+    if (validFiles.length > 0) {
+      setUploadedFiles((prev) => [...prev, ...validFiles]);
+      setErrorMessage(null);
+    } else {
+      setErrorMessage('File has other type than .fasta');
     }
   };
 
+  const handleRemoveFile = (fileName: string) => {
+    setUploadedFiles((prev) => prev.filter((file) => file.name !== fileName));
+  };
+
+  const exampleFiles = {
+    example1: `>Example 1
+CCGAGUAGGUA
+((.....))..`,
+
+    example2: `>Example 2
+GACUUAUAGAU UGAGUCC
+(((((..(... ))))))).`,
+
+    example3: `>Example 3
+UUAUGUGCC UGUUA AAUACAAUAG
+.....(... (.(.. ).....)..)`
+  };
+
+  const handleDownloadExample = (exampleKey: keyof typeof exampleFiles) => {
+    const content = exampleFiles[exampleKey];
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${exampleKey}.fasta`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExampleClick = (exampleKey: keyof typeof exampleFiles) => {
+    const content = exampleFiles[exampleKey];
+    const file = new File([content], `${exampleKey}.fasta`, { type: 'text/plain' });
+    setUploadedFiles((prev) => [...prev, file]);
+    setErrorMessage(null);
+  };
+
   const handleUpload = () => {
-    if (selectedFile) {
-      console.log('Uploading file:', selectedFile.name);
+    if (uploadedFiles.length > 0) {
+      console.log('Uploading files:', uploadedFiles.map((f) => f.name));
       setIsOpen(false);
-      setSelectedFile(null);
+      setUploadedFiles([]);
       setErrorMessage(null);
     }
   };
@@ -76,14 +112,13 @@ const Modal: React.FC = () => {
       <Button
         color="primary"
         variant="filled"
-        fontSize="20px"
-        width="305px"
-        height="50px"
+        fontSize="16px"
+        width="200px"
+        height="40px"
         action={() => setIsOpen(true)}
         icon={<img src="icons/white_upload.svg" alt="Upload Icon" style={{ height: 24, width: 24 }} />}
         label="Upload File"
       />
-
 
       {isOpen && (
         <div className="modal-backdrop">
@@ -95,43 +130,119 @@ const Modal: React.FC = () => {
             <div className="modal-top-text">
               <h2 className="modal-title">Upload file</h2>
               <p className="modal-subtitle">
-                Choose a file from your computer. The file should be in .txt format.
+                Choose a file from your computer. The file should be in .txt or .fasta format.
               </p>
             </div>
 
-            <div
-              className={`file-dropzone ${isDragging ? 'drag-active' : ''}`}
-              onClick={() => fileInputRef.current?.click()}
-              onDragEnter={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={(e) => {
-                e.preventDefault();
-                setIsDragging(false);
-              }}
-              onDrop={handleDrop}
-            >
-              {selectedFile ? (
-                <div className="uploaded-file">
-                  <img src="photos/file_icon.png" alt="File Icon" width={64} height={64} />
-                  <p className="file-name">{selectedFile.name}</p>
+            <div className="file-dropzone">
+              {uploadedFiles.length === 0 ? (
+                <div className="upload-and-examples">
+                  <div
+                    className={`upload-left-section ${isDragging ? 'drag-active' : ''}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                    onDrop={handleDrop}
+                  >
+                    <div className="upload-icon">
+                      <img src="icons/upload_icon.svg" alt="Upload Icon" width={74} height={74} />
+                    </div>
+                    <div className="dropzone-text">
+                      <p className="dropzone-instruction">Upload file</p>
+                      <p className="dropzone-instruction-2">drag & drop</p>
+                    </div>
+                  </div>
+
+                  <div className="modal-line-and-or">
+                    <div className="modal-line-part" />
+                    <p className="modal-line-sep">or</p>
+                    <div className="modal-line-part" />
+                  </div>
+                  <div className="upload-right-section">
+                  <p className="example-files-description">
+                    Choose one of the examples to try out some exemplary files.
+                  </p>
+
+                  <div className="example-file-div">
+                    <Button
+                      color="green1"
+                      width="135px"
+                      height="30px"
+                      label="File 1"
+                      fontSize="12px"
+                      icon={<img src="icons/file_icon.svg" alt="File" style={{ height: 12, width: 12 }} />}
+                      action={() => handleExampleClick('example1')}
+                    />
+                    <img
+                      className="modal-download-icon"
+                      src="/icons/download_gray.svg"
+                      alt="Download icon"
+                      onClick={() => handleDownloadExample('example1')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </div>
+
+                  <div className="example-file-div">
+                    <Button
+                      color="green2"
+                      width="135px"
+                      height="30px"
+                      label="File 2"
+                      fontSize="12px"
+                      icon={<img src="icons/file_icon.svg" alt="File" style={{ height: 12, width: 12 }} />}
+                      action={() => handleExampleClick('example2')}
+                    />
+                    <img
+                      className="modal-download-icon"
+                      src="/icons/download_gray.svg"
+                      alt="Download icon"
+                      onClick={() => handleDownloadExample('example2')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </div>
+
+                  <div className="example-file-div">
+                    <Button
+                      color="green3"
+                      width="135px"
+                      height="30px"
+                      label="File 3"
+                      fontSize="12px"
+                      icon={<img src="icons/file_icon.svg" alt="File" style={{ height: 12, width: 12 }} />}
+                      action={() => handleExampleClick('example3')}
+                    />
+                    <img
+                      className="modal-download-icon"
+                      src="/icons/download_gray.svg"
+                      alt="Download icon"
+                      onClick={() => handleDownloadExample('example3')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </div>
+                </div>
                 </div>
               ) : (
-                <>
-                  <div className="upload-icon">
-                    <img src="icons/upload_icon.svg" alt="Upload Icon" width={74} height={74} />
-                  </div>
-                  <div className="dropzone-text">
-                    <p className="dropzone-instruction">Upload file</p>
-                    <p className="dropzone-instruction-2">drag & drop</p>
-                  </div>
-                </>
+                <div className="uploaded-files-section">
+                  {uploadedFiles.map((file) => (
+                    <div key={file.name} className="uploaded-file-item-with-remove">
+                      <img
+                        src="icons/file_uploaded.svg"
+                        alt="Uploaded File"
+                        className="uploaded-file-icon"
+                      />
+                      <span className="uploaded-file-name">{file.name}</span>
+                      <img
+                        src="icons/remove_uploaded.svg"
+                        alt="Remove file"
+                        className="remove-uploaded-icon"
+                        onClick={() => handleRemoveFile(file.name)}
+                      />
+                    </div>
+                  ))}
+                </div>
               )}
+
               <input
                 type="file"
                 accept=".txt,.fasta"
@@ -144,9 +255,7 @@ const Modal: React.FC = () => {
             {errorMessage && (
               <div className="error-message">
                 <img src="icons/error.svg" alt="Error Icon" width={24} height={24} />
-                <p>
-                  {errorMessage}
-                </p>
+                <p>{errorMessage}</p>
               </div>
             )}
 
@@ -162,9 +271,8 @@ const Modal: React.FC = () => {
                 action={() => {
                   setIsOpen(false);
                   setErrorMessage(null);
-                  setSelectedFile(null);
+                  setUploadedFiles([]);
                 }}
-                disabled={false}
               />
               <Button
                 id="modal-upload-button"
@@ -175,7 +283,7 @@ const Modal: React.FC = () => {
                 width="160px"
                 height="41px"
                 action={handleUpload}
-                disabled={!selectedFile}
+                disabled={uploadedFiles.length === 0}
               />
             </div>
           </div>

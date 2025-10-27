@@ -1,27 +1,47 @@
 .submit-jobs-page{
     padding-top: 100px;
+    padding-left: calc((100% - 1140px) / 2);
+    padding-bottom: 100px;
 }
 
 .sjp-content{
+    width: 1140px;
     display: flex;
     flex-direction: column;
-    padding-top: 60px;
-    padding-bottom: 60px;
-    padding-left: 150px;
-    padding-right: 150px;
     gap: 60px;
+    height: auto;
 }
 
 .sjp-header{
     display: flex;
     flex-direction: column;
-    gap: 42px;
+    gap: 25px;
+    height: auto;
 }
 
 .sjp-header-top{
+    height: 35px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+}
+
+.sjp-header-title-div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+}
+
+.sjp-header-bottom{
+    height: auto;
+    font-family: Inter;
+    font-weight: 400;
+    font-style: Regular;
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    width: 100%;
 }
 
 .sjp-header-title{
@@ -35,9 +55,10 @@
     display: flex;
     flex-direction: row;
     gap: 10px;
-    font-size: 20px;
+    font-size: 18px;
     color: var(--primary2-base);
     align-items: center;
+    cursor: pointer;
 }
 
 .sjp-toggle-icon{
@@ -48,46 +69,129 @@
 .sjp-buttons-section{
     display: flex;
     flex-direction: row;
+    justify-content: flex-start;
     gap: 15px;
+    width: 100%;
+    height: 40px;
 }
 
 .sjp-format-select{
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    padding-left: 100px;
-    padding-right: 100px;
-    padding-top: 20px;
-}
-
-.sjp-format-select-left{
-    display: flex;
-    flex-direction: column;
+    padding-top: 0px;
+    padding-bottom: 0px;
     gap: 20px;
+    margin-top: -20px;
 }
 
 .sjp-format-top{
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--brown-lighten-15);
-    font-family: "Raleway";
-}
-
-.sjp-format-bottom{
+    font-family: Raleway;
+    font-weight: 600;
+    font-style: SemiBold;
     font-size: 18px;
-    font-weight: 300;
-    color: var(--brown-base);
-    font-family: "Inter";
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: center;
+    color: var(--brown-lighten-15);
+    height: 20px;
 }
 
-.sjp-line-sep{
-    width: 604px;
-    height: 0px;
-    border: 1px solid var(--background-darken-10);
-    margin: auto;
-    margin-top: 20px;
+.sjp-int-gray-box{
+    background-color: var(--background-darken-3);
+    width: 100%;
+    gap: 82px;
+    border-radius: 20px;
+    padding: 70px;
+}
+
+.sjp-int-hint{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 71px;
+    gap: 16px;
+    margin-bottom: 60px;
+}
+
+.sjp-hint-title{
+    font-family: Raleway;
+    font-weight: 700;
+    font-style: Bold;
+    font-size: 18px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    color: var(--brown-base)
+}
+
+.sjp-hint-text{
+    font-family: Inter;
+    font-weight: 300;
+    font-style: Light;
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    color: var(--brown-base);
+}
+
+.sjp-int-input-title{
+    width: 100%;
+    height: 22px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 20px;
+    align-items: end;
     margin-bottom: 20px;
+    align-items: center;
+}
+
+.sjp-rna-structure-title{
+    font-family: Inter;
+    font-weight: 600;
+    font-style: Semi Bold;
+    font-size: 18px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    color: var(--brown-base);
+    height: 100%;
+    width: 125px;
+}
+
+.sjp-rna-structure-text{
+    font-family: Inter;
+    font-weight: 400;
+    font-style: Regular;
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    color: var(--brown-lighten-15);
+}
+
+.sjp-structure-item{
+    width: 100%;
+}
+
+.sjp-text-input-title{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    gap: 20px;
+    height: 30px;
+    align-items: flex-start;
+    margin-bottom: 60px;
+    margin-bottom: 20px;
+}
+
+.sjp-text-examples{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    height: 30px;
+    justify-content: flex-end;
 }
 
 .sjp-format{
@@ -98,73 +202,27 @@
     padding-right: 100px;
 }
 
-.sjp-format-info{
+.sjp-hint-upload{
+    width: 100%;
+    height: 60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sjp-file-hint{
+    width: 300px;
+    height: 60px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-}
-
-.sjp-format-info-1{
-    font-family: Raleway;
-    font-weight: 700;
-    font-size: 20px;
-}
-
-.sjp-format-info-2{
-    font-family: Inter;
-    font-weight: 300;
-    font-size: 14px;
+    justify-content: space-between;
 }
 
 .sjp-step-0{
     display: flex;
     flex-direction: column;
     gap: 60px;
-}
-
-.sjp-text-input-section{
-    display: flex;
-    flex-direction: column;
-    background-color: var(--background-darken-5);
-    border-radius: 20px;
-    min-height: 433px;
-    padding: 80px 100px;
-    gap: 50px;
-}
-
-.sjp-text-input-section--error {
-  height: 500px;
-}
-
-.sjp-text-input-examples{
-    height: 34px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-.sjp-examples-left{
-    width: 257px;
-    font-size: 14px;
-    font-weight: 300;
-    font-family: Inter;
-}
-
-.sjp-examples-right{
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    width: 545px;
-}
-
-.sjp-input-area{
-    display: flex;
-    flex-direction: column;
-    gap: 17px;
-    font-size: 18px;
-    font-weight: 600;
-    font-family: Inter;
-    color: var(--brown-base)
 }
 
 .sjp-opt-params{
@@ -191,9 +249,10 @@
     flex-direction: column;
     gap: 50px;
     border-radius: 30px;
-    padding: 80px 100px;
     background-color: var(--background-darken-5);
     margin-bottom: 83px;
+    width: 100%;
+    padding: 70px;
 }
 
 .sjp-seed-name-param{
@@ -204,6 +263,7 @@
     font-size: 20px;
     font-weight: 600;
     color: var(--brown-base);
+    width: 100%;
 }
 
 .sjp-params-fields span{
@@ -222,6 +282,7 @@
     font-weight: 600;
     color: var(--brown-base);
     gap: 10px;
+    width: 100%;
 }
 
 .sjp-email-param{
@@ -268,6 +329,7 @@
 }
 
 .sjp-add-structure{
+    width: 100%;
     border-radius: 10px;
     border: 2px solid var(--primary2-base);
     color: var(--primary2-base);
@@ -278,10 +340,117 @@
 
 .sjp-add-structure p{
     font-size: 20px;
+    text-align: center;
 }
 
 .sjp-step1-buttons{
     display: flex;
     flex-direction: row;
     gap: 15px;
+    height: 40px;
+    width: 405px;
+}
+
+@media (max-width: 1160px){
+    .submit-jobs-page{
+        padding-left: 10px;
+    }
+
+    .sjp-content{
+        width: 100%;
+    }
+
+    .sjp-params-fields{
+        padding-left: calc(70px - (1160px - 100%)*0.1);
+        padding-right: calc(70px - (1160px - 100%)*0.1);
+    }
+
+    .sjp-int-gray-box{
+        padding-left: calc(70px - (1160px - 100%)*0.1);
+        padding-right: calc(70px - (1160px - 100%)*0.1);
+        padding-top: calc(70px - (1160px - 100%)*0.05);
+        padding-bottom: calc(70px - (1160px - 100%)*0.05);
+    }
+}
+
+@media (max-width: 755px){
+    .sjp-text-examples {
+        transform: scale(0.8);
+    }
+
+    .sjp-text-input-title{
+        flex-direction: column;
+        height: 60px;
+        gap: 10px;
+    }
+
+    .sjp-text-examples{
+        align-items: center;
+    }
+
+    .sjp-toggle-button span{
+        font-size: 0px;
+    }
+
+    .sjp-int-hint{
+        height: auto;
+    }
+    .sjp-hint-text{
+        height: auto;
+    }
+}
+
+@media (max-width: 580px){
+    .sjp-text-examples {
+        text-align: start;
+        margin-left: -50px;
+    }
+
+    .sjp-hint-upload{
+        flex-direction: column;
+        height: auto;
+        gap: 20px;
+    }
+
+    .sjp-file-hint{
+        gap: 10px;
+    }
+
+    .sjp-int-input-title{
+        height: auto;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 450px){
+    .sjp-text-examples {
+        display: flex;
+        flex-direction: column;
+        width: 175px;
+        height: 120px;
+        margin-top: -10px;
+        padding-top: 0px;
+    }
+
+    .sjp-text-input-title{
+        flex-direction: row;
+        height: auto;
+    }
+
+    .sjp-header-title{
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 420px){
+    .sjp-step1-buttons{
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .sjp-buttons-section{
+        flex-direction: column;
+        width: 100%;
+    }
 }
