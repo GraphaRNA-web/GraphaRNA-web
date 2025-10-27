@@ -1,26 +1,11 @@
-export async function fetchWithCsrf(input: RequestInfo, init: RequestInit = {}) {
-  let csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
-  if (!csrf) {
-    const res = await fetch("/api/csrf", { credentials: "include" });
-    const data = await res.json();
-    csrf = data.csrfToken;
-    const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]');
-    if (meta && csrf) {
-      meta.content = csrf;
-    }
-  }
-
-  const mergedHeaders = {
-    ...(init.headers || {}),
-    "x-csrf-token": csrf || "",
-  };
-
+// lib/api.ts
+async function fetchApiProxy(input: RequestInfo, init: RequestInit = {}) {
   return fetch(input, {
     ...init,
-    headers: mergedHeaders,
     credentials: "include",
   });
 }
+
 
 export async function validateRNA(params: { fasta_raw?: string; fasta_file?: File }) {
   console.log("[validateRNA] sending to /api/validateRNA", params);
@@ -29,17 +14,15 @@ export async function validateRNA(params: { fasta_raw?: string; fasta_file?: Fil
   const headers: Record<string, string> = {};
 
   if (params.fasta_file) {
-    // multipart/form-data
     const form = new FormData();
     form.append("fasta_file", params.fasta_file, params.fasta_file.name);
     body = form;
   } else {
-    // JSON
     body = JSON.stringify({ fasta_raw: params.fasta_raw });
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetchWithCsrf("/api/validateRNA", {
+  const res = await fetchApiProxy("/api/validateRNA", { 
     method: "POST",
     headers,
     body,
@@ -51,21 +34,14 @@ export async function validateRNA(params: { fasta_raw?: string; fasta_file?: Fil
   return data;
 }
 
-
-
-
 export type SuggestedData = { seed: number; job_name: string };
 
 export async function getSuggestedData(): Promise<SuggestedData> {
-  const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "x-csrf-token": csrf || "",
-  };
-
-  const res = await fetchWithCsrf("/api/getSuggestedData", {
+  const res = await fetchApiProxy("/api/getSuggestedData", {
     method: "GET",
-    headers,
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
   if (!res.ok) {
@@ -75,7 +51,6 @@ export async function getSuggestedData(): Promise<SuggestedData> {
 
   return res.json();
 }
-
 
 export async function submitJobRequest(params: {
   fasta_raw?: string;
@@ -87,12 +62,10 @@ export async function submitJobRequest(params: {
 }) {
   console.log("[submitJobRequest] sending to /api/submitRequest", params);
 
-  const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
-  const headers: Record<string, string> = { "x-csrf-token": csrf || "" };
-
+  const headers: Record<string, string> = {};
   let body: BodyInit;
+
   if (params.fasta_file) {
-    // Multipart upload (plik)
     const form = new FormData();
     form.append("fasta_file", params.fasta_file, params.fasta_file.name);
     if (params.fasta_raw) form.append("fasta_raw", params.fasta_raw);
@@ -109,7 +82,7 @@ export async function submitJobRequest(params: {
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetchWithCsrf("/api/submitRequest", {
+  const res = await fetchApiProxy("/api/submitRequest", {
     method: "POST",
     headers,
     body,
@@ -123,12 +96,10 @@ export async function submitJobRequest(params: {
   return res.json();
 }
 
-
-
 export async function getResultDetails(params: { uidh: string }) {
   console.log("[getResultDetails] sending request to proxy", params);
 
-  const res = await fetchWithCsrf(`/api/getResultDetails?uidh=${encodeURIComponent(params.uidh)}`, {
+  const res = await fetchApiProxy(`/api/getResultDetails?uidh=${encodeURIComponent(params.uidh)}`, {
     method: "GET",
   });
 
@@ -145,17 +116,10 @@ export async function getResultDetails(params: { uidh: string }) {
   return data;
 }
 
-
-// This function automaticly shows the download prompt, so you should use it like:
-// <Button
-//   onClick={() => downloadZip({ uidh: jobuidh })}
-// >
-//   Download ZIP
-// </Button>
 export async function downloadZip(params: { uidh: string }) {
   console.log("[downloadZip] sending request to proxy", params);
 
-  const res = await fetchWithCsrf(`/api/downloadZip?uidh=${encodeURIComponent(params.uidh)}`, {
+  const res = await fetchApiProxy(`/api/downloadZip?uidh=${encodeURIComponent(params.uidh)}`, {
     method: "GET",
   });
 
@@ -176,12 +140,11 @@ export async function downloadZip(params: { uidh: string }) {
   window.URL.revokeObjectURL(url);
 }
 
-
-export async function getActiveJobs(params: {page: string}): Promise<any> {
+export async function getActiveJobs(params: { page: string }): Promise<any> {
   console.log("[getActiveJobs] sending request to proxy");
 
-  const res = await fetchWithCsrf(`/api/getActiveJobs?page=${encodeURIComponent(params.page)}`, {
-     method: "GET" 
+  const res = await fetchApiProxy(`/api/getActiveJobs?page=${encodeURIComponent(params.page)}`, { 
+    method: "GET"
   });
 
   if (!res.ok) {
@@ -192,11 +155,11 @@ export async function getActiveJobs(params: {page: string}): Promise<any> {
   return res.json();
 }
 
-export async function getFinishedJobs(params: {page: string}): Promise<any> {
+export async function getFinishedJobs(params: { page: string }): Promise<any> {
   console.log("[getFinishedJobs] sending request to proxy");
 
-  const res = await fetchWithCsrf(`/api/getFinishedJobs?page=${encodeURIComponent(params.page)}`, { 
-    method: "GET" 
+  const res = await fetchApiProxy(`/api/getFinishedJobs?page=${encodeURIComponent(params.page)}`, {
+    method: "GET"
   });
 
   if (!res.ok) {

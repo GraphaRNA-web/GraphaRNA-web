@@ -1,99 +1,81 @@
+// app/api/submitRequest/route.ts
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 const DOMAIN_URL = process.env.DOMAIN_URL || "http://localhost:3000";
 
+function forwardHeaders(req: Request): Headers {
+  const headers = new Headers();
+  const cookie = req.headers.get("cookie");
+  if (cookie) {
+    headers.set("cookie", cookie);
+  }
+  // Content-Type is set later based on JSON or FormData
+  return headers;
+}
+
 export async function POST(req: Request) {
-  console.log("[PROXY] incoming request to /api/submitRequest");
+  const endpoint = "/api/postRequestData/"; // Django endpoint
+  console.log(`[PROXY] incoming POST to ${req.url}`);
 
   try {
-    const cookieStore = await cookies();
-    const csrfCookie = cookieStore.get("csrfToken")?.value;
-    const csrfHeader = req.headers.get("x-csrf-token");
-
-    if (!csrfCookie || csrfCookie !== csrfHeader) {
-      return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
-    }
-
     const origin = req.headers.get("origin");
     const referer = req.headers.get("referer");
     if (!(origin === DOMAIN_URL || referer?.startsWith(DOMAIN_URL))) {
       return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
     }
 
-    let backendRes: Response;
+    const headersToForward = forwardHeaders(req);
+    let body: BodyInit | null = null;
+    const contentType = req.headers.get("content-type");
 
-    if (req.headers.get("content-type")?.includes("multipart/form-data")) {
-      // FormData
+    if (contentType?.includes("multipart/form-data")) {
       const form = await req.formData();
-
       const email = form.get("email");
       if (typeof email === "string" && email.trim() === "") {
         form.delete("email");
       }
-
-      console.log("[PROXY] forwarding multipart form entries:", [...form.entries()]);
-      backendRes = await fetch(`${BACKEND_URL}/api/postRequestData/`, {
-        method: "POST",
-        body: form,
-      });
+      body = form;
     } else {
-      // JSON
-      const body = await req.json();
-      console.log("[PROXY] forwarding JSON body (before cleanup):", body);
-
-      if (body.email === "") {
-        delete body.email;
+      const rawBody = await req.text();
+      body = rawBody;
+      if (contentType) {
+          headersToForward.set("Content-Type", contentType);
       }
-
-      console.log("[PROXY] forwarding JSON body (after cleanup):", body);
-
-      if (!body.fasta_raw) {
-        return NextResponse.json(
-          { success: false, error: "Missing RNA data (fasta_raw)" },
-          { status: 400 }
-        );
+      try {
+        const jsonBody = JSON.parse(rawBody);
+         if (jsonBody.email === "") {
+            delete jsonBody.email;
+         }
+         body = JSON.stringify(jsonBody);
+         if (!headersToForward.has('Content-Type')) {
+             headersToForward.set('Content-Type', 'application/json');
+         }
+      } catch (e) {
+          console.warn("Could not parse request body as JSON, forwarding raw text", e);
+          if (!headersToForward.has('Content-Type') && contentType) {
+            headersToForward.set('Content-Type', contentType);
+          }
       }
-      if (body.fasta_raw && body.fasta_file) {
-        return NextResponse.json(
-          { success: false, error: "Unable to process both fasta_raw and fasta_file)" },
-          { status: 400 }
-        );
-      }
-      if (body.fasta_raw && typeof body.fasta_raw !== "string") {
-        return NextResponse.json(
-          { success: false, error: "fasta_raw must be a string" },
-          { status: 400 }
-        );
-      }
-
-      const allowedKeys = [
-        "fasta_raw",
-        "fasta_file",
-        "seed",
-        "job_name",
-        "email",
-        "alternative_conformations",
-      ];
-      for (const key of Object.keys(body)) {
-        if (!allowedKeys.includes(key)) {
-          return NextResponse.json(
-            { success: false, error: `Unexpected field: ${key}` },
-            { status: 400 }
-          );
-        }
-      }
-
-      backendRes = await fetch(`${BACKEND_URL}/api/postRequestData/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
     }
 
-    const data = await backendRes.json();
-    return NextResponse.json(data, { status: backendRes.status });
+    const backendRes = await fetch(`${BACKEND_URL}${endpoint}`, {
+      method: "POST",
+      headers: headersToForward,
+      body: body,
+    });
+
+    const responseBody = await backendRes.text();
+    const responseHeaders = new Headers(backendRes.headers);
+    responseHeaders.delete('transfer-encoding');
+
+    const response = new NextResponse(responseBody, {
+      status: backendRes.status,
+      headers: responseHeaders,
+    });
+
+    return response;
+
   } catch (err: any) {
     console.error("[PROXY] proxy error", err);
     return NextResponse.json(
