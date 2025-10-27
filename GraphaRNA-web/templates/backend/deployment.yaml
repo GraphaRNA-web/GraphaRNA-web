@@ -46,11 +46,16 @@ spec:
               mountPath: /tmp
             - name: tmp-dir
               mountPath: /.config
+            - name: tmp-dir
+              mountPath: /.cache
 
           livenessProbe:
             httpGet:
               path: {{ .Values.backend.livenessPath }}
               port: {{ .Values.backend.port }}
+              httpHeaders:
+                - name: Host
+                  value: "backend-svc"
             initialDelaySeconds: 15
             periodSeconds: 10
 
@@ -58,6 +63,9 @@ spec:
             httpGet:
               path: {{ .Values.backend.readinessPath }}
               port: {{ .Values.backend.port }}
+              httpHeaders:
+                - name: Host
+                  value: "backend-svc"
             initialDelaySeconds: 5  
             periodSeconds: 5
 

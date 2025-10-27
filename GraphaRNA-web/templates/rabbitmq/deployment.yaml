@@ -32,7 +32,7 @@ spec:
 
           ports:
             - containerPort: {{ .Values.rabbitmq.port }}
-            - containerPort: {{ .Values.rabbitmq.uiPort }}
+            - containerPort: {{ .Values.rabbitmq.uiPort }} 
 
           env:
             - name: RABBITMQ_DEFAULT_USER
@@ -46,10 +46,13 @@ spec:
                   name: rabbitmq-secret
                   key: PASSWORD
 
-
           volumeMounts:
             - name: rabbitmq-storage
               mountPath: /var/lib/rabbitmq
+            - name: rabbitmq-config-volume
+              mountPath: /etc/rabbitmq/rabbitmq.conf
+              subPath: rabbitmq.conf
+              readOnly: true
 
           resources:
             requests:
@@ -71,3 +74,6 @@ spec:
         - name: rabbitmq-storage
           persistentVolumeClaim:
             claimName: {{ .Values.rabbitmq.pvc }}
+        - name: rabbitmq-config-volume
+          configMap:
+            name: rabbitmq-config
