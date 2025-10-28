@@ -10,11 +10,12 @@ export class PageManager {
     private readonly page: Page;
  //   private itemsPage: ItemsPage;
     private navigationPage: NavigationPage;
+    private resultsPage: ResultsPage;
     private homePage: HomePage;
     private aboutPage: AboutPage;
     private citePage: CitePage;
     private guidePage: GuidePage;
-    private resultsPage: ResultsPage;
+
 
     constructor(page: Page) {
         this.page = page;
