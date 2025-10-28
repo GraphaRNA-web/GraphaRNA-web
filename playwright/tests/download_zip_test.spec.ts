@@ -1,10 +1,12 @@
-  // tests/testJobSetup.spec.ts
-  import { expect, request } from '@playwright/test';
-  import { test } from '../test-options';
-  import { Console } from 'console';
-  import { ResultsPage } from '../pages/resultsPage';
+// tests/testJobSetup.spec.ts
+import { expect, request } from '@playwright/test';
+import { test } from '../test-options';
+import { Console } from 'console';
+import { ResultsPage } from '../pages/resultsPage';
 import fs from 'fs';
 import path from 'path';
+import AdmZip from 'adm-zip';
+
   type JobData = {
     fasta_file_name: string;
     seed: number;
@@ -29,7 +31,7 @@ import path from 'path';
   };
 
 
-  test.describe("Result Page Tests, Finished Job, Multiple Results", () => {
+  test.describe("Zip download Tests, Finished Job, Multiple Results", () => {
 
     let createdJobs: string[] = [];
     let jobData: JobData = {
@@ -96,7 +98,7 @@ import path from 'path';
         const resultsResponse = await request.post(`${backendUrl}/api/test/setupTestJobResults/`, {
           data: jobResult,
         });
-
+      
         expect(resultsResponse.ok()).toBeTruthy();
 
         const resultsJson = await resultsResponse.json();
@@ -135,6 +137,34 @@ import path from 'path';
     expect(fs.existsSync(savedPath)).toBeTruthy();
     const stats = fs.statSync(savedPath);
     expect(stats.size).toBeGreaterThan(0);
+
+
+  const zip = new AdmZip(savedPath);
+  const zipEntries = zip.getEntries().map(e => e.entryName);
+
+  // Define expected filenames (based on your setup)
+  const expectedFiles = [
+    "test1.dotseq",
+    "test1.svg",
+    "test1.pdb",
+    "test2.dotseq",
+    "test2.svg",
+    "test2.pdb",
+    "test3.dotseq",
+    "test3.svg",
+    "test3.pdb"
+  ];
+
+  // Check that each expected file is present in the ZIP
+  for (const expected of expectedFiles) {
+    const [baseName, ext] = expected.split(".");
+    const pattern = new RegExp(`^${baseName}.*\\.${ext}$`, "i"); // django may alter filenames to avoid conflicts, regex to match
+
+
+    const found = zipEntries.some(entry => pattern.test(path.basename(entry)));
+    expect(found).toBeTruthy();
+  }
+
 
   });
 

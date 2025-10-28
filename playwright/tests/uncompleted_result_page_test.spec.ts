@@ -54,7 +54,7 @@ type JobData = {
         throw new Error(`Failed to create test job: ${jobResponseJson.error}`);
       }
 
-      createdJobs.push(jobResponseJson.job_uuid);
+      createdJobs.push(jobResponseJson.job_hashed_uid);
       jobData.job_uuid = jobResponseJson.job_uuid;
       jobData.job_hashed_uid = jobResponseJson.job_hashed_uid;
 
