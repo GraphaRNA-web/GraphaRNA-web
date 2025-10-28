@@ -121,8 +121,10 @@ export default function JobsQueue() {
   const getPageRange = (current: number, total: number, delta = 2) => {
     const range: (number | string)[] = [];
     for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) range.push(i);
-    if (range[0] > 1) range.unshift(1, "...");
-    if (range[range.length - 1] < total) range.push("...", total);
+  if (typeof range[0] === "number" && range[0] > 1) range.unshift(1, "...");
+  if (typeof range[range.length - 1] === "number" && range[range.length - 1] < total)
+  range.push("...", total);
+
     return range;
   };
 
