@@ -25,19 +25,6 @@ interface PaginatedJobs {
   previous: string | null;
   results: JobResult[];
 }
-type JobRowForTableActive = {
-  id: number;
-  status: string;
-  created: string;
-  job_name: string;
-};
-type JobRowForTableFinished = {
-  id: number;
-  status: string;
-  created: string;
-  job_name: string;
-  processing_time: string;
-};
 
 export default function JobsQueue() {
   const searchParams = useSearchParams();
@@ -45,13 +32,13 @@ export default function JobsQueue() {
 
   const [jobDataActive, setJobDataActive] = useState<PaginatedJobs | null>(null);
   const [jobDataFinished, setJobDataFinished] = useState<PaginatedJobs | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingActive, setIsLoadingActive] = useState<boolean>(false);
+  const [isLoadingFinished, setIsLoadingFinished] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const [activePage, setActivePage] = useState<number>(1);
   const [finishedPage, setFinishedPage] = useState<number>(1);
   const pageSize = 10;
-
 
   const parsePageFromUrl = (url: string | null) => {
     if (!url) return null;
@@ -65,55 +52,47 @@ export default function JobsQueue() {
     }
   };
 
+  // ACTIVE JOBS
   useEffect(() => {
     const fetchActiveJobs = async () => {
       setError(null);
-      setIsLoading(true);
+      setIsLoadingActive(true);
       try {
-        console.log("[JobsQueue] fetchActiveJobs page=", activePage);
         const activeResp = await getActiveJobs({ page: String(activePage) });
-        console.log("[JobsQueue] activeResp raw:", activeResp);
         if (activeResp && Array.isArray(activeResp.results)) {
           setJobDataActive(activeResp as PaginatedJobs);
         } else {
-          console.warn("Unexpected activeResp shape:", activeResp);
           setJobDataActive(null);
           if (activeResp && (activeResp as any).error) setError((activeResp as any).error);
         }
       } catch (err: any) {
-        console.error("Fetch active error:", err);
         setError(err?.message || "Błąd pobierania aktywnych zadań");
       } finally {
-        setIsLoading(false);
+        setIsLoadingActive(false);
       }
     };
-
     fetchActiveJobs();
   }, [activePage, uidh]);
 
+  // FINISHED JOBS
   useEffect(() => {
     const fetchFinishedJobs = async () => {
       setError(null);
-      setIsLoading(true);
+      setIsLoadingFinished(true);
       try {
-        console.log("[JobsQueue] fetchFinishedJobs page=", finishedPage);
         const finishedResp = await getFinishedJobs({ page: String(finishedPage) });
-        console.log("[JobsQueue] finishedResp raw:", finishedResp);
         if (finishedResp && Array.isArray(finishedResp.results)) {
           setJobDataFinished(finishedResp as PaginatedJobs);
         } else {
-          console.warn("Unexpected finishedResp shape:", finishedResp);
           setJobDataFinished(null);
           if (finishedResp && (finishedResp as any).error) setError((finishedResp as any).error);
         }
       } catch (err: any) {
-        console.error("Fetch finished error:", err);
         setError(err?.message || "Błąd pobierania zakończonych zadań");
       } finally {
-        setIsLoading(false);
+        setIsLoadingFinished(false);
       }
     };
-
     fetchFinishedJobs();
   }, [finishedPage, uidh]);
 
@@ -122,23 +101,22 @@ export default function JobsQueue() {
   const totalPagesActive = totalCountActive > 0 ? Math.ceil(totalCountActive / pageSize) : 1;
   const totalPagesFinished = totalCountFinished > 0 ? Math.ceil(totalCountFinished / pageSize) : 1;
 
-  useEffect(() => { if (activePage > totalPagesActive) setActivePage(totalPagesActive); }, [totalPagesActive]); 
-  useEffect(() => { if (finishedPage > totalPagesFinished) setFinishedPage(totalPagesFinished); }, [totalPagesFinished]);
+  const activeRows =
+    jobDataActive?.results.map((job, idx) => ({
+      id: idx + 1 + (activePage - 1) * pageSize,
+      status: job.status ?? "Q",
+      created: job.created_at ?? "-",
+      job_name: job.job_name ?? "-",
+    })) ?? [];
 
-  const activeRows: JobRowForTableActive[] = jobDataActive?.results.map((job, idx) => ({
-    id: idx + 1 + (activePage - 1) * pageSize,
-    status: job.status ?? "Q",
-    created: job.created_at ?? "-",
-    job_name: job.job_name ?? "-",
-  })) ?? [];
-
-  const finishedRows: JobRowForTableFinished[] = jobDataFinished?.results.map((job, idx) => ({
-    id: idx + 1 + (finishedPage - 1) * pageSize,
-    status: job.status ?? "F",
-    created: job.created_at ?? "-",
-    job_name: job.job_name ?? "-",
-    processing_time: job.sum_processing_time ?? "-",
-  })) ?? [];
+  const finishedRows =
+    jobDataFinished?.results.map((job, idx) => ({
+      id: idx + 1 + (finishedPage - 1) * pageSize,
+      status: job.status ?? "F",
+      created: job.created_at ?? "-",
+      job_name: job.job_name ?? "-",
+      processing_time: job.sum_processing_time ?? "-",
+    })) ?? [];
 
   const getPageRange = (current: number, total: number, delta = 2) => {
     const range: (number | string)[] = [];
@@ -148,133 +126,110 @@ export default function JobsQueue() {
     return range;
   };
 
-  const handleActivePrev = () => {
-    console.log("click active prev. jobDataActive.previous:", jobDataActive?.previous);
-    const pageFromPrev = parsePageFromUrl(jobDataActive?.previous ?? null);
-    if (pageFromPrev) setActivePage(pageFromPrev);
-    else setActivePage((p) => Math.max(1, p - 1));
-  };
-  const handleActiveNext = () => {
-    console.log("click active next. jobDataActive.next:", jobDataActive?.next);
-    const pageFromNext = parsePageFromUrl(jobDataActive?.next ?? null);
-    if (pageFromNext) setActivePage(pageFromNext);
-    else setActivePage((p) => Math.min(totalPagesActive, p + 1));
-  };
+  const spinner = (
+    <div
+      style={{
+        width: 24,
+        height: 24,
+        border: "3px solid #ccc",
+        borderTop: "3px solid green",
+        borderRadius: "50%",
+        animation: "spin 1s linear infinite",
+        margin: "1rem auto",
+      }}
+    />
+  );
 
-  const handleFinishedPrev = () => {
-    console.log("click finished prev. jobDataFinished.previous:", jobDataFinished?.previous);
-    const pageFromPrev = parsePageFromUrl(jobDataFinished?.previous ?? null);
-    if (pageFromPrev) setFinishedPage(pageFromPrev);
-    else setFinishedPage((p) => Math.max(1, p - 1));
-  };
-  const handleFinishedNext = () => {
-    console.log("click finished next. jobDataFinished.next:", jobDataFinished?.next);
-    const pageFromNext = parsePageFromUrl(jobDataFinished?.next ?? null);
-    if (pageFromNext) setFinishedPage(pageFromNext);
-    else setFinishedPage((p) => Math.min(totalPagesFinished, p + 1));
-  };
-
-  // if (isLoading) return <div className="jobsPageConetnt"><p>Ładowanie danych…</p></div>;
-  if (error) return <div className="jobsPageConetnt"><p style={{ color: "red" }}>Błąd: {error}</p></div>;
+  if (error)
+    return (
+      <div className="jobsPageContent">
+        <p style={{ color: "red", textAlign: "center" }}>Błąd: {error}</p>
+      </div>
+    );
 
   return (
-  <div className="jobsPageContent">
-    <div className="jobsPage-main" style={{ marginTop: 100 }}>
-      <div className="jobsPage-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <p className="jobsPage-title">Active jobs queue</p>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <Button 
-            label="Start a job" 
-            variant="filled" 
-            width="220px" 
-            height="36px"
-            action={() => {window.location.href = "/submitJob";}}
-          />
-          <Button 
-            label="Guide" 
-            variant="outlined" 
-            width="150px" 
-            height="36px"
-            action={() => {window.location.href = "/guide";}}
-          />
+    <div className="jobsPageContent">
+      <div className="jobsPage-main" style={{ marginTop: 100 }}>
+        <div
+          className="jobsPage-header"
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        >
+          <p className="jobsPage-title">Active jobs queue</p>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <Button label="Start a job" variant="filled" width="220px" height="36px" action={() => (window.location.href = "/submitJob")} />
+            <Button label="Guide" variant="outlined" width="150px" height="36px" action={() => (window.location.href = "/guide")} />
+          </div>
+        </div>
+
+        {isLoadingActive ? spinner : <JobsTable rows={activeRows} />}
+
+        <div className="pagination">
+          <button onClick={() => setActivePage((p) => Math.max(1, p - 1))} disabled={activePage <= 1}>
+            &lt; Previous
+          </button>
+          {getPageRange(activePage, totalPagesActive).map((p, idx) =>
+            p === "..." ? (
+              <span key={idx}>...</span>
+            ) : (
+              <button
+                key={idx}
+                onClick={() => setActivePage(Number(p))}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  backgroundColor: activePage === p ? "green" : "transparent",
+                  color: activePage === p ? "white" : "black",
+                }}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button onClick={() => setActivePage((p) => Math.min(totalPagesActive, p + 1))} disabled={activePage >= totalPagesActive}>
+            Next &gt;
+          </button>
         </div>
       </div>
 
-      {/* tu zmiana */}
-      {isLoading ? (
-        <p style={{ textAlign: "center", padding: "2rem" }}>Ładowanie aktywnych zadań…</p>
-      ) : (
-        <JobsTable rows={activeRows} />
-      )}
+      <div className="jobsPage-main" style={{ marginTop: 100 }}>
+        <div
+          className="jobsPage-header"
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        >
+          <p className="jobsPage-title">Finished jobs queue</p>
+        </div>
 
-      <div className="pagination">
-        <button onClick={handleActivePrev} disabled={!jobDataActive?.previous && activePage <= 1}>
-          &lt; Previous
-        </button>
-        {getPageRange(activePage, totalPagesActive).map((p, idx) =>
-          p === "..." ? (
-            <span key={idx}>...</span>
-          ) : (
-            <button
-              key={idx}
-              onClick={() => setActivePage(Number(p))}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                backgroundColor: activePage === p ? "green" : "transparent",
-                color: activePage === p ? "white" : "black",
-              }}
-            >
-              {p}
-            </button>
-          )
-        )}
-        <button onClick={handleActiveNext} disabled={!jobDataActive?.next && activePage >= totalPagesActive}>
-          Next &gt;
-        </button>
+        {isLoadingFinished ? spinner : <JobsTable rows={finishedRows} isFinishedTable />}
+
+        <div className="pagination">
+          <button onClick={() => setFinishedPage((p) => Math.max(1, p - 1))} disabled={finishedPage <= 1}>
+            &lt; Previous
+          </button>
+          {getPageRange(finishedPage, totalPagesFinished).map((p, idx) =>
+            p === "..." ? (
+              <span key={idx}>...</span>
+            ) : (
+              <button
+                key={idx}
+                onClick={() => setFinishedPage(Number(p))}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  backgroundColor: finishedPage === p ? "green" : "transparent",
+                  color: finishedPage === p ? "white" : "black",
+                }}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button onClick={() => setFinishedPage((p) => Math.min(totalPagesFinished, p + 1))} disabled={finishedPage >= totalPagesFinished}>
+            Next &gt;
+          </button>
+        </div>
       </div>
     </div>
-
-    {/* FINISHED JOBS */}
-    <div className="jobsPage-main" style={{ marginTop: 100 }}>
-      <div className="jobsPage-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <p className="jobsPage-title">Finished jobs queue</p>
-      </div>
-
-      {isLoading ? (
-        <p style={{ textAlign: "center", padding: "2rem" }}>Ładowanie zakończonych zadań…</p>
-      ) : (
-        <JobsTable rows={finishedRows} isFinishedTable />
-      )}
-
-      <div className="pagination">
-        <button onClick={handleFinishedPrev} disabled={!jobDataFinished?.previous && finishedPage <= 1}>
-          &lt; Previous
-        </button>
-        {getPageRange(finishedPage, totalPagesFinished).map((p, idx) =>
-          p === "..." ? (
-            <span key={idx}>...</span>
-          ) : (
-            <button
-              key={idx}
-              onClick={() => setFinishedPage(Number(p))}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                backgroundColor: finishedPage === p ? "green" : "transparent",
-                color: finishedPage === p ? "white" : "black",
-              }}
-            >
-              {p}
-            </button>
-          )
-        )}
-        <button onClick={handleFinishedNext} disabled={!jobDataFinished?.next && finishedPage >= totalPagesFinished}>
-          Next &gt;
-        </button>
-      </div>
-    </div>
-  </div>
-);
+  );
+}
