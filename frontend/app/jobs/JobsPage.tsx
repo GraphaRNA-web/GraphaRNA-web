@@ -118,15 +118,20 @@ export default function JobsQueue() {
       processing_time: job.sum_processing_time ?? "-",
     })) ?? [];
 
-  const getPageRange = (current: number, total: number, delta = 2) => {
-    const range: (number | string)[] = [];
-    for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) range.push(i);
-  if (typeof range[0] === "number" && range[0] > 1) range.unshift(1, "...");
-  if (typeof range[range.length - 1] === "number" && range[range.length - 1] < total)
-  range.push("...", total);
+const getPageRange = (current: number, total: number, delta = 2): (number | string)[] => {
+  const pages: number[] = [];
+  for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
+    pages.push(i);
+  }
 
-    return range;
-  };
+  const result: (number | string)[] = [...pages];
+
+  if (pages[0] > 1) result.unshift(1, "...");
+  if (pages[pages.length - 1] < total) result.push("...", total);
+
+  return result;
+};
+
 
   const spinner = (
     <div
