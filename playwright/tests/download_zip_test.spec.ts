@@ -142,7 +142,6 @@ import AdmZip from 'adm-zip';
   const zip = new AdmZip(savedPath);
   const zipEntries = zip.getEntries().map(e => e.entryName);
 
-  // Define expected filenames (based on your setup)
   const expectedFiles = [
     "test1.dotseq",
     "test1.svg",
@@ -169,3 +168,4 @@ import AdmZip from 'adm-zip';
   });
 
 });
+
