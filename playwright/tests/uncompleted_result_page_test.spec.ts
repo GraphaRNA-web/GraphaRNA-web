@@ -76,7 +76,7 @@ type JobData = {
       await pageManager.onResultsPage.waitForResultsToLoad();
 
       await pageManager.onResultsPage.jobName.toHaveText(jobData.job_name);
-      await pageManager.onResultsPage.seed.toHaveText("N/A");
+      await pageManager.onResultsPage.seed.toHaveText(jobData.seed.toString());
       await pageManager.onResultsPage.processingInfo.toBeVisible();
       await pageManager.onResultsPage.statusLabel.toHaveText("queued");
 
