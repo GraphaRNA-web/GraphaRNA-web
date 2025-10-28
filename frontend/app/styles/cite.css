@@ -41,7 +41,7 @@
     position: absolute;
     z-index: 1;
     top: -70px;
-    left: calc(700px - (1450px - 100vw)*0.45);
+    left: calc(700px - (1450px - 100vw)*0.55);
 }
 
 .triangle{
@@ -100,7 +100,7 @@
     }
 
     .circle{
-        left: calc(700px - (1450px - 100vw)*0.75);
+        left: calc(700px - (1450px - 100vw)*0.8);
     }
 
     .triangle{
@@ -113,5 +113,87 @@
 
     .cite-title{
         width: 550px;
+    }
+}
+
+@media (max-width: 1080px){
+    .content{
+        padding-right: 40px;
+        height: auto;
+    }
+    .cite-text{
+        width: 80%;
+        height: auto;
+    }
+
+    .cite, .cite-content{
+        width: 100%;
+        height: auto;
+    }
+
+    .cite-para{
+        height: auto;
+        padding-top: 60px;
+        padding-bottom: 20px;
+        padding-left: 50px;
+        padding-right: 50px;
+    }
+
+    .cite-subtitle{
+        width: 100%;
+    }
+
+    .circle{
+        height: 500px;
+        width: 500px;
+    }
+
+    .cite-title{
+        width: 100%;
+    }
+
+    .green-thing{
+        width: 100px;
+        height: 100px;
+    }
+}
+
+@media (max-width: 600px){
+    .green-thing{
+        width: 80px;
+        height: 80px;
+    }
+
+    .cite-text{
+        left: 30px;
+    }
+}
+
+@media (max-width: 400px){
+    .content{
+        height: 600px;
+    } 
+    
+    .green-thing{
+        width: 60px;
+        height: 60px;
+    }
+
+    .cite-text{
+        left: 20px;
+    }
+
+    .cite-para{
+        padding-top: 40px;
+        padding-bottom: 40px;
+        padding-left: 20px;
+        padding-right: 20px;
+
+    }
+}
+
+@media (max-width: 280px){
+    .content{
+        height: 800px;
     }
 }

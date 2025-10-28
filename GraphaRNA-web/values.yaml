@@ -3,7 +3,7 @@ monitoring:
   
 frontend:
   name: frontend
-  image: pwlklr/grapharna:frontend
+  image: grapharnaweb/grapharna-web:frontend-latest
   pullPolicy: Always
   port: 3000
 
@@ -28,7 +28,7 @@ frontend:
 
 backend:
   name: backend
-  image: pwlklr/grapharna:backend
+  image: grapharnaweb/grapharna-web:backend-latest
   pullPolicy: Always
   port: 8000
 
@@ -72,7 +72,7 @@ celery:
 
 engine:
   name: grapharna-engine
-  image: pwlklr/grapharna:engine
+  image: grapharnaweb/grapharna-web:grapharna-engine
   pullPolicy: IfNotPresent
   port: 8080
 
@@ -135,7 +135,7 @@ rabbitmq:
       memory: "256Mi"
     limits:
       cpu: "250m"
-      memory: "512Mi"
+      memory: "2048Mi"
 
   pvc: rabbitmq-volume
   storage: 2Gi
