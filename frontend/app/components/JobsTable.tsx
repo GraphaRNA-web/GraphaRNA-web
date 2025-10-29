@@ -1,12 +1,15 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
+
+
 
 type JobRowActive = {
   id: number;
   status: string;
   created: string;
   job_name: string;
-
+  uidh: string;
 };
 export interface JobRowFinished extends JobRowActive {
   processing_time: string;
@@ -28,7 +31,7 @@ default: return "var(--brown-lighten-10)";
 };
 const getStatusLabel = (status: string) => {
   switch (status) {
-    case "Q": return "Queue";
+    case "Q": return "Queued";
     case "S": return "Submitted";
     case "R": return "Running";
     case "C": return "Completed";
@@ -40,6 +43,14 @@ const getStatusLabel = (status: string) => {
 
 
 export default function JobsTable({ rows, isFinishedTable = false }: JobsTableProps) {
+  const router = useRouter();
+
+
+
+  const handleRowClick = (uidh: string) => {
+  router.push(`/results?uidh=${uidh}`);
+};
+
   return (
     <table>
       <thead>
@@ -53,7 +64,9 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
       </thead>
       <tbody>
         {rows.map((row) => (
-          <tr key={row.id}>
+          <tr key={row.id}
+              onClick={() => handleRowClick((row as any).uidh)}
+              style={{ cursor: "pointer" }}>
             <td>{row.id}</td>
             <td>{row.job_name}</td>
             <td>
