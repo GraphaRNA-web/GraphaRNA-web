@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { getActiveJobs, getFinishedJobs } from "@/lib/api";
 import Button from "../components/Button";
 
+
+
 interface JobResult {
   uid: string;
   hashed_uid?: string | null;
@@ -107,6 +109,7 @@ export default function JobsQueue() {
       status: job.status ?? "Q",
       created: job.created_at ?? "-",
       job_name: job.job_name ?? "-",
+      uidh: job.uid,
     })) ?? [];
 
   const finishedRows =
@@ -116,6 +119,7 @@ export default function JobsQueue() {
       created: job.created_at ?? "-",
       job_name: job.job_name ?? "-",
       processing_time: job.sum_processing_time ?? "-",
+      uidh: job.uid,
     })) ?? [];
 
 const getPageRange = (current: number, total: number, delta = 2): (number | string)[] => {
