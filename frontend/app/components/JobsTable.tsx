@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
+import JobStatus from "../components/JobStatus";
 
 
 
@@ -19,25 +20,16 @@ interface JobsTableProps {
   rows: JobRow[];
   isFinishedTable?: boolean;
 }
-const getStatusColor = (status: string) => {
-switch (status) {
-case "Q": return "var(--waiting)";
-case "S": return "var(--submitted)";
-case "R": return "var(--running)";
-case "C": return "var(--completed)";
-case "E": return "var(--error)";
-default: return "var(--brown-lighten-10)";
-}
-};
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "Q": return "Queued";
-    case "S": return "Submitted";
-    case "R": return "Running";
-    case "C": return "Completed";
-    case "E": return "Error";
-    case "F": return "Finished";
-    default: return status;
+
+const FullStatus = (code: string): string => {
+  switch (code) {
+    case "Q": return "queued";
+    case "S": return "submitted";
+    case "R": return "running";
+    case "C": return "completed";
+    case "E": return "error";
+    case "F": return "finished";
+    default: return code.toLowerCase();
   }
 };
 
@@ -79,19 +71,11 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
               }).replace(',', '')}
             </td>
             {isFinishedTable && <td>{(row as JobRowFinished).processing_time}</td>}
-            <td style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span
-                className="dot"
-                style={{
-                  width: "12px",
-                  height: "12px",
-                  borderRadius: "50%",
-                  backgroundColor: getStatusColor(row.status),
-                  display: "inline-block",
-                }}
-              ></span>
-              <span>{getStatusLabel(row.status)}</span>
-            </td>
+              <td>
+                <JobStatus status={FullStatus(row.status)} />
+              </td>
+
+
           </tr>
         ))}
       </tbody>
