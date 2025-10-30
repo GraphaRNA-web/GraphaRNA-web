@@ -9,7 +9,6 @@ from webapp.models import Job
 import uuid
 from django.utils import timezone
 from django.urls import reverse
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from webapp.hashing_tools import hash_uuid
 import os
