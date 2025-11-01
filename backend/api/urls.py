@@ -1,6 +1,7 @@
 from django.urls import path
 
 import api.views
+from GraphaRNA import settings
 
 urlpatterns = [
     path("validateRNA/", api.views.PostRnaValidation, name="validateRNA"),
@@ -17,3 +18,18 @@ urlpatterns = [
     path("activeJobs/", api.views.getActiveJobs, name="getActiveJobs"),
     path("finishedJobs/", api.views.getFinishedJobs, name="getFinishedJobs"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path("test/setupTestJob/", api.views.SetupTestJob, name="setupTestJob")
+    ]
+    urlpatterns += [
+        path(
+            "test/setupTestJobResults/",
+            api.views.SetupTestJobResults,
+            name="setupTestJobResults",
+        )
+    ]
+    urlpatterns += [
+        path("test/cleanupTestData/", api.views.CleanupTestData, name="cleanupTestData")
+    ]

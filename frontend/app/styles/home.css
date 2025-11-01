@@ -93,3 +93,36 @@
     width: 490px;
   }
 }
+
+@media (max-width: 1200px){
+  .home-background{
+    background-position: calc(100% + (1200px - 100vw) * 0.35) center;
+  }
+}
+
+@media (max-width: 510px){
+  .home-description-text{
+    height: auto;
+    width: 100%;
+  }
+
+  .home-container{
+    width: 100%;
+    padding-right: 10px;
+    height: auto;
+  }
+
+  .home-header{
+    width: 100%;
+    height: auto;
+  }
+
+  .home-intro-text{
+    height: auto;
+  }
+
+  .home-buttons{
+    height: auto;
+    width: 100%;
+  }
+}

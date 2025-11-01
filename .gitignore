@@ -4,3 +4,12 @@ celerybeat-schedule
 ./backend/celerybeat-schedule
 *.crt
 *.key
+/GraphaRNA/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

@@ -15,7 +15,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
   onChange,
   size = 24
 }) => {
-  const [internalChecked, setInternalChecked] = useState(false);
+  const [internalChecked, setInternalChecked] = useState(true);
   const isControlled = typeof checked === 'boolean';
   const currentChecked = isControlled ? checked : internalChecked;
 
@@ -28,7 +28,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
   };
 
   const iconSrc = currentChecked ? 'icons/checked.svg' : 'icons/unchecked.svg';
-  const textColor = currentChecked ? '#668D21' : '#AEA99F'; // np. zielony vs szary
+  const textColor = currentChecked ? '#668D21' : '#AEA99F';
 
   return (
     <div

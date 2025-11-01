@@ -1,39 +1,55 @@
+// app/api/finishedJobs/route.ts
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 const DOMAIN_URL = process.env.DOMAIN_URL || "http://localhost:3000";
 
-export async function GET(req: Request) {
-  console.log("[PROXY] incoming request to /api/finishedJobs");
-  try {
-    const { searchParams } = new URL(req.url);
-    const page = searchParams.get("page");
+function forwardHeaders(req: Request): Headers {
+  const headers = new Headers();
+  const cookie = req.headers.get("cookie");
+  if (cookie) {
+    headers.set("cookie", cookie);
+  }
+  headers.set("Content-Type", "application/json"); // Backend expects JSON
+  return headers;
+}
 
-    const cookieStore = await cookies();
-    const csrfCookie = cookieStore.get("csrfToken")?.value;
-    const csrfHeader = req.headers.get("x-csrf-token");
+export async function GET(req: Request) {
+  const endpoint = "/api/finishedJobs";
+  console.log(`[PROXY] incoming GET to ${req.url}`);
+
+  try {
     const origin = req.headers.get("origin");
     const referer = req.headers.get("referer");
-
-    console.log("[PROXY] csrfCookie:", csrfCookie, "csrfHeader:", csrfHeader);
-
-    if (!csrfCookie || csrfCookie !== csrfHeader) {
-      return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
-    }
     if (!(origin === DOMAIN_URL || referer?.startsWith(DOMAIN_URL))) {
       return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
     }
 
-    const res = await fetch(`${BACKEND_URL}/api/finishedJobs?page=${page}`, {
+    const { searchParams } = new URL(req.url);
+    const headersToForward = forwardHeaders(req);
+    const backendUrl = `${BACKEND_URL}${endpoint}?${searchParams.toString()}`;
+
+    const backendRes = await fetch(backendUrl, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: headersToForward,
     });
 
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
+    const responseBody = await backendRes.text();
+    const responseHeaders = new Headers(backendRes.headers);
+    responseHeaders.delete('transfer-encoding');
+
+    const response = new NextResponse(responseBody, {
+      status: backendRes.status,
+      headers: responseHeaders,
+    });
+
+    return response;
+
   } catch (err: any) {
     console.error("[PROXY] proxy error", err);
-    return NextResponse.json({ success: false, error: "Proxy error: " + err.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Proxy error: " + err.message },
+      { status: 500 }
+    );
   }
 }

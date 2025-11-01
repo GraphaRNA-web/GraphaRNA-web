@@ -56,10 +56,10 @@ services:
       - backend
 
   grapharna-engine:
-    build:
-      context: ./GraphaRNA
-      dockerfile: Dockerfile
-    image: grapharna-engine:latest
+    # build:
+    #   context: ./GraphaRNA
+    #   dockerfile: Dockerfile
+    image: grapharnaweb/grapharna-web:grapharna-engine
     container_name: grapha_engine
     volumes:
       - shared_volume:/shared
@@ -88,7 +88,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     environment:
-      - RABBITMQ_CONSUMER_TIMEOUT=0
+      - RABBITMQ_CONSUMER_TIMEOUT=129600000
     ports:
       - "5672:5672"
       - "15672:15672"
