@@ -5,7 +5,7 @@ import JobsTable from "../components/JobsTable";
 import { useSearchParams } from "next/navigation";
 import { getActiveJobs, getFinishedJobs } from "@/lib/api";
 import Button from "../components/Button";
-
+import { useRouter } from "next/navigation";
 
 
 interface JobResult {
@@ -28,9 +28,11 @@ interface PaginatedJobs {
   results: JobResult[];
 }
 
+
 export default function JobsQueue() {
-  const searchParams = useSearchParams();
-  const uidh = searchParams.get("uidh");
+  const router = useRouter();
+  // const searchParams = useSearchParams();
+  // const uidh = searchParams.get("uidh");
 
   const [jobDataActive, setJobDataActive] = useState<PaginatedJobs | null>(null);
   const [jobDataFinished, setJobDataFinished] = useState<PaginatedJobs | null>(null);
@@ -40,20 +42,8 @@ export default function JobsQueue() {
 
   const [activePage, setActivePage] = useState<number>(1);
   const [finishedPage, setFinishedPage] = useState<number>(1);
-  const pageSize = 10;
-
-  const parsePageFromUrl = (url: string | null) => {
-    if (!url) return null;
-    try {
-      const u = new URL(url, window.location.origin);
-      const p = u.searchParams.get("page");
-      return p ? Number(p) : null;
-    } catch {
-      const m = url.match(/[?&]page=(\d+)/);
-      return m ? Number(m[1]) : null;
-    }
-  };
-
+  const pageSize = Number(process.env.NEXT_PUBLIC_PAGE_SIZE ?? 10);
+  
   // ACTIVE JOBS
   useEffect(() => {
     const fetchActiveJobs = async () => {
@@ -68,13 +58,13 @@ export default function JobsQueue() {
           if (activeResp && (activeResp as any).error) setError((activeResp as any).error);
         }
       } catch (err: any) {
-        setError(err?.message || "Błąd pobierania aktywnych zadań");
+        setError(err?.message || "Error in fetching active jobs");
       } finally {
         setIsLoadingActive(false);
       }
     };
     fetchActiveJobs();
-  }, [activePage, uidh]);
+  }, [activePage]);
 
   // FINISHED JOBS
   useEffect(() => {
@@ -90,13 +80,13 @@ export default function JobsQueue() {
           if (finishedResp && (finishedResp as any).error) setError((finishedResp as any).error);
         }
       } catch (err: any) {
-        setError(err?.message || "Błąd pobierania zakończonych zadań");
+        setError(err?.message || "Error in fetching finished jobs");
       } finally {
         setIsLoadingFinished(false);
       }
     };
     fetchFinishedJobs();
-  }, [finishedPage, uidh]);
+  }, [finishedPage]);
 
   const totalCountActive = Number(jobDataActive?.count ?? 0);
   const totalCountFinished = Number(jobDataFinished?.count ?? 0);
@@ -138,37 +128,24 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
 
 
   const spinner = (
-    <div
-      style={{
-        width: 24,
-        height: 24,
-        border: "3px solid #ccc",
-        borderTop: "3px solid green",
-        borderRadius: "50%",
-        animation: "spin 1s linear infinite",
-        margin: "1rem auto",
-      }}
-    />
-  );
+    <div className="spinner" />);
 
   if (error)
     return (
       <div className="jobsPageContent">
-        <p style={{ color: "red", textAlign: "center" }}>Błąd: {error}</p>
+        <p className="error">Error: {error}</p>
       </div>
     );
 
   return (
     <div className="jobsPageContent">
-      <div className="jobsPage-main" style={{ marginTop: 100 }}>
+      <div className="jobsPage-main">
         <div
-          className="jobsPage-header"
-          style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-        >
+          className="jobsPage-header">
           <p className="jobsPage-title">Active jobs queue</p>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <Button label="Start a job" variant="filled" width="220px" height="36px" action={() => (window.location.href = "/submitJob")} />
-            <Button label="Guide" variant="outlined" width="150px" height="36px" action={() => (window.location.href = "/guide")} />
+          <div className="router-buttons">
+            <Button label="Start a job" variant="filled" width="220px" height="36px" action={() => router.push("/submitJob")}/>
+            <Button label="Guide" variant="outlined" width="150px" height="36px" action={() => router.push("/guide")} />
           </div>
         </div>
 
@@ -182,13 +159,10 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
             p === "..." ? (
               <span key={idx}>...</span>
             ) : (
-              <button
+              <button className="Pagination-Button"
                 key={idx}
                 onClick={() => setActivePage(Number(p))}
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
                   backgroundColor: activePage === p ? "green" : "transparent",
                   color: activePage === p ? "white" : "black",
                 }}
@@ -203,10 +177,9 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
         </div>
       </div>
 
-      <div className="jobsPage-main" style={{ marginTop: 100 }}>
+      <div className="jobsPage-main">
         <div
           className="jobsPage-header"
-          style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
         >
           <p className="jobsPage-title">Finished jobs queue</p>
         </div>
@@ -221,13 +194,10 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
             p === "..." ? (
               <span key={idx}>...</span>
             ) : (
-              <button
+              <button className="Pagination-Button"
                 key={idx}
                 onClick={() => setFinishedPage(Number(p))}
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
                   backgroundColor: finishedPage === p ? "green" : "transparent",
                   color: finishedPage === p ? "white" : "black",
                 }}

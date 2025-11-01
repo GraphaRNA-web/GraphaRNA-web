@@ -120,6 +120,7 @@ tbody td {
   display: flex;
   flex-direction: column;
   gap: 30px;
+  margin-top: 100;
 }
 
 .jobsPage-maintable {
@@ -131,6 +132,9 @@ tbody td {
   margin-bottom: 0.75rem;
   position: relative;
   z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .jobsPage-title {
@@ -154,23 +158,38 @@ tbody td {
   z-index: 5;
 }
 
-.pagination button {
-  cursor: pointer;
+
+.Pagination-Button {
+    width: 32;
+    height: 32;
+    border-radius: 50%;
 }
 
-.pagination button.active {
-  width: 32px;
-  height: 32px;
-  background: green;
-  color: white;
-  border: 1px solid rgba(0,0,0,0.08);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+.error{
+  color: "red";
+  text-align: "center";
+
 }
 
 button {
   pointer-events: auto;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ccc;
+  border-top: 3px solid green;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 1rem auto;
+}
+.router-buttons{
+  display: flex;
+  gap: 0.5rem;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
