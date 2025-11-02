@@ -91,11 +91,11 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
                   );
                 }
               })()}
+            </td >
+            {isFinishedTable && <td style={{color: "var(--brown-lighten-20)"}}>{(row as JobRowFinished).processing_time}</td>}
+            <td>
+              <JobStatus status={FullStatus(row.status)} />
             </td>
-            {isFinishedTable && <td>{(row as JobRowFinished).processing_time}</td>}
-              <td>
-                <JobStatus status={FullStatus(row.status)} />
-              </td>
 
 
           </tr>

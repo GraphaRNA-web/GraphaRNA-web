@@ -79,26 +79,50 @@
 table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0;
+  border-spacing: 0 12px;
   table-layout: auto;
+  background-color: transparent;
 }
 
 .table-header-row th {
   background-color: var(--background-darken-10);
   padding: 12px 20px;
-  text-align: left;
+  text-align: center;
   font-weight: 600;
 }
 
 .table-header-row th:first-child {
   border-top-left-radius: 30px;
+  border-bottom-left-radius: 30px;
 }
 
 .table-header-row th:last-child {
   border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
 }
-tbody tr:nth-child(even) {
-  background-color: rgba(0, 0, 0, 0.03);
+tbody tr {
+  background-color: transparent;
+}
+
+tbody td {
+  background-color: var(--background-darken-5);
+  padding: 10px 20px;
+  text-align: center;
+}
+
+tbody td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+tbody td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+tbody tr:hover {
+  background-color: var(--background-darken-10);
+  transition: background-color 0.2s ease;
 }
 
 tbody td {
@@ -135,6 +159,7 @@ tbody td {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
 }
 
 .jobsPage-title {
@@ -170,8 +195,15 @@ tbody td {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 .Pagination-Button.active {
-  background-color: green;
+  background-color: var(--primary2-darken-5);
   color: white;
+}
+.Pagination-Prev-Next{
+  cursor: pointer;
+}
+.Pagination-Prev-Next:disabled {
+  cursor: not-allowed;
+  color: var(--brown-lighten-20);
 }
 
 .error{
@@ -202,3 +234,16 @@ button {
   }
 }
 
+/* losowy fix centrowania statusu */
+th:last-child,
+td:last-child {
+  text-align: center;
+  vertical-align: middle;
+}
+
+td:last-child > * {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
