@@ -153,7 +153,6 @@ tbody td {
 }
 
 .jobsPage-header {
-  margin-bottom: 0.75rem;
   position: relative;
   z-index: 1;
   display: flex;
