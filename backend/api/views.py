@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework import status
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
-from typing import Optional
+from typing import Optional,Any
 import random
 from datetime import date, timedelta
 from webapp.models import Job, JobResults
@@ -30,6 +30,7 @@ from .api_docs import (
     setup_test_job_results_schema,
     cleanup_test_jobs_schema,
 )
+
 import zipfile
 import io
 from django.http import HttpResponse
@@ -584,7 +585,7 @@ class JobPageNumberPagination(PageNumberPagination):
     page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = 100
-    def get_paginated_response(self, data):
+    def get_paginated_response(self, data: Any):
         return Response({
         "count": self.page.paginator.count,
         "page_size": self.get_page_size(self.request),
