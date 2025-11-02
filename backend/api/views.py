@@ -37,7 +37,6 @@ from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 from django.core.files import File
 from django.utils import timezone
-from datetime import timedelta
 
 
 @setup_test_job_schema
