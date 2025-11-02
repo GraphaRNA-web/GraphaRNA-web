@@ -54,7 +54,7 @@ type JobData = {
         throw new Error(`Failed to create test job: ${jobResponseJson.error}`);
       }
 
-      createdJobs.push(jobResponseJson.job_uuid);
+      createdJobs.push(jobResponseJson.job_hashed_uid);
       jobData.job_uuid = jobResponseJson.job_uuid;
       jobData.job_hashed_uid = jobResponseJson.job_hashed_uid;
 
@@ -76,7 +76,7 @@ type JobData = {
       await pageManager.onResultsPage.waitForResultsToLoad();
 
       await pageManager.onResultsPage.jobName.toHaveText(jobData.job_name);
-      await pageManager.onResultsPage.seed.toHaveText("N/A");
+      await pageManager.onResultsPage.seed.toHaveText(jobData.seed.toString());
       await pageManager.onResultsPage.processingInfo.toBeVisible();
       await pageManager.onResultsPage.statusLabel.toHaveText("queued");
 

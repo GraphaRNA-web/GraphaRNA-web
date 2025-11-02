@@ -1,10 +1,10 @@
 import { Page } from "@playwright/test"
 import { NavigationPage } from "./navigationPage";
-import { ResultsPage } from "./resultsPage";
 import { HomePage } from "./homePage";
 import { AboutPage } from "./aboutPage";
 import { CitePage } from "./citeUsPage";
 import { GuidePage } from "./guidePage";
+import { ResultsPage } from "./resultsPage";
 
 export class PageManager {
     private readonly page: Page;

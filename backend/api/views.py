@@ -162,12 +162,19 @@ def CleanupTestData(request: Request) -> Response:
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        deleted_count, _ = jobs_to_delete.delete()
+        for job in jobs_to_delete:
+            results = JobResults.objects.filter(job=job)
+            for result in results:
+                result.delete()
+
+            if job.input_structure:
+                job.input_structure.delete(save=False)
+            job.delete()
 
         return Response(
             {
                 "success": True,
-                "message": f"Deleted {deleted_count} record(s) for provided hashed_uids.",
+                "message": f"Deleted {count} record(s) for provided hashed_uids.",
             },
             status=status.HTTP_200_OK,
         )
