@@ -35,6 +35,8 @@ import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 from django.core.files import File
+from django.utils import timezone
+from datetime import timedelta
 
 
 @setup_test_job_schema
@@ -582,12 +584,20 @@ class JobPageNumberPagination(PageNumberPagination):
     page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = 100
+    def get_paginated_response(self, data):
+        return Response({
+        "count": self.page.paginator.count,
+        "page_size": self.get_page_size(self.request),
+        "next": self.get_next_link(),
+        "previous": self.get_previous_link(),
+        "results": data
+    })
 
 
 @job_pagination_schema
 @api_view(["GET"])
 def getActiveJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["E", "S", "Q", "P"]).order_by(
+    data = Job.objects.filter(status__in=["S", "Q", "R"]).order_by(
         "created_at", "uid"
     )
     paginator = JobPageNumberPagination()
@@ -601,7 +611,12 @@ def getActiveJobs(request: Request) -> Response:
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["C"]).order_by("created_at")
+    now= timezone.now()
+    five_days_ago=now-timedelta(days=5)
+    data = Job.objects.filter(status__in=["C","E"],created_at__gte=five_days_ago).order_by("created_at")
+    if not data.exists():
+        one_day_ago= now - timedelta(hours=24)
+        data = Job.objects.filter(status__in=["C","E"],created_at__gte=one_day_ago).order_by("created_at")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:

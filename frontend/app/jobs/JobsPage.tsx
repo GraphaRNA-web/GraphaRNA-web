@@ -42,7 +42,9 @@ export default function JobsQueue() {
 
   const [activePage, setActivePage] = useState<number>(1);
   const [finishedPage, setFinishedPage] = useState<number>(1);
-  const pageSize = Number(process.env.NEXT_PUBLIC_PAGE_SIZE ?? 10);
+  const [pageSizeActive, setPageSizeActive] = useState<number>(10);
+  const [pageSizeFinished, setPageSizeFinished] = useState<number>(10);
+  // const pageSize = Number(process.env.NEXT_PUBLIC_PAGE_SIZE ?? 10);
   
   // ACTIVE JOBS
   useEffect(() => {
@@ -53,6 +55,7 @@ export default function JobsQueue() {
         const activeResp = await getActiveJobs({ page: String(activePage) });
         if (activeResp && Array.isArray(activeResp.results)) {
           setJobDataActive(activeResp as PaginatedJobs);
+          setPageSizeActive(activeResp.page_size ?? 10);
         } else {
           setJobDataActive(null);
           if (activeResp && (activeResp as any).error) setError((activeResp as any).error);
@@ -75,6 +78,7 @@ export default function JobsQueue() {
         const finishedResp = await getFinishedJobs({ page: String(finishedPage) });
         if (finishedResp && Array.isArray(finishedResp.results)) {
           setJobDataFinished(finishedResp as PaginatedJobs);
+          setPageSizeFinished(finishedResp.page_size ?? 10);
         } else {
           setJobDataFinished(null);
           if (finishedResp && (finishedResp as any).error) setError((finishedResp as any).error);
@@ -90,12 +94,12 @@ export default function JobsQueue() {
 
   const totalCountActive = Number(jobDataActive?.count ?? 0);
   const totalCountFinished = Number(jobDataFinished?.count ?? 0);
-  const totalPagesActive = totalCountActive > 0 ? Math.ceil(totalCountActive / pageSize) : 1;
-  const totalPagesFinished = totalCountFinished > 0 ? Math.ceil(totalCountFinished / pageSize) : 1;
+  const totalPagesActive = totalCountActive > 0 ? Math.ceil(totalCountActive / pageSizeActive) : 1;
+  const totalPagesFinished = totalCountFinished > 0 ? Math.ceil(totalCountFinished / pageSizeFinished) : 1;
 
   const activeRows =
     jobDataActive?.results.map((job, idx) => ({
-      id: idx + 1 + (activePage - 1) * pageSize,
+      id: idx + 1 + (activePage - 1) * pageSizeActive,
       status: job.status ?? "Q",
       created: job.created_at ?? "-",
       job_name: job.job_name ?? "-",
@@ -104,7 +108,7 @@ export default function JobsQueue() {
 
   const finishedRows =
     jobDataFinished?.results.map((job, idx) => ({
-      id: idx + 1 + (finishedPage - 1) * pageSize,
+      id: idx + 1 + (finishedPage - 1) * pageSizeFinished,
       status: job.status ?? "F",
       created: job.created_at ?? "-",
       job_name: job.job_name ?? "-",
