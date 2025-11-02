@@ -163,6 +163,15 @@ tbody td {
     width: 32;
     height: 32;
     border-radius: 50%;
+    border: none;
+    background-color: transparent;
+    color: black;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.Pagination-Button.active {
+  background-color: green;
+  color: white;
 }
 
 .error{

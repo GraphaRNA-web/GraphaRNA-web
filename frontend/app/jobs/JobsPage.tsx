@@ -159,13 +159,9 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
             p === "..." ? (
               <span key={idx}>...</span>
             ) : (
-              <button className="Pagination-Button"
+              <button className={`Pagination-Button ${activePage === p ? "active" : ""}`}
                 key={idx}
                 onClick={() => setActivePage(Number(p))}
-                style={{
-                  backgroundColor: activePage === p ? "green" : "transparent",
-                  color: activePage === p ? "white" : "black",
-                }}
               >
                 {p}
               </button>
@@ -200,8 +196,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
                 style={{
                   backgroundColor: finishedPage === p ? "green" : "transparent",
                   color: finishedPage === p ? "white" : "black",
-                }}
-              >
+                }}>
                 {p}
               </button>
             )
