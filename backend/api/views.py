@@ -585,7 +585,7 @@ class JobPageNumberPagination(PageNumberPagination):
     page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = 100
-    def get_paginated_response(self, data: Any) -> Response: # type: ignore[override]
+    def get_paginated_response(self, data: Any) -> Response:
         return Response({
         "count": self.page.paginator.count,
         "page_size": self.get_page_size(self.request),
