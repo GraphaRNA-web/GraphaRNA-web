@@ -202,7 +202,11 @@ def DownloadZipFile(request: Request) -> HttpResponse:
             filePathSecondaryDotseq = instance.result_secondary_structure_dotseq.path
             filePathSecondarySvg = instance.result_secondary_structure_svg.path
             filePathTertiary = instance.result_tertiary_structure.path
+            filePathArc = instance.result_arc_diagram.path
 
+
+            if not os.path.exists(filePathArc):
+                return HttpResponse("File does not exist", status=404)
             if not os.path.exists(filePathSecondaryDotseq):
                 return HttpResponse("File does not exist", status=404)
             if not os.path.exists(filePathSecondarySvg):
@@ -211,11 +215,10 @@ def DownloadZipFile(request: Request) -> HttpResponse:
                 return HttpResponse("File does not exist", status=404)
 
             folder_name = f"{job_name_path}/instance_{idx}"
-            name_dotseq = os.path.basename(
-                instance.result_secondary_structure_dotseq.name
-            )
+            name_dotseq = os.path.basename(instance.result_secondary_structure_dotseq.name)
             name_svg = os.path.basename(instance.result_secondary_structure_svg.name)
             name_ter = os.path.basename(instance.result_tertiary_structure.name)
+            name_arc = os.path.basename(instance.result_arc_diagram.name)
 
             with open(filePathSecondaryDotseq, "rb") as f:
                 zip_file.writestr(f"{folder_name}/{name_dotseq}", f.read())
@@ -223,6 +226,8 @@ def DownloadZipFile(request: Request) -> HttpResponse:
                 zip_file.writestr(f"{folder_name}/{name_svg}", f.read())
             with open(filePathTertiary, "rb") as f:
                 zip_file.writestr(f"{folder_name}/{name_ter}", f.read())
+            with open(filePathArc, "rb") as f:
+                zip_file.writestr(f"{folder_name}/{name_arc}", f.read())
 
     zip_buffer.seek(0)
     response = HttpResponse(zip_buffer.read(), content_type="application/zip")
