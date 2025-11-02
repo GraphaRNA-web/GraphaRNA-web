@@ -585,7 +585,7 @@ class JobPageNumberPagination(PageNumberPagination):
     page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = 100
-    def get_paginated_response(self, data: Any):
+    def get_paginated_response(self, data: Any) -> Response: # type: ignore[override]
         return Response({
         "count": self.page.paginator.count,
         "page_size": self.get_page_size(self.request),
@@ -613,11 +613,12 @@ def getActiveJobs(request: Request) -> Response:
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
     now= timezone.now()
-    five_days_ago=now-timedelta(days=5)
-    data = Job.objects.filter(status__in=["C","E"],created_at__gte=five_days_ago).order_by("created_at")
+    one_day_ago= now - timedelta(hours=24)
+
+    data = Job.objects.filter(status__in=["C","E"],created_at__gte=one_day_ago).order_by("created_at")
     if not data.exists():
-        one_day_ago= now - timedelta(hours=24)
-        data = Job.objects.filter(status__in=["C","E"],created_at__gte=one_day_ago).order_by("created_at")
+        five_days_ago=now-timedelta(days=5)    
+        data = Job.objects.filter(status__in=["C","E"],created_at__gte=five_days_ago).order_by("created_at")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:
