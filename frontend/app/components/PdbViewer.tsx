@@ -22,7 +22,7 @@ export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
     const load3Dmol = () => {
       if (!window.$3Dmol) {
         const script = document.createElement("script");
-        script.src = "https://3Dmol.org/build/3Dmol-min.js";
+        script.src = "/3Dmol-min.js";
         script.async = true;
         script.onload = initViewer;
         document.body.appendChild(script);
