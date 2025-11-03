@@ -9,6 +9,7 @@ from time import sleep
 from uuid import UUID
 import requests
 from celery import shared_task
+from requests.exceptions import RequestException, HTTPError
 import os
 import json
 from webapp.visualization_tools import (
@@ -152,16 +153,40 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         raise
 
     engine_url = settings.ENGINE_URL
+    max_retries = settings.ENGINE_REQUEST_MAX_RETRIES
+    retry_timeout = settings.ENGINE_REQUEST_RETRY_DELAY
 
     for i in range(job_data.alternative_conformations):
         processing_start: datetime = timezone.now()
-        response = requests.post(
-            engine_url,
-            data={"uuid": uuid_str, "seed": seed + i},
-        )
-        logger.info(
-            f"Grapharna response status: {response.status_code}, body: {response.text}"
-        )
+
+        response = None
+        retries: int = 0
+
+        while retries < max_retries:
+            try:
+                response = requests.post(
+                    engine_url,
+                    data={"uuid": uuid_str, "seed": seed + i},
+                )
+                response.raise_for_status()
+
+                logger.info(
+                    f"Grapharna response status: {response.status_code}, body: {response.text}"
+                )
+                break
+            except (RequestException, HTTPError) as e:
+                logger.warning(
+                    f"Engine request failed (attempt {retries + 1}/{max_retries}). "
+                    f"Retrying in {retry_timeout}s. Error: {e}"
+                )
+                retries += 1
+                sleep(retry_timeout)
+
+        if response is None:
+            logger.error("Grapharna API error: No response received after all retries.")
+            job_data.status = "E"
+            job_data.save()
+            raise
 
         if response.status_code != 200:
             logger.error(f"Grapharna API error: {response.text}")

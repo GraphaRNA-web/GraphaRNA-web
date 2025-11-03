@@ -1,0 +1,248 @@
+
+
+.circle{
+    position: absolute;
+    z-index: 1;
+    top: -70px;
+    left: calc(700px - (1450px - 100vw)*0.45);
+}
+
+
+
+.text{
+    position: absolute;
+    z-index: 2;
+    height: 138px;
+    width: 950px;
+    border-radius: 20px;
+    background-color: #FFFFFFB2;
+    top: 120px;
+    left: 70px;
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    box-shadow: 0 2px 20px 0 #DFDEDAE5;
+}
+
+.para{
+    padding-left: 120px;
+    padding-right: 120px;
+    padding-top: 50px;
+    color: var(--brown-base);
+    font-size: 16px;
+    font-family: 'Raleway';
+    font-weight: 400;
+}
+
+@media (max-width: 1200){
+    .jobsPageContent{
+        padding-left: 40px;
+    }
+
+    .cite-content{
+        width: 550px;
+    }
+
+    .cite{
+        width: 550px;
+    }
+
+    .text{
+        width: 450px;
+        height: 250px;
+    }
+
+    .circle{
+        left: calc(700px - (1450px - 100vw)*0.75);
+    }
+
+    .triangle{
+        left: calc(200px - (1450px - 100vw)*0.25);
+    }
+
+    .cite-subtitle{
+        width: 550px;
+    }
+
+    .jobsPage-title{
+        width: 550px;
+    }
+}
+
+
+.ActiveJob-Buttons
+{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  table-layout: auto;
+  background-color: transparent;
+}
+
+.table-header-row th {
+  background-color: var(--background-darken-10);
+  padding: 12px 20px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.table-header-row th:first-child {
+  border-top-left-radius: 30px;
+  border-bottom-left-radius: 30px;
+}
+
+.table-header-row th:last-child {
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+}
+tbody tr {
+  background-color: transparent;
+}
+
+tbody td {
+  background-color: var(--background-darken-5);
+  padding: 10px 20px;
+  text-align: center;
+}
+
+tbody td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+tbody td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+tbody tr:hover {
+  background-color: var(--background-darken-10);
+  transition: background-color 0.2s ease;
+}
+
+tbody td {
+  padding: 10px 20px;
+}
+
+.jobsPageContent {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1rem;
+  min-height: 100vh;
+}
+
+.jobsPage-main{
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-top: 100;
+}
+
+.jobsPage-maintable {
+  width: 100%;
+  table-layout: auto;
+}
+
+.jobsPage-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+}
+
+.jobsPage-title {
+  margin: 24;
+  padding: 0.25rem 0;
+  font-weight: 600;
+  line-height: 1.2;
+  display: block;
+  font-family: 'Raleway';
+  font-size: 38px;
+  color: var(--brown-base);
+}
+
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  z-index: 5;
+}
+
+
+.Pagination-Button {
+    width: 32;
+    height: 32;
+    border-radius: 50%;
+    border: none;
+    background-color: transparent;
+    color: black;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.Pagination-Button.active {
+  background-color: var(--primary2-darken-5);
+  color: white;
+}
+.Pagination-Prev-Next{
+  cursor: pointer;
+}
+.Pagination-Prev-Next:disabled {
+  cursor: not-allowed;
+  color: var(--brown-lighten-20);
+}
+
+.error{
+  color: "red";
+  text-align: "center";
+
+}
+
+button {
+  pointer-events: auto;
+}
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ccc;
+  border-top: 3px solid green;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 1rem auto;
+}
+.router-buttons{
+  display: flex;
+  gap: 0.5rem;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* losowy fix centrowania statusu */
+th:last-child,
+td:last-child {
+  text-align: center;
+  vertical-align: middle;
+}
+
+td:last-child > * {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}

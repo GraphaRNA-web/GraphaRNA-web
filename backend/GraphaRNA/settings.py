@@ -173,16 +173,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://guest:guest@rabbitmq:5672//")
 
-CELERY_RESULT_BACKEND = "rpc://"
+CELERY_RESULT_BACKEND = None
+CELERY_TASK_IGNORE_RESULT = True
 
 CELERY_TASK_QUEUES = (
-
-    Queue("grapharna", durable=True, queue_arguments={'x-queue-mode': 'lazy'}),
-
-    Queue("maintenance", durable=True, queue_arguments={'x-queue-mode': 'lazy'}),
-
-    Queue("email", durable=True, queue_arguments={'x-queue-mode': 'lazy'}),
-
+    Queue("grapharna", durable=True, queue_arguments={"x-queue-mode": "lazy"}),
+    Queue("maintenance", durable=True, queue_arguments={"x-queue-mode": "lazy"}),
+    Queue("email", durable=True, queue_arguments={"x-queue-mode": "lazy"}),
 )
 
 CELERY_TASK_DEFAULT_QUEUE = "grapharna"
@@ -201,6 +198,9 @@ CELERY_TASK_PREFETCH_MULTIPLIER = 1
 CELERY_BROKER_HEARTBEAT = 0
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 86400}
+
+ENGINE_REQUEST_MAX_RETRIES = 5
+ENGINE_REQUEST_RETRY_DELAY = 30
 
 # Module settings
 MODEL_NAME = os.getenv("MODEL_NAME")

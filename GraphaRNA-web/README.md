@@ -42,7 +42,7 @@ linkerd upgrade --crds | kubectl apply -f -
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace --set grafana.adminPassword='admin' --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false
 
 # Loki + promtail (agent to get logs from pods): you can add it in dashboard and set http://loki-stack.monitoring.svc.cluster.local:3100
-helm upgrade --install loki-stack grafana/loki-stack -n monitoring --set grafana.enabled=false
+helm upgrade --install loki-stack grafana/loki-stack -n monitoring --set grafana.enabled=false --set loki.isDefault=false
 
 # Install the GraphaRNA-web app
 helm upgrade --install grapharna-web . -n grapharna --create-namespace
@@ -67,6 +67,8 @@ To access grafana: `kubectl --namespace monitoring port-forward $POD_NAME 3000` 
 
 
 To integrate Loki with grafana use a dedicated dashboard and put in `http://loki:3100`
+
+If rabbitMQ has some problems try to increase the % `helm upgrade grapharna-web . -n grapharna --no-hooks --set rabbitmq.extraConfig="vm_memory_high_watermark.relative = 0.8"`
 
 
 ## Example Secrets & Configmap files
