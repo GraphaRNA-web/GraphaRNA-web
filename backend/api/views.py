@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework import status
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
-from typing import Optional
+from typing import Optional,Any
 import random
 from datetime import date, timedelta
 from webapp.models import Job, JobResults
@@ -30,11 +30,13 @@ from .api_docs import (
     setup_test_job_results_schema,
     cleanup_test_jobs_schema,
 )
+
 import zipfile
 import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 from django.core.files import File
+from django.utils import timezone
 
 
 @setup_test_job_schema
@@ -200,7 +202,11 @@ def DownloadZipFile(request: Request) -> HttpResponse:
             filePathSecondaryDotseq = instance.result_secondary_structure_dotseq.path
             filePathSecondarySvg = instance.result_secondary_structure_svg.path
             filePathTertiary = instance.result_tertiary_structure.path
+            filePathArc = instance.result_arc_diagram.path
 
+
+            if not os.path.exists(filePathArc):
+                return HttpResponse("File does not exist", status=404)
             if not os.path.exists(filePathSecondaryDotseq):
                 return HttpResponse("File does not exist", status=404)
             if not os.path.exists(filePathSecondarySvg):
@@ -209,11 +215,10 @@ def DownloadZipFile(request: Request) -> HttpResponse:
                 return HttpResponse("File does not exist", status=404)
 
             folder_name = f"{job_name_path}/instance_{idx}"
-            name_dotseq = os.path.basename(
-                instance.result_secondary_structure_dotseq.name
-            )
+            name_dotseq = os.path.basename(instance.result_secondary_structure_dotseq.name)
             name_svg = os.path.basename(instance.result_secondary_structure_svg.name)
             name_ter = os.path.basename(instance.result_tertiary_structure.name)
+            name_arc = os.path.basename(instance.result_arc_diagram.name)
 
             with open(filePathSecondaryDotseq, "rb") as f:
                 zip_file.writestr(f"{folder_name}/{name_dotseq}", f.read())
@@ -221,6 +226,8 @@ def DownloadZipFile(request: Request) -> HttpResponse:
                 zip_file.writestr(f"{folder_name}/{name_svg}", f.read())
             with open(filePathTertiary, "rb") as f:
                 zip_file.writestr(f"{folder_name}/{name_ter}", f.read())
+            with open(filePathArc, "rb") as f:
+                zip_file.writestr(f"{folder_name}/{name_arc}", f.read())
 
     zip_buffer.seek(0)
     response = HttpResponse(zip_buffer.read(), content_type="application/zip")
@@ -582,12 +589,20 @@ class JobPageNumberPagination(PageNumberPagination):
     page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = 100
+    def get_paginated_response(self, data: Any) -> Response:
+        return Response({
+        "count": self.page.paginator.count,
+        "page_size": self.get_page_size(self.request),
+        "next": self.get_next_link(),
+        "previous": self.get_previous_link(),
+        "results": data
+    })
 
 
 @job_pagination_schema
 @api_view(["GET"])
 def getActiveJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["E", "S", "Q", "P"]).order_by(
+    data = Job.objects.filter(status__in=["S", "Q", "R"]).order_by(
         "created_at", "uid"
     )
     paginator = JobPageNumberPagination()
@@ -601,7 +616,13 @@ def getActiveJobs(request: Request) -> Response:
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["C"]).order_by("created_at")
+    now= timezone.now()
+    one_day_ago= now - timedelta(hours=24)
+
+    data = Job.objects.filter(status__in=["C","E"],created_at__gte=one_day_ago).order_by("created_at")
+    if not data.exists():
+        five_days_ago=now-timedelta(days=5)    
+        data = Job.objects.filter(status__in=["C","E"],created_at__gte=five_days_ago).order_by("created_at")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:
