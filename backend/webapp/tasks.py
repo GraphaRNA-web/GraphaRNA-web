@@ -160,9 +160,9 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         processing_start: datetime = timezone.now()
 
         response = None
-        retry = 0
+        retries: int = 0
 
-        while retry < max_retries:
+        while retries < max_retries:
             try:
                 response = requests.post(
                     engine_url,
@@ -182,7 +182,13 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 retries += 1
                 sleep(retry_timeout)
 
-        if response is None or response.status_code != 200:
+        if response is None:
+            logger.error("Grapharna API error: No response received after all retries.")
+            job_data.status = "E"
+            job_data.save()
+            raise
+
+        if response.status_code != 200:
             logger.error(f"Grapharna API error: {response.text}")
             job_data.status = "E"
             job_data.save()

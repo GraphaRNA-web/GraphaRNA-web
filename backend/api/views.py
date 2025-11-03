@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework import status
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
-from typing import Optional,Any
+from typing import Optional, Any
 import random
 from datetime import date, timedelta
 from webapp.models import Job, JobResults
@@ -204,7 +204,6 @@ def DownloadZipFile(request: Request) -> HttpResponse:
             filePathTertiary = instance.result_tertiary_structure.path
             filePathArc = instance.result_arc_diagram.path
 
-
             if not os.path.exists(filePathArc):
                 return HttpResponse("File does not exist", status=404)
             if not os.path.exists(filePathSecondaryDotseq):
@@ -215,7 +214,9 @@ def DownloadZipFile(request: Request) -> HttpResponse:
                 return HttpResponse("File does not exist", status=404)
 
             folder_name = f"{job_name_path}/instance_{idx}"
-            name_dotseq = os.path.basename(instance.result_secondary_structure_dotseq.name)
+            name_dotseq = os.path.basename(
+                instance.result_secondary_structure_dotseq.name
+            )
             name_svg = os.path.basename(instance.result_secondary_structure_svg.name)
             name_ter = os.path.basename(instance.result_tertiary_structure.name)
             name_arc = os.path.basename(instance.result_arc_diagram.name)
@@ -589,22 +590,23 @@ class JobPageNumberPagination(PageNumberPagination):
     page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 10)
     page_size_query_param = "page_size"
     max_page_size = 100
+
     def get_paginated_response(self, data: Any) -> Response:
-        return Response({
-        "count": self.page.paginator.count,
-        "page_size": self.get_page_size(self.request),
-        "next": self.get_next_link(),
-        "previous": self.get_previous_link(),
-        "results": data
-    })
+        return Response(
+            {
+                "count": self.page.paginator.count,
+                "page_size": self.get_page_size(self.request),
+                "next": self.get_next_link(),
+                "previous": self.get_previous_link(),
+                "results": data,
+            }
+        )
 
 
 @job_pagination_schema
 @api_view(["GET"])
 def getActiveJobs(request: Request) -> Response:
-    data = Job.objects.filter(status__in=["S", "Q", "R"]).order_by(
-        "created_at", "uid"
-    )
+    data = Job.objects.filter(status__in=["S", "Q", "R"]).order_by("created_at", "uid")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:
@@ -616,13 +618,17 @@ def getActiveJobs(request: Request) -> Response:
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    now= timezone.now()
-    one_day_ago= now - timedelta(hours=24)
+    now = timezone.now()
+    one_day_ago = now - timedelta(hours=24)
 
-    data = Job.objects.filter(status__in=["C","E"],created_at__gte=one_day_ago).order_by("created_at")
+    data = Job.objects.filter(
+        status__in=["C", "E"], created_at__gte=one_day_ago
+    ).order_by("created_at")
     if not data.exists():
-        five_days_ago=now-timedelta(days=5)    
-        data = Job.objects.filter(status__in=["C","E"],created_at__gte=five_days_ago).order_by("created_at")
+        five_days_ago = now - timedelta(days=5)
+        data = Job.objects.filter(
+            status__in=["C", "E"], created_at__gte=five_days_ago
+        ).order_by("created_at")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:

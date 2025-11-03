@@ -177,13 +177,9 @@ CELERY_RESULT_BACKEND = None
 CELERY_TASK_IGNORE_RESULT = True
 
 CELERY_TASK_QUEUES = (
-
-    Queue("grapharna", durable=True, queue_arguments={'x-queue-mode': 'lazy'}),
-
-    Queue("maintenance", durable=True, queue_arguments={'x-queue-mode': 'lazy'}),
-
-    Queue("email", durable=True, queue_arguments={'x-queue-mode': 'lazy'}),
-
+    Queue("grapharna", durable=True, queue_arguments={"x-queue-mode": "lazy"}),
+    Queue("maintenance", durable=True, queue_arguments={"x-queue-mode": "lazy"}),
+    Queue("email", durable=True, queue_arguments={"x-queue-mode": "lazy"}),
 )
 
 CELERY_TASK_DEFAULT_QUEUE = "grapharna"
