@@ -1,4 +1,4 @@
-import { Page, Locator } from "@playwright/test";
+import { Page, Locator, expect } from "@playwright/test";
 import { BasePage } from "./basePage";
 import { ButtonElement } from "../elements/buttonElement";
 import { TextElement } from "../elements/textElement";
@@ -18,22 +18,20 @@ export class JobsPage extends BasePage {
   readonly activeJobsTitle: TextElement;
   readonly startJobButton: ButtonElement;
   readonly guideButton: ButtonElement;
-  readonly activeJobsSpinner: VisualElement;
-  readonly activeJobsTable: VisualElement;
-  readonly activePagination: VisualElement;
+  readonly activeJobsSpinner: ButtonElement;
+  readonly activeJobsTable: ButtonElement;
   readonly activePrevButton: ButtonElement;
   readonly activeNextButton: ButtonElement;
 
   // --- Finished Jobs Elements ---
   readonly finishedJobsTitle: TextElement;
-  readonly finishedJobsSpinner: VisualElement;
-  readonly finishedJobsTable: VisualElement;
-  readonly finishedPagination: VisualElement;
+  readonly finishedJobsSpinner: ButtonElement;
+  readonly finishedJobsTable: ButtonElement;
   readonly finishedPrevButton: ButtonElement;
   readonly finishedNextButton: ButtonElement;
 
   constructor(page: Page) {
-    super(page, undefined, "GraphaRNA-web", ".top-left");
+    super(page, undefined, "GraphaRNA-web", ".jobsPage-main");
 
     // --- Global Elements ---
     this.errorMessage = new TextElement("p.error", page);
@@ -51,26 +49,22 @@ export class JobsPage extends BasePage {
       `${this.activeSectionSelector} button:has-text('Guide')`,
       page
     );
-    this.activeJobsSpinner = new VisualElement(
+    this.activeJobsSpinner = new ButtonElement(
       `${this.activeSectionSelector} .spinner`,
       page
     );
 
-    this.activeJobsTable = new VisualElement(
+    this.activeJobsTable = new ButtonElement(
       `${this.activeSectionSelector} table`,
       page
     );
-    this.activePagination = new VisualElement(
-      `${this.activeSectionSelector} .pagination`,
-      page
+    this.activeNextButton = new ButtonElement(
+      `${this.activeSectionSelector} .Jobs-Pagination button:has-text('Next >')`,
+      this.page
     );
     this.activePrevButton = new ButtonElement(
-      `${this.activeSectionSelector} .pagination button:has-text('< Previous')`,
-      page
-    );
-    this.activeNextButton = new ButtonElement(
-      `${this.activeSectionSelector} .pagination button:has-text('Next >')`,
-      page
+      `${this.activeSectionSelector} .Jobs-Pagination button:has-text('< Previous')`,
+      this.page
     );
 
     // --- Finished Jobs Elements ---
@@ -78,25 +72,20 @@ export class JobsPage extends BasePage {
       `${this.finishedSectionSelector} .jobsPage-title`,
       page
     );
-    this.finishedJobsSpinner = new VisualElement(
+    this.finishedJobsSpinner = new ButtonElement(
       `${this.finishedSectionSelector} .spinner`,
       page
     );
-    // Assumes JobsTable renders a <table> element
-    this.finishedJobsTable = new VisualElement(
+    this.finishedJobsTable = new ButtonElement(
       `${this.finishedSectionSelector} table`,
       page
     );
-    this.finishedPagination = new VisualElement(
-      `${this.finishedSectionSelector} .pagination`,
-      page
-    );
     this.finishedPrevButton = new ButtonElement(
-      `${this.finishedSectionSelector} .pagination button:has-text('< Previous')`,
+      `${this.finishedSectionSelector} .Jobs-Pagination button:has-text('< Previous')`,
       page
     );
     this.finishedNextButton = new ButtonElement(
-      `${this.finishedSectionSelector} .pagination button:has-text('Next >')`,
+      `${this.finishedSectionSelector} .Jobs-Pagination button:has-text('Next >')`,
       page
     );
   }
@@ -106,10 +95,13 @@ export class JobsPage extends BasePage {
     await this.openUrl("/jobs");
   }
 
-  
-  async waitForPageToLoad() {
-    await this.activeJobsSpinner.toBeHidden();
-    await this.finishedJobsSpinner.toBeHidden();
+
+ async waitForActiveJobsToLoad() {
+    await expect(this.getActiveTableRows().nth(1)).toBeVisible();
+  }
+
+  async waitForFinishedJobsToLoad() {
+    await expect(this.getFinishedTableRows().first()).toBeVisible();
   }
 
   
@@ -135,7 +127,7 @@ export class JobsPage extends BasePage {
   
   getActivePageButton(pageNumber: number | string): ButtonElement {
     return new ButtonElement(
-      `${this.activeSectionSelector} .pagination button:text-is("${pageNumber}")`,
+      `${this.activeSectionSelector} .Jobs-Pagination button:text-is("${pageNumber}")`,
       this.page
     );
   }
@@ -143,7 +135,7 @@ export class JobsPage extends BasePage {
   
   getFinishedPageButton(pageNumber: number | string): ButtonElement {
     return new ButtonElement(
-      `${this.finishedSectionSelector} .pagination button:text-is("${pageNumber}")`,
+      `${this.finishedSectionSelector} .Jobs-Pagination button:text-is("${pageNumber}")`,
       this.page
     );
   }
