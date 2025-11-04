@@ -144,8 +144,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
   return (
     <div className="jobsPageContent">
       <div className="jobsPage-main">
-        <div
-          className="jobsPage-header">
+        <div className="jobsPage-header">
           <p className="jobsPage-title">Active jobs queue</p>
           <div className="router-buttons">
             <Button label="Start a job" variant="filled" width="220px" height="36px" action={() => router.push("/submitJob")}/>
@@ -155,22 +154,22 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
 
         {isLoadingActive ? spinner : <JobsTable rows={activeRows} />}
 
-        <div className="pagination">
-          <button className="Pagination-Prev-Next" onClick={() => setActivePage((p) => Math.max(1, p - 1))} disabled={activePage <= 1}>
+        <div className="Jobs-Pagination">
+          <button className="Jobs-Pagination-Prev-Next" onClick={() => setActivePage((p) => Math.max(1, p - 1))} disabled={activePage <= 1}>
             &lt; Previous
           </button>
           {getPageRange(activePage, totalPagesActive).map((p, idx) =>
             p === "..." ? (
               <span key={idx}>...</span>
             ) : (
-              <button className={`Pagination-Button ${activePage === p ? "active" : ""}`}
+              <button className={`Jobs-Pagination-Button ${activePage === p ? "active" : ""}`}
                 key={idx}
                 onClick={() => setActivePage(Number(p))}>
                 {p}
               </button>
             )
           )}
-          <button className="Pagination-Prev-Next" onClick={() => setActivePage((p) => Math.min(totalPagesActive, p + 1))} disabled={activePage >= totalPagesActive}>
+          <button className="Jobs-Pagination-Prev-Next" onClick={() => setActivePage((p) => Math.min(totalPagesActive, p + 1))} disabled={activePage >= totalPagesActive}>
             Next &gt;
           </button>
         </div>
@@ -185,22 +184,22 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
 
         {isLoadingFinished ? spinner : <JobsTable rows={finishedRows} isFinishedTable />}
 
-        <div className="pagination">
-          <button className="Pagination-Prev-Next" onClick={() => setFinishedPage((p) => Math.max(1, p - 1))} disabled={finishedPage <= 1}>
+        <div className="Jobs-Pagination">
+          <button className="Jobs-Pagination-Prev-Next" onClick={() => setFinishedPage((p) => Math.max(1, p - 1))} disabled={finishedPage <= 1}>
             &lt; Previous
           </button>
           {getPageRange(finishedPage, totalPagesFinished).map((p, idx) =>
             p === "..." ? (
               <span key={idx}>...</span>
             ) : (
-              <button className={`Pagination-Button ${finishedPage === p ? "active" : ""}`}
+              <button className={`Jobs-Pagination-Button ${finishedPage === p ? "active" : ""}`}
                 key={idx}
-                onClick={() => setActivePage(Number(p))}>
+                onClick={() => setFinishedPage(Number(p))}>
                 {p}
               </button>
             )
           )}
-          <button className="Pagination-Prev-Next" onClick={() => setFinishedPage((p) => Math.min(totalPagesFinished, p + 1))} disabled={finishedPage >= totalPagesFinished}>
+          <button className="Jobs-Pagination-Prev-Next" onClick={() => setFinishedPage((p) => Math.min(totalPagesFinished, p + 1))} disabled={finishedPage >= totalPagesFinished}>
             Next &gt;
           </button>
         </div>

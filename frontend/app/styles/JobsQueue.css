@@ -166,7 +166,7 @@ tbody td {
     color: var(--brown-base);
 }
 
-.pagination {
+.Jobs-Pagination {
     display: flex;
     justify-content: center;
     gap: 0.5rem;
@@ -175,7 +175,7 @@ tbody td {
     z-index: 5;
 }
 
-.Pagination-Button {
+.Jobs-Pagination-Button {
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -186,16 +186,16 @@ tbody td {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.Pagination-Button.active {
+.Jobs-Pagination-Button.active {
     background-color: var(--primary2-darken-5);
     color: white;
 }
 
-.Pagination-Prev-Next {
+.Jobs-Pagination-Prev-Next {
     cursor: pointer;
 }
 
-.Pagination-Prev-Next:disabled {
+.Jobs-Pagination-Prev-Next:disabled {
     cursor: not-allowed;
     color: var(--brown-lighten-20);
 }
