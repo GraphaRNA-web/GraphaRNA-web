@@ -31,7 +31,7 @@ class RnaValidator:
         inputStructureSplit: list[str] = [
             item.replace("-", " ").strip() #replace - with spaces (spaces needed for processing)
             for item in self.fasta_raw.split("\n")
-            if (item != "" and item[0] != "#")
+            if (item.replace("-", " ").strip() != "" and item[0] != "#")
         ]  # remove empty lines and comments
 
         potentialNameLines: list[str] = inputStructureSplit[::3]
