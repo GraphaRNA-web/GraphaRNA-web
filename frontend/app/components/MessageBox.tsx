@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/messageBox.css';
 
+
 type MessageType = 'error' | 'warning' | 'approve';
 
 interface MessageBoxProps {

@@ -472,8 +472,32 @@ const goNext = async () => {
                     <p className='sjp-hint-title'>Format hint</p>
                     <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
                   </div>
-                  <Modal/>
+                  <Modal
+                    validateRNA={validateRNA}
+                    setErrors={setErrors}
+                    setWarnings={setWarnings}
+                    setApproves={setApproves}
+                    setText={setText}
+                    setCorrectedText={setCorrectedText}
+                    goNext={goNext}
+                    setShowValidationNext={setShowValidationNext}
+                  />
                 </div>
+                {errors.length > 0 && (
+                  <div className="sjp-errors" style={{marginTop: '20px'}} >
+                    <MessageBox type="error" messages={errors} />
+                  </div>
+                )}
+                {warnings.length > 0 && (
+                  <div className="sjp-warnings" style={{marginTop: '20px'}}>
+                    <MessageBox type="warning" messages={warnings} />
+                  </div>
+                )}
+                {approves.length > 0 && (
+                  <div className="sjp-approves" style={{marginTop: '20px'}}>
+                    <MessageBox type="approve" messages={approves} />
+                  </div>
+                )}
               </div>
             )}
 

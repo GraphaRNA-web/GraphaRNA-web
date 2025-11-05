@@ -4,12 +4,34 @@ import React, { useState, useRef, useEffect } from 'react';
 import '../styles/modal.css';
 import Button from './Button';
 
-const Modal: React.FC = () => {
+interface ModalProps {
+  validateRNA: (payload: { fasta_raw: string }) => Promise<any>;
+  setErrors: React.Dispatch<React.SetStateAction<string[]>>;
+  setWarnings: React.Dispatch<React.SetStateAction<string[]>>;
+  setApproves: React.Dispatch<React.SetStateAction<string[]>>;
+  setText: React.Dispatch<React.SetStateAction<string>>;
+  setCorrectedText: React.Dispatch<React.SetStateAction<string>>;
+  goNext: () => void;
+  setShowValidationNext: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const Modal: React.FC<ModalProps> = ({
+  validateRNA,
+  setErrors,
+  setWarnings,
+  setApproves,
+  setText,
+  setCorrectedText,
+  goNext,
+  setShowValidationNext
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isUploading, setIsUploading] = useState(false);
 
   const allowedExtensions = ['txt', 'fasta'];
 
@@ -38,10 +60,11 @@ const Modal: React.FC = () => {
     const validFiles = files.filter(isValidFile);
 
     if (validFiles.length > 0) {
-      setUploadedFiles((prev) => [...prev, ...validFiles]);
+      setUploadedFiles(validFiles); // Zastąp, nie dodawaj
       setErrorMessage(null);
     } else {
-      setErrorMessage('File has other type than .fasta');
+      setUploadedFiles([]);
+      setErrorMessage('File has other type than .fasta or .txt');
     }
   };
 
@@ -54,10 +77,11 @@ const Modal: React.FC = () => {
     const validFiles = files.filter(isValidFile);
 
     if (validFiles.length > 0) {
-      setUploadedFiles((prev) => [...prev, ...validFiles]);
+      setUploadedFiles(validFiles); // Zastąp, nie dodawaj
       setErrorMessage(null);
     } else {
-      setErrorMessage('File has other type than .fasta');
+      setUploadedFiles([]);
+      setErrorMessage('File has other type than .fasta or .txt');
     }
   };
 
@@ -94,16 +118,68 @@ UUAUGUGCC UGUUA AAUACAAUAG
   const handleExampleClick = (exampleKey: keyof typeof exampleFiles) => {
     const content = exampleFiles[exampleKey];
     const file = new File([content], `${exampleKey}.fasta`, { type: 'text/plain' });
-    setUploadedFiles((prev) => [...prev, file]);
+    setUploadedFiles([file]); // Ustaw ten plik jako jedyny
     setErrorMessage(null);
   };
 
-  const handleUpload = () => {
-    if (uploadedFiles.length > 0) {
-      console.log('Uploading files:', uploadedFiles.map((f) => f.name));
+  const handleUpload = async () => {
+    if (uploadedFiles.length === 0) return;
+
+    setIsUploading(true);
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
+    setErrorMessage(null);
+
+    const file = uploadedFiles[0];
+    const fileContent = await file.text();
+
+    try {
+      console.log("[validateStructure FILE] calling validateRNA...");
+      const result = await validateRNA({ fasta_raw: fileContent });
+
+      if (!result["Validation Result"]) {
+        let errorList: string[] = [];
+        if (Array.isArray(result["Error List"]) && result["Error List"].length > 0) {
+          const flatErrors = result["Error List"].flat();
+          errorList = errorList.concat(flatErrors);
+        }
+        console.log("ErrorList: ", errorList);
+        setErrors(errorList);
+        handleRemoveFile(file.name);
+        setIsUploading(false);
+        setIsOpen(false);
+        return;
+      }
+
+      setCorrectedText(result["Validated RNA"]);
+
+      if (result["Fix Suggested"] && result["Validated RNA"]) {
+        setText(fileContent);
+        setCorrectedText(result["Validated RNA"]);
+        setShowValidationNext(true);
+        setIsUploading(false);
+        setIsOpen(false);
+        return;
+      }
+
+      if (!result["Fix Suggested"]) {
+        setText(result["Validated RNA"]);
+        setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
+      }
+
+      goNext();
+      
+      setIsUploading(false);
       setIsOpen(false);
       setUploadedFiles([]);
       setErrorMessage(null);
+
+    } catch (err: any) {
+      setErrors([err.message || "Server validation error"]);
+      handleRemoveFile(file.name);
+      setIsUploading(false);
+      setIsOpen(false);
     }
   };
 
@@ -249,6 +325,7 @@ UUAUGUGCC UGUUA AAUACAAUAG
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
+                multiple={false} // Upewnij się, że tylko jeden plik
               />
             </div>
 
@@ -278,12 +355,12 @@ UUAUGUGCC UGUUA AAUACAAUAG
                 id="modal-upload-button"
                 color="primary"
                 variant="filled"
-                label="Upload"
+                label={isUploading ? "Validating..." : "Upload"}
                 fontSize="16px"
                 width="160px"
                 height="41px"
                 action={handleUpload}
-                disabled={uploadedFiles.length === 0}
+                disabled={uploadedFiles.length === 0 || isUploading}
               />
             </div>
           </div>
