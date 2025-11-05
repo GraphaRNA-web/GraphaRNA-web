@@ -138,6 +138,7 @@ UUAUGUGCC UGUUA AAUACAAUAG
       console.log("[validateStructure FILE] calling validateRNA...");
       const result = await validateRNA({ fasta_raw: fileContent });
 
+      // Walidacja nie przeszła (Error)
       if (!result["Validation Result"]) {
         let errorList: string[] = [];
         if (Array.isArray(result["Error List"]) && result["Error List"].length > 0) {
@@ -155,14 +156,16 @@ UUAUGUGCC UGUUA AAUACAAUAG
       setCorrectedText(result["Validated RNA"]);
 
       if (result["Fix Suggested"] && result["Validated RNA"]) {
-        setText(fileContent);
-        setCorrectedText(result["Validated RNA"]);
-        setShowValidationNext(true);
+        setWarnings([ // TODO
+          "The provided structure requires some corrections."
+        ]);
+        handleRemoveFile(file.name);
         setIsUploading(false);
         setIsOpen(false);
         return;
       }
 
+      // Walidacja przeszła poprawnie (OK)
       if (!result["Fix Suggested"]) {
         setText(result["Validated RNA"]);
         setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
@@ -176,6 +179,7 @@ UUAUGUGCC UGUUA AAUACAAUAG
       setErrorMessage(null);
 
     } catch (err: any) {
+      // Błąd serwera
       setErrors([err.message || "Server validation error"]);
       handleRemoveFile(file.name);
       setIsUploading(false);
@@ -325,7 +329,7 @@ UUAUGUGCC UGUUA AAUACAAUAG
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
-                multiple={false} // Upewnij się, że tylko jeden plik
+                multiple={false}
               />
             </div>
 
