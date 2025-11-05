@@ -29,7 +29,7 @@ class RnaValidator:
         dotBracket: str = ""
 
         inputStructureSplit: list[str] = [
-            item
+            item.replace("-", " ").strip() #replace - with spaces (spaces needed for processing)
             for item in self.fasta_raw.split("\n")
             if (item != "" and item[0] != "#")
         ]  # remove empty lines and comments
@@ -120,6 +120,19 @@ class RnaValidator:
         # length check
         if len(rna) == 0:
             self.errorList.append("Invalid data")
+            validationResult = False
+            return {
+                "Validation Result": validationResult,
+                "Error List": self.errorList,
+                "Validated RNA": validatedRna,
+                "Mismatching Brackets": mismatchingBrackets,
+                "Incorrect Pairs": incorrectPairs,
+                "Fix Suggested": fixSuggested,
+                "allPairs": [],
+            }
+
+        if len(rna.replace(" ", "")) > settings.MAX_RNA_LENGTH:
+            self.errorList.append(f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides")
             validationResult = False
             return {
                 "Validation Result": validationResult,

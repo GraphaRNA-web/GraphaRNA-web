@@ -39,7 +39,7 @@ def drawVARNAgraph(input_filepath: str, output_path: str) -> str:
     seq: str = ""
     with open(input_filepath, "r") as f:
         for line in f:
-            line = line.strip().replace(" ", "")
+            line = line.strip().replace(" ", "").replace("-", "")
             if not line or line[0] in ">#":
                 continue
             chars = set(line)
@@ -123,9 +123,9 @@ def generateRchieDiagram(
     Both input strings will be cleaned of white spaces and stripped
     Output: String of "OK " + output_img_path or "ERROR*" if any have occured.
     """
-    dotbracket_input = dotbracket_input.strip().replace(" ", "")
-    dotbracket_output = dotbracket_output.strip().replace(" ", "")
-
+    dotbracket_input = dotbracket_input.strip().replace("-", "")
+    dotbracket_output = dotbracket_output.strip().replace("-", "")
+    
     input_pairs: set[tuple[int, int]] = set()
     output_pairs: set[tuple[int, int]] = set()
 

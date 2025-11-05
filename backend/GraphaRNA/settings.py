@@ -50,6 +50,8 @@ TITLE_JOB_NEAR_EXPIRATION = os.getenv("EMAIL_TITLE_JOB_NEAR_EXPIRATION")
 
 UUID_HASH_LENGTH = int(os.getenv("UUID_HASH_LENGTH", 5))
 
+MAX_RNA_LENGTH = int(os.getenv("MAX_RNA_LENGTH", 500))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
