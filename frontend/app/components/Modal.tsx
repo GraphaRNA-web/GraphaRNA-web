@@ -156,10 +156,25 @@ UUAUGUGCC UGUUA AAUACAAUAG
       setCorrectedText(result["Validated RNA"]);
 
       if (result["Fix Suggested"] && result["Validated RNA"]) {
-        setWarnings([ // TODO
-          "The provided structure requires some corrections."
-        ]);
-        handleRemoveFile(file.name);
+        
+        const warningMessages: string[] = [
+          "The provided structure required corrections and cannot be accepted. Please fix the file manually:"
+        ];
+
+        const mismatching = result["Mismatching Brackets"];
+        const incorrect = result["Incorrect Pairs"];
+
+        if (mismatching && mismatching.length > 0) {
+          warningMessages.push(`- Mismatching Brackets at indices: ${mismatching.join(', ')}`);
+        }
+
+        if (incorrect && incorrect.length > 0) {
+          const pairsString = incorrect.map((pair: number[]) => `[${pair.join(', ')}]`).join(', ');
+          warningMessages.push(`- Incorrect Pairs: ${pairsString}`);
+        }
+        
+        setWarnings(warningMessages);
+        handleRemoveFile(file.name); // "cofnij plik"
         setIsUploading(false);
         setIsOpen(false);
         return;
