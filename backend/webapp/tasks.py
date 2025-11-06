@@ -15,7 +15,6 @@ import json
 from webapp.visualization_tools import (
     drawVARNAgraph,
     generateRchieDiagram,
-    getDotBracket,
 )
 from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
