@@ -36,6 +36,8 @@ export default function SubmitJob() {
   const [structures, setStructures] = useState<string[]>([""]);
   const [mismatchingBrackets, setMismatchingBrackets] = useState<number[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<[number, number][]>([]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
 
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
@@ -55,6 +57,37 @@ export default function SubmitJob() {
   return newErrors.length === 0;
 };
 
+const handleFormatChange = (newFormat: string) => {
+    setInputFormat(newFormat);
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
+    setMismatchingBrackets([]);
+    setIncorrectPairs([]);
+    
+    if (newFormat !== "File") {
+      setUploadedFile(null);
+      setText("");
+    }
+  };
+
+const handleFileUploaded = async (file: File) => {
+    setUploadedFile(file);
+    setIsFileModalOpen(false);
+
+    try {
+      const fileContent = await file.text();
+      setText(fileContent);
+    } catch (e) {
+      setErrors(["Error reading file content."]);
+      setText("");
+    }
+    
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
+  };
+
 
 const handleStructureChange = (index: number, newValue: string) => {
   const updated = [...structures];
@@ -73,7 +106,7 @@ const removeStructure = (index: number) => {
 type ValidationResult = "error" | "warning" | "ok";
 
 const validateStructure = async (fromNext = false) : Promise<ValidationResult> => {
-  if (inputFormat === "Text") {
+  if (inputFormat === "Text" || inputFormat === "File") {
     const trimmedText = text;
     console.log("[validateStructure] start", { inputFormat, text });
 
@@ -201,8 +234,6 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       return "error";
     }
   }
-
-  return "ok"; // dla File brak walidacji
 };
 
 const handleValidate = async () => {
@@ -330,7 +361,7 @@ const goNext = async () => {
                 <Slider 
                   options={["Interactive", "Text", "File"]}
                   selectedOption={inputFormat}
-                  onChange={setInputFormat}
+                  onChange={handleFormatChange}
                 />
             </div>
             
@@ -466,42 +497,55 @@ const goNext = async () => {
             )}
 
             {inputFormat === "File" && (
-              <div className='sjp-int-gray-box'>
-                <div className='sjp-hint-upload'>
-                  <div className='sjp-file-hint'>
-                    <p className='sjp-hint-title'>Format hint</p>
-                    <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
-                  </div>
-                  <Modal
-                    validateRNA={validateRNA}
-                    setErrors={setErrors}
-                    setWarnings={setWarnings}
-                    setApproves={setApproves}
-                    setText={setText}
-                    setCorrectedText={setCorrectedText}
-                    goNext={goNext}
-                    setShowValidationNext={setShowValidationNext}
-                  />
+            <div className='sjp-int-gray-box'>
+              <div className='sjp-hint-upload'>
+                <div className='sjp-file-hint'>
+                  <p className='sjp-hint-title'>Format hint</p>
+                  <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
                 </div>
-                {errors.length > 0 && (
-                  <div className="sjp-errors" style={{marginTop: '20px'}} >
-                    <MessageBox type="error" messages={errors} />
-                  </div>
-                )}
-                {warnings.length > 0 && (
-                  <div className="sjp-warnings" style={{marginTop: '20px'}}>
-                    <MessageBox type="warning" messages={warnings} />
-                  </div>
-                )}
-                {approves.length > 0 && (
-                  <div className="sjp-approves" style={{marginTop: '20px'}}>
-                    <MessageBox type="approve" messages={approves} />
-                  </div>
+                
+                {!uploadedFile ? (
+                  <Button
+                    color="primary"
+                    variant="filled"
+                    fontSize="16px"
+                    width="200px"
+                    height="40px"
+                    action={() => setIsFileModalOpen(true)}
+                    icon={<img src="icons/white_upload.svg" alt="Upload Icon" style={{ height: 24, width: 24 }} />}
+                    label="Upload File"
+                  />
+                ) : (
+                  <FileDisplay 
+                    fileName={uploadedFile.name}
+                    onEdit={() => setIsFileModalOpen(true)}
+                  />
                 )}
               </div>
-            )}
 
-            {(inputFormat === "Text" || inputFormat === "Interactive") && (
+              {/* Modal jest teraz kontrolowany z tego komponentu */}
+              <Modal 
+                isOpen={isFileModalOpen}
+                onClose={() => setIsFileModalOpen(false)}
+                onFileUploaded={handleFileUploaded}
+              />
+
+              {/* Message boxy na błędy walidacji (image_691be6.png) */}
+              {errors.length > 0 && (
+                <div className="sjp-errors" style={{marginTop: '20px'}} >
+                  <MessageBox type="error" messages={errors} />
+                </div>
+              )}
+              {/* Approves (opcjonalnie) */}
+              {approves.length > 0 && (
+                <div className="sjp-approves" style={{marginTop: '20px'}}>
+                  <MessageBox type="approve" messages={approves} />
+                </div>
+              )}
+            </div>
+          )}
+
+            {(inputFormat === "Text" || inputFormat === "Interactive" || inputFormat === "File") && (
               <div className='sjp-buttons-section'>
                 <Button
                   color='primary'
