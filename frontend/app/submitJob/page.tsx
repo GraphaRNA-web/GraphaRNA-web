@@ -235,6 +235,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       return "error";
     }
   }
+  return "error" // that should be unreachable in normal circumstances
 };
 
 const handleValidate = async () => {
