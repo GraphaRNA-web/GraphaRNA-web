@@ -19,10 +19,6 @@ class Status(models.TextChoices):
     Finished = "C", "Completed"
     Error = "E", "Error"
 
-class SeparatorChoices(models.TextChoices):
-    SPACE = " ", "Space"
-    HYPHEN = "-", "Hyphen"
-    NONE = "N", "None"
 
 class SeparatorChoices(models.TextChoices):
     SPACE = " ", "Space"
