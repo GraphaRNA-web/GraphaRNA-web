@@ -1,0 +1,28 @@
+/* app/styles/fileDisplay.css */
+
+.file-display-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 8px;
+}
+
+.file-display-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 4px;
+}
+
+.file-display-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #42361E;
+  margin-bottom: 8px;
+}
+
+
+.file-display-container .button-container {
+  width: auto !important; 
+}

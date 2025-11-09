@@ -84,9 +84,9 @@ def generateRchieDiagram(
         input_lines = fasta_content_input.split('\n')
         output_lines = fasta_content_output.split('\n')
         
-        nucleotites_input = input_lines[1].strip().replace("-", "")
-        dotbracket_input = input_lines[2].strip().replace("-", "")
-        dotbracket_output = output_lines[2].strip().replace("-", "")
+        nucleotites_input = input_lines[1].strip().replace("-", "").replace(" ", "")
+        dotbracket_input = input_lines[2].strip().replace("-", "").replace(" ", "")
+        dotbracket_output = output_lines[2].strip().replace("-", "").replace(" ", "")
 
         validator_input = RnaValidator(fasta_content_input)
         result_input = validator_input.ValidateRna()

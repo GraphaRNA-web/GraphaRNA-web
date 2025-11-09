@@ -155,7 +155,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       // jeśli brak błędów i brak warningów → approve
       if (!result["Fix Suggested"]) {
         setText(result["Validated RNA"])
-        setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
+        setApproves(["The structure is valid. You can now proceed with the job."]);
       }
 
       return "ok";
@@ -221,7 +221,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
         if (!result["Fix Suggested"]) {
           setText(result["Validated RNA"])
           setApproves([
-            "Validation passed successfully. Input was parsed to the engine's format.",
+            "The structure is valid. You can now proceed with the job.",
           ]);
         }
 
@@ -546,8 +546,6 @@ const goNext = async () => {
               )}
             </div>
           )}
-
-            {(inputFormat === "Text" || inputFormat === "Interactive" || inputFormat === "File") && (
               <div className='sjp-buttons-section'>
                 <Button
                   color='primary'
@@ -568,7 +566,6 @@ const goNext = async () => {
                   fontSize='16px'
                 />
               </div>
-            )}
           </div>
         )}
 

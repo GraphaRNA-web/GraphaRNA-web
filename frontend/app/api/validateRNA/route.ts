@@ -22,9 +22,9 @@ export async function POST(req: Request) {
     const origin = req.headers.get("origin");
     const referer = req.headers.get("referer");
     console.log("[PROXY] origin, referer, domain: ", origin, referer, DOMAIN_URL);
-    // if (!(origin === DOMAIN_URL || referer?.startsWith(DOMAIN_URL))) {
-    //   return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
-    // }
+    if (!(origin === DOMAIN_URL || referer?.startsWith(DOMAIN_URL))) {
+      return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
+    }
 
     const headersToForward = forwardHeaders(req);
     let body: BodyInit | null = null;

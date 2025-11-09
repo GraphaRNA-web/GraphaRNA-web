@@ -13,10 +13,10 @@ const MessageBox: React.FC<MessageBoxProps> = ({ type, messages }) => {
   const messageList = Array.isArray(messages) ? messages : [messages];
   const isMultiple = messageList.length > 1;
 
-  const icons: Record<MessageType, string> = { // Need to change the icons :)
+  const icons: Record<MessageType, string> = {
     error: "icons/error.svg",
-    warning: "icons/error.svg",
-    approve: "icons/error.svg"
+    warning: "icons/warning_validation.svg",
+    approve: "icons/approve.svg"
   };
 
   const headers: Record<MessageType, string> = {
