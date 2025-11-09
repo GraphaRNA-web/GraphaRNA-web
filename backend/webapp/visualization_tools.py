@@ -125,7 +125,7 @@ def generateRchieDiagram(
     """
     dotbracket_input = dotbracket_input.strip().replace("-", "")
     dotbracket_output = dotbracket_output.strip().replace("-", "")
-    
+
     input_pairs: set[tuple[int, int]] = set()
     output_pairs: set[tuple[int, int]] = set()
 

@@ -481,8 +481,10 @@ class PostRnaValidationTests(TestCase):
         response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
         self.assertFalse(response.data["Validation Result"])
-        self.assertIn(f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides", response.data["Error List"])
-
+        self.assertIn(
+            f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides",
+            response.data["Error List"],
+        )
 
     def test_long_valid_structure(self):
         rna_input = "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))...."

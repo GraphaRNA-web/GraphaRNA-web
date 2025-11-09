@@ -24,6 +24,12 @@ class SeparatorChoices(models.TextChoices):
     HYPHEN = "-", "Hyphen"
     NONE = "N", "None"
 
+class SeparatorChoices(models.TextChoices):
+    SPACE = " ", "Space"
+    HYPHEN = "-", "Hyphen"
+    NONE = "N", "None"
+
+
 class Job(models.Model):
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False

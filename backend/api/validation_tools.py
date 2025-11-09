@@ -13,7 +13,7 @@ class RnaValidator:
         ]
         self.parsingResult: bool = True
         self.errorList: list[str] = []
-        self.strandSeparator: str | None = None 
+        self.strandSeparator: str | None = None
 
         self.FastaFileParse()
 
@@ -25,7 +25,7 @@ class RnaValidator:
         dotBracket: str = ""
 
         inputStructureSplit: list[str] = [
-            item.strip() 
+            item.strip()
             for item in self.fasta_raw.split("\n")
             if (item.replace("-", " ").strip() != "" and item[0] != "#")
         ]  # remove empty lines and comments
@@ -64,8 +64,12 @@ class RnaValidator:
                     else:
                         self.strandSeparator = "N"  # No separator found
 
-                if currentStrand[1].count(self.strandSeparator) != currentStrand[2].count(self.strandSeparator):
-                    self.errorList.append("Parsing error: Mismatching strand seperators")
+                if currentStrand[1].count(self.strandSeparator) != currentStrand[
+                    2
+                ].count(self.strandSeparator):
+                    self.errorList.append(
+                        "Parsing error: Mismatching strand seperators"
+                    )
 
                 else:
                     nucleotides += currentStrand[1]
@@ -95,9 +99,13 @@ class RnaValidator:
                     else:
                         self.strandSeparator = "N"  # No separator found
 
-                if currentStrand[0].count(self.strandSeparator) != currentStrand[1].count(self.strandSeparator):
-                    self.errorList.append("Parsing error: Mismatching strand seperators")
-                
+                if currentStrand[0].count(self.strandSeparator) != currentStrand[
+                    1
+                ].count(self.strandSeparator):
+                    self.errorList.append(
+                        "Parsing error: Mismatching strand seperators"
+                    )
+
                 else:
                     nucleotides += currentStrand[0]
                     nucleotides += " "
@@ -106,11 +114,15 @@ class RnaValidator:
                     dotBracket += " "
         if self.strandSeparator == "-":
             self.parsedStructure: str = (
-                nucleotides.strip().upper().replace("T", "U").replace("-", " ") + "\n" + dotBracket.strip().replace("-", " ")
+                nucleotides.strip().upper().replace("T", "U").replace("-", " ")
+                + "\n"
+                + dotBracket.strip().replace("-", " ")
             )
         else:
-            self.parsedStructure: str = (
-                nucleotides.strip().upper().replace("T", "U") + "\n" + dotBracket.strip()
+            self.parsedStructure = (
+                nucleotides.strip().upper().replace("T", "U")
+                + "\n"
+                + dotBracket.strip()
             )
 
     def ValidateRna(
@@ -158,7 +170,9 @@ class RnaValidator:
             }
 
         if len(rna.replace(" ", "")) > settings.MAX_RNA_LENGTH:
-            self.errorList.append(f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides")
+            self.errorList.append(
+                f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides"
+            )
             validationResult = False
             return {
                 "Validation Result": validationResult,
