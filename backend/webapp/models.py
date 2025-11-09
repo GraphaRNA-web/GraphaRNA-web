@@ -19,6 +19,10 @@ class Status(models.TextChoices):
     Finished = "C", "Completed"
     Error = "E", "Error"
 
+class SeparatorChoices(models.TextChoices):
+    SPACE = " ", "Space"
+    HYPHEN = "-", "Hyphen"
+    NONE = "N", "None"
 
 class Job(models.Model):
     uid: models.UUIDField = models.UUIDField(
@@ -28,6 +32,9 @@ class Job(models.Model):
         max_length=settings.UUID_HASH_LENGTH, unique=True, editable=False, null=True
     )
     input_structure: models.FileField = models.FileField()
+    strand_separator: models.CharField = models.CharField(
+        max_length=1, choices=SeparatorChoices
+    )
     seed: models.IntegerField = models.IntegerField()
     job_name: models.CharField = models.CharField(max_length=255)
     email: models.CharField = models.CharField(max_length=255, null=True, blank=True)

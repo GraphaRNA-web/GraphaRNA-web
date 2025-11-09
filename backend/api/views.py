@@ -449,6 +449,7 @@ def ProcessRequestData(request: Request) -> Response:
         email=email,
         status="Q",
         alternative_conformations=job_alternative_conformations,
+        strand_separator=validationResult["strandSeparator"],
     )
 
     run_grapharna_task.delay(job.uid)

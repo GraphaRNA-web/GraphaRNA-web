@@ -219,9 +219,8 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 new_dotbracket_list = []
                 for line in dotbracket_from_annotator[1:]:
                     for index in sorted(split_indices):
-                        line = line[:index] + "-" + line[index:]
+                        line = line[:index] + job_data.strand_separator + line[index:]
                     new_dotbracket_list.append(line)
-
                 dotbracket_from_annotator = [dotbracket_from_annotator[0], new_dotbracket_list[0],  new_dotbracket_list[1]]
             dotbracket_from_annotator = "\n".join(dotbracket_from_annotator)
             dotbracket_path = os.path.join(output_dir, f"{uuid_str}_{seed}.dotseq")
@@ -327,16 +326,17 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
     """Post-processing: replace spaces with dashes in input structure file"""
-    try:
-        with job_data.input_structure.open("r") as f:
-            input_data = f.read().decode("utf-8")
-            input_data = input_data.replace(" ", "-")
+    if job_data.strand_separator == "-":
+        try:
+            with job_data.input_structure.open("r") as f:
+                input_data = f.read().decode("utf-8")
+                input_data = input_data.replace(" ", job_data.strand_separator)
 
-        with job_data.input_structure.open("w") as f:
-            f.write(input_data)
-    except Exception as e:
-        logger.error(f"Error replacing spaces in input structure: {e}")
-        raise
+            with job_data.input_structure.open("w") as f:
+                f.write(input_data)
+        except Exception as e:
+            logger.error(f"Error replacing spaces in input structure: {e}")
+            raise
         
     job_data.expires_at = timezone.now() + timedelta(
         weeks=settings.JOB_EXPIRATION_WEEKS
