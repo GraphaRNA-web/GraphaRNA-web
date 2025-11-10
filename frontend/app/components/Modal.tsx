@@ -73,7 +73,7 @@ CCGAGUAGGUA
 
     example2: `>Example 2
 GACUUAUAGAU UGAGUCC
-(((((..(... )))))))`,
+(((((..(... )))))).`,
 
     example3: `>Example 3
 UUAUGUGCC UGUUA AAUACAAUAG
