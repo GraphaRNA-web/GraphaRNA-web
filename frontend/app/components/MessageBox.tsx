@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/messageBox.css';
 
+
 type MessageType = 'error' | 'warning' | 'approve';
 
 interface MessageBoxProps {
@@ -14,8 +15,8 @@ const MessageBox: React.FC<MessageBoxProps> = ({ type, messages }) => {
 
   const icons: Record<MessageType, string> = {
     error: "icons/error.svg",
-    warning: "icons/error.svg",
-    approve: ""
+    warning: "icons/warning_validation.svg",
+    approve: "icons/approve.svg"
   };
 
   const headers: Record<MessageType, string> = {

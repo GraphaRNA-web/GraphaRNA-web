@@ -75,6 +75,18 @@
     height: 40px;
 }
 
+.sjp-approves {
+    margin-top: 35px;
+}
+
+.sjp-warnings {
+    margin-top: 35px;
+}
+
+.sjp-errors {
+    margin-top: 35px;
+}
+
 .sjp-format-select{
     display: flex;
     flex-direction: column;
@@ -204,11 +216,11 @@
 
 .sjp-hint-upload{
     width: 100%;
-    height: 60px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    margin-bottom: 10px;
 }
 
 .sjp-file-hint{
