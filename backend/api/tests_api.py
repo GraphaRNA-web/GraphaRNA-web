@@ -445,9 +445,30 @@ class PostRnaValidationTests(TestCase):
         self.assertEqual(response.data["Incorrect Pairs"], [])
         self.assertEqual(response.data["Validated RNA"], "")
         self.assertIn(
-            "RNA and DotBracket not of equal lengths", response.data["Error List"]
+            "Parsing error: Mismatching strand lengths", response.data["Error List"]
         )
-
+    def test_diffrent_strand_separators(self):
+        rna_input = ">example1\nAGC-UUU\n(.. ..)"
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertFalse(response.data["Fix Suggested"])
+        self.assertEqual(response.data["Mismatching Brackets"], [])
+        self.assertEqual(response.data["Incorrect Pairs"], [])
+        self.assertIn(
+            "Parsing error: Mismatching strand separators", response.data["Error List"]
+        )
+    def test_diffrent_strand_separators_same_line(self):
+        rna_input = ">example1\nAGC-U UU\n(..-. .)"
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertFalse(response.data["Fix Suggested"])
+        self.assertEqual(response.data["Mismatching Brackets"], [])
+        self.assertEqual(response.data["Incorrect Pairs"], [])
+        self.assertIn(
+            "Parsing error: Mismatching strand separators", response.data["Error List"]
+        )
     def test_rna_with_extra_spaces(self):
         rna_input = ">example\nA U G C\n( . . )"
         response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
