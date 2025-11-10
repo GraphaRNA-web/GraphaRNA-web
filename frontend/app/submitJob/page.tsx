@@ -413,19 +413,19 @@ const goNext = async () => {
                   <p>+</p>
                 </div>
                 {errors.length > 0 && (
-                    <div className="sjp-errors" style={{marginTop: '20px'}} >
+                    <div className="sjp-errors" >
                       <MessageBox type="error" messages={errors} />
                     </div>
                 )}
 
                 {warnings.length > 0 && (
-                    <div className="sjp-warnings" style={{marginTop: '20px'}}>
+                    <div className="sjp-warnings">
                       <MessageBox type="warning" messages={warnings} />
                     </div>
                 )}
 
                 {approves.length > 0 && (
-                    <div className="sjp-approves" style={{marginTop: '20px'}}>
+                    <div className="sjp-approves">
                       <MessageBox type="approve" messages={approves} />
                     </div>
                 )}
@@ -479,19 +479,19 @@ const goNext = async () => {
                 />
 
                 {errors.length > 0 && (
-                  <div className="sjp-errors" style={{marginTop: '20px'}} >
+                  <div className="sjp-errors" >
                     <MessageBox type="error" messages={errors} />
                   </div>
                 )}
 
                 {warnings.length > 0 && (
-                  <div className="sjp-warnings" style={{marginTop: '20px'}}>
+                  <div className="sjp-warnings">
                     <MessageBox type="warning" messages={warnings} />
                   </div>
                 )}
 
                 {approves.length > 0 && (
-                  <div className="sjp-approves" style={{marginTop: '20px'}}>
+                  <div className="sjp-approves">
                     <MessageBox type="approve" messages={approves} />
                   </div>
                 )}
@@ -525,22 +525,20 @@ const goNext = async () => {
                 )}
               </div>
 
-              {/* Modal jest teraz kontrolowany z tego komponentu */}
               <Modal 
                 isOpen={isFileModalOpen}
                 onClose={() => setIsFileModalOpen(false)}
                 onFileUploaded={handleFileUploaded}
               />
 
-              {/* Message boxy na błędy walidacji (image_691be6.png) */}
               {errors.length > 0 && (
-                <div className="sjp-errors" style={{marginTop: '20px'}} >
+                <div className="sjp-errors" >
                   <MessageBox type="error" messages={errors} />
                 </div>
               )}
-              {/* Approves (opcjonalnie) */}
+
               {approves.length > 0 && (
-                <div className="sjp-approves" style={{marginTop: '20px'}}>
+                <div className="sjp-approves">
                   <MessageBox type="approve" messages={approves} />
                 </div>
               )}
