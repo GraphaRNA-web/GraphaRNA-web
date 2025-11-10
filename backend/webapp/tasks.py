@@ -331,8 +331,8 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             except Exception as e:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
-    """Post-processing: replace spaces with dashes in input structure file"""
-    if job_data.strand_separator == "-":
+    """Post-processing: replace spaces with input strand separator in input structure file"""
+    if job_data.strand_separator != " ":
         try:
             with job_data.input_structure.open("r") as f:
                 input_data = f.read().decode("utf-8")
