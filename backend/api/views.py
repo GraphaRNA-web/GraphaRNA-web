@@ -301,6 +301,7 @@ def PostRnaValidation(request: Request) -> Response:
     results: dict = validator.ValidateRna()
 
     if results["Validation Result"]:
+        results["Validated RNA"] = results["Validated RNA"].replace(" ", results["strandSeparator"])
         return Response(
             results,
             status=status.HTTP_200_OK,
@@ -449,6 +450,7 @@ def ProcessRequestData(request: Request) -> Response:
         email=email,
         status="Q",
         alternative_conformations=job_alternative_conformations,
+        strand_separator=validationResult["strandSeparator"],
     )
 
     run_grapharna_task.delay(job.uid)

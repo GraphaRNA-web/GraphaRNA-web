@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from unittest.mock import MagicMock, mock_open, patch
 from django.test import TestCase
+from django.conf import settings
 from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
@@ -444,9 +445,30 @@ class PostRnaValidationTests(TestCase):
         self.assertEqual(response.data["Incorrect Pairs"], [])
         self.assertEqual(response.data["Validated RNA"], "")
         self.assertIn(
-            "RNA and DotBracket not of equal lengths", response.data["Error List"]
+            "Parsing error: Mismatching strand lengths", response.data["Error List"]
         )
-
+    def test_diffrent_strand_separators(self):
+        rna_input = ">example1\nAGC-UUU\n(.. ..)"
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertFalse(response.data["Fix Suggested"])
+        self.assertEqual(response.data["Mismatching Brackets"], [])
+        self.assertEqual(response.data["Incorrect Pairs"], [])
+        self.assertIn(
+            "Parsing error: Mismatching strand separators", response.data["Error List"]
+        )
+    def test_diffrent_strand_separators_same_line(self):
+        rna_input = ">example1\nAGC-U UU\n(..-. .)"
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertFalse(response.data["Fix Suggested"])
+        self.assertEqual(response.data["Mismatching Brackets"], [])
+        self.assertEqual(response.data["Incorrect Pairs"], [])
+        self.assertIn(
+            "Parsing error: Mismatching strand separators", response.data["Error List"]
+        )
     def test_rna_with_extra_spaces(self):
         rna_input = ">example\nA U G C\n( . . )"
         response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
@@ -478,8 +500,12 @@ class PostRnaValidationTests(TestCase):
         dotbracket = "." * 10000
         rna_input = f">long\n{rna_seq}\n{dotbracket}"
         response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data["Validation Result"])
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertIn(
+            f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides",
+            response.data["Error List"],
+        )
 
     def test_long_valid_structure(self):
         rna_input = "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))...."

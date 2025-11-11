@@ -208,8 +208,26 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         try:
             with open(output_path_json, "r") as f:
                 json_data = json.load(f)
+            """"Get dotBracket from annotator and adjust it to match input structure strand breaks"""
+            dotbracket_from_annotator = json_data.get("dotBracket", "").split("\n")
+            reference_line = (
+                job_data.input_structure.read().decode("utf-8").split("\n")[1]
+            )
+            job_data.input_structure.seek(0)
 
-            dotbracket_from_annotator = json_data.get("dotBracket", "")
+            split_indices = [i for i, char in enumerate(reference_line) if char == " "]
+            if split_indices:
+                new_dotbracket_list = []
+                for line in dotbracket_from_annotator[1:]:
+                    for index in sorted(split_indices):
+                        line = line[:index] + job_data.strand_separator + line[index:]
+                    new_dotbracket_list.append(line)
+                dotbracket_from_annotator = [
+                    dotbracket_from_annotator[0],
+                    new_dotbracket_list[0],
+                    new_dotbracket_list[1],
+                ]
+            dotbracket_from_annotator = "\n".join(dotbracket_from_annotator)
             dotbracket_path = os.path.join(output_dir, f"{uuid_str}_{seed}.dotseq")
             if dotbracket_from_annotator:
                 with open(dotbracket_path, "w") as dbn_file:
@@ -310,6 +328,18 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             except Exception as e:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
+    """Post-processing: replace spaces with input strand separator in input structure file"""
+    if job_data.strand_separator != " ":
+        try:
+            with job_data.input_structure.open("r") as f:
+                input_data = f.read().decode("utf-8")
+                input_data = input_data.replace(" ", job_data.strand_separator)
+
+            with job_data.input_structure.open("w") as f:
+                f.write(input_data)
+        except Exception as e:
+            logger.error(f"Error replacing spaces in input structure: {e}")
+            raise
 
     job_data.expires_at = timezone.now() + timedelta(
         weeks=settings.JOB_EXPIRATION_WEEKS
