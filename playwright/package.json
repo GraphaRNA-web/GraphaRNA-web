@@ -12,5 +12,9 @@
     "@types/node": "^24.9.1",
     "adm-zip": "^0.5.16",
     "dotenv": "^17.2.3"
-  }
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "type": "commonjs"
 }
