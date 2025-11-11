@@ -13,6 +13,7 @@ import CustomCheckbox from '../components/CustomCheckbox';
 import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
 import ValidationWarningModal from "../components/ValidationWarningModal";
+import FileDisplay from '../components/FileDisplay';
 
 
 export default function SubmitJob() {
@@ -36,6 +37,8 @@ export default function SubmitJob() {
   const [structures, setStructures] = useState<string[]>([""]);
   const [mismatchingBrackets, setMismatchingBrackets] = useState<number[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<[number, number][]>([]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
 
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
@@ -55,6 +58,37 @@ export default function SubmitJob() {
   return newErrors.length === 0;
 };
 
+const handleFormatChange = (newFormat: string) => {
+    setInputFormat(newFormat);
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
+    setMismatchingBrackets([]);
+    setIncorrectPairs([]);
+    
+    if (newFormat !== "File") {
+      setUploadedFile(null);
+      setText("");
+    }
+  };
+
+const handleFileUploaded = async (file: File) => {
+    setUploadedFile(file);
+    setIsFileModalOpen(false);
+
+    try {
+      const fileContent = await file.text();
+      setText(fileContent);
+    } catch (e) {
+      setErrors(["Error reading file content."]);
+      setText("");
+    }
+    
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
+  };
+
 
 const handleStructureChange = (index: number, newValue: string) => {
   const updated = [...structures];
@@ -73,7 +107,7 @@ const removeStructure = (index: number) => {
 type ValidationResult = "error" | "warning" | "ok";
 
 const validateStructure = async (fromNext = false) : Promise<ValidationResult> => {
-  if (inputFormat === "Text") {
+  if (inputFormat === "Text" || inputFormat === "File") {
     const trimmedText = text;
     console.log("[validateStructure] start", { inputFormat, text });
 
@@ -121,7 +155,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       // jeśli brak błędów i brak warningów → approve
       if (!result["Fix Suggested"]) {
         setText(result["Validated RNA"])
-        setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
+        setApproves(["The structure is valid. You can now proceed with the job."]);
       }
 
       return "ok";
@@ -187,7 +221,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
         if (!result["Fix Suggested"]) {
           setText(result["Validated RNA"])
           setApproves([
-            "Validation passed successfully. Input was parsed to the engine's format.",
+            "The structure is valid. You can now proceed with the job.",
           ]);
         }
 
@@ -201,8 +235,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       return "error";
     }
   }
-
-  return "ok"; // dla File brak walidacji
+  return "error" // that should be unreachable in normal circumstances
 };
 
 const handleValidate = async () => {
@@ -330,7 +363,7 @@ const goNext = async () => {
                 <Slider 
                   options={["Interactive", "Text", "File"]}
                   selectedOption={inputFormat}
-                  onChange={setInputFormat}
+                  onChange={handleFormatChange}
                 />
             </div>
             
@@ -380,19 +413,19 @@ const goNext = async () => {
                   <p>+</p>
                 </div>
                 {errors.length > 0 && (
-                    <div className="sjp-errors" style={{marginTop: '20px'}} >
+                    <div className="sjp-errors" >
                       <MessageBox type="error" messages={errors} />
                     </div>
                 )}
 
                 {warnings.length > 0 && (
-                    <div className="sjp-warnings" style={{marginTop: '20px'}}>
+                    <div className="sjp-warnings">
                       <MessageBox type="warning" messages={warnings} />
                     </div>
                 )}
 
                 {approves.length > 0 && (
-                    <div className="sjp-approves" style={{marginTop: '20px'}}>
+                    <div className="sjp-approves">
                       <MessageBox type="approve" messages={approves} />
                     </div>
                 )}
@@ -446,19 +479,19 @@ const goNext = async () => {
                 />
 
                 {errors.length > 0 && (
-                  <div className="sjp-errors" style={{marginTop: '20px'}} >
+                  <div className="sjp-errors" >
                     <MessageBox type="error" messages={errors} />
                   </div>
                 )}
 
                 {warnings.length > 0 && (
-                  <div className="sjp-warnings" style={{marginTop: '20px'}}>
+                  <div className="sjp-warnings">
                     <MessageBox type="warning" messages={warnings} />
                   </div>
                 )}
 
                 {approves.length > 0 && (
-                  <div className="sjp-approves" style={{marginTop: '20px'}}>
+                  <div className="sjp-approves">
                     <MessageBox type="approve" messages={approves} />
                   </div>
                 )}
@@ -466,18 +499,51 @@ const goNext = async () => {
             )}
 
             {inputFormat === "File" && (
-              <div className='sjp-int-gray-box'>
-                <div className='sjp-hint-upload'>
-                  <div className='sjp-file-hint'>
-                    <p className='sjp-hint-title'>Format hint</p>
-                    <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
-                  </div>
-                  <Modal/>
+            <div className='sjp-int-gray-box'>
+              <div className='sjp-hint-upload'>
+                <div className='sjp-file-hint'>
+                  <p className='sjp-hint-title'>Format hint</p>
+                  <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
                 </div>
+                
+                {!uploadedFile ? (
+                  <Button
+                    color="primary"
+                    variant="filled"
+                    fontSize="16px"
+                    width="200px"
+                    height="40px"
+                    action={() => setIsFileModalOpen(true)}
+                    icon={<img src="icons/white_upload.svg" alt="Upload Icon" style={{ height: 24, width: 24 }} />}
+                    label="Upload File"
+                  />
+                ) : (
+                  <FileDisplay 
+                    fileName={uploadedFile.name}
+                    onEdit={() => setIsFileModalOpen(true)}
+                  />
+                )}
               </div>
-            )}
 
-            {(inputFormat === "Text" || inputFormat === "Interactive") && (
+              <Modal 
+                isOpen={isFileModalOpen}
+                onClose={() => setIsFileModalOpen(false)}
+                onFileUploaded={handleFileUploaded}
+              />
+
+              {errors.length > 0 && (
+                <div className="sjp-errors" >
+                  <MessageBox type="error" messages={errors} />
+                </div>
+              )}
+
+              {approves.length > 0 && (
+                <div className="sjp-approves">
+                  <MessageBox type="approve" messages={approves} />
+                </div>
+              )}
+            </div>
+          )}
               <div className='sjp-buttons-section'>
                 <Button
                   color='primary'
@@ -498,7 +564,6 @@ const goNext = async () => {
                   fontSize='16px'
                 />
               </div>
-            )}
           </div>
         )}
 

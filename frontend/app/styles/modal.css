@@ -171,10 +171,9 @@
   color: var(--background-darken-15);
   font-family: Inter;
   font-weight: 300;
-  font-style: Light;
   font-size: 12px;
   line-height: 100%;
-  letter-spacing: 0%;
+  width: 12px;
 }
 
 .example-file-div{
@@ -194,11 +193,10 @@
 .example-files-description{
   font-family: Inter;
   font-weight: 300;
-  font-style: Light;
   font-size: 12px;
   line-height: 100%;
-  letter-spacing: 0%;
   color: var(--brown-lighten-15);
+  width: 100%;
 }
 
 .modal-download-icon {
