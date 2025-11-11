@@ -15,7 +15,6 @@ import json
 from webapp.visualization_tools import (
     drawVARNAgraph,
     generateRchieDiagram,
-    getDotBracket,
 )
 from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
@@ -255,10 +254,8 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             )
             logger.info(f"{job_data.input_structure}")
             try:
-                input_dotbracket = getDotBracket(job_data.input_structure.path)
-                output_dotbracket = getDotBracket(dotbracket_path)
                 generateRchieDiagram(
-                    input_dotbracket, output_dotbracket, arc_diagram_path
+                    job_data.input_structure.path, dotbracket_path, arc_diagram_path
                 )
 
             except Exception as e:
@@ -268,9 +265,9 @@ def run_grapharna_task(uuid_param: UUID) -> str:
                 target = job_data.input_structure.path
                 model = dotbracket_path
                 with open(target) as f:
-                    target_dict = dotbracketToPairs(f.read())
+                    target_dict = dotbracketToPairs(f.read().strip().replace(" ", "").replace("-", ""))
                 with open(model) as f:
-                    model_dict = dotbracketToPairs(f.read())
+                    model_dict = dotbracketToPairs(f.read().strip().replace(" ", "").replace("-", ""))
                 values = CalculateF1Inf(
                     target_dict["correctPairs"], model_dict["correctPairs"]
                 )
