@@ -11,7 +11,16 @@ export default function CiteUs(){
                     <img className='triangle' src='photos/cp_triangle.png'></img>
                     <img className='green-thing' src='icons/cp_thing.svg'></img>
                     <div className='cite-text'>
-                        <p className='cite-para'>Justyna M, Zirbel CL, Antczak M, Szachniuk M (2025), Graph Neural Network and Diffusion Model for modeling RNA interatomic interactions, submitted</p>
+                        <p className='cite-para'>
+                            Marek Justyna, Craig Zirbel, Maciej Antczak, Marta Szachniuk, Graph neural network and diffusion model for modeling RNA interatomic interactions, <em>Bioinformatics</em>, Volume 41, Issue 9, September 2025, btaf515,{' '}
+                            <a 
+                                href="https://doi.org/10.1093/bioinformatics/btaf515" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                            >
+                                https://doi.org/10.1093/bioinformatics/btaf515
+                            </a>
+                        </p>
                     </div>
                 </div>
             </div>
