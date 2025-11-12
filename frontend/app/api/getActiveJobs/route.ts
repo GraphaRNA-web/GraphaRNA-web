@@ -2,7 +2,8 @@
 import { NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
-const DOMAIN_URL = process.env.DOMAIN_URL || "http://localhost:3000";
+const domainEnv = process.env.DOMAIN_URL || "http://localhost:3000";
+const ALLOWED_DOMAINS = domainEnv.split(',').map(domain => domain.trim());
 
 function forwardHeaders(req: Request): Headers {
   const headers = new Headers();
@@ -21,7 +22,18 @@ export async function GET(req: Request) {
   try {
     const origin = req.headers.get("origin");
     const referer = req.headers.get("referer");
-    if (!(origin === DOMAIN_URL || referer?.startsWith(DOMAIN_URL))) {
+    let isAllowed = false;
+
+    if (origin && ALLOWED_DOMAINS.includes(origin)) {
+      isAllowed = true;
+    }
+    
+    if (!isAllowed && referer && ALLOWED_DOMAINS.some((domain: string) => referer.startsWith(domain))) {
+      isAllowed = true;
+    }
+
+    if (!isAllowed) {
+      console.warn(`[PROXY] Forbidden origin/referer. Origin: ${origin}, Referer: ${referer}`);
       return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
     }
 
