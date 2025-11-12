@@ -1,6 +1,5 @@
 // app/api/getResultDetails/route.ts
 import { NextResponse } from "next/server";
-import { ALLOWED_DOMAINS } from "../downloadZip/route";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 const domainEnv = process.env.DOMAIN_URL || "http://localhost:3000";
