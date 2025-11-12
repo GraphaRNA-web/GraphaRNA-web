@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+  namespace: grapharna
+data:
+  RABBITMQ_CONSUMER_TIMEOUT: "129600000"
