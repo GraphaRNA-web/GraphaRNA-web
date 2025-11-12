@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 const domainEnv = process.env.DOMAIN_URL || "http://localhost:3000";
-export const ALLOWED_DOMAINS = domainEnv.split(',').map(domain => domain.trim());
+const ALLOWED_DOMAINS = domainEnv.split(',').map(domain => domain.trim());
 
 function forwardHeaders(req: Request): Headers {
   const headers = new Headers();
