@@ -5,5 +5,5 @@ metadata:
   namespace: grapharna
 data:
   BACKEND_URL: "http://backend-svc:8000"
-  DOMAIN_URL: "http://150.254.30.175"
+  DOMAIN_URL: "http://150.254.30.175,http://127.0.0.1,http://localhost"
   NODE_ENV: "staging"

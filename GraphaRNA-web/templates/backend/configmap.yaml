@@ -28,4 +28,4 @@ data:
 
   ENGINE_URL: "http://grapharna-engine-svc:8080/test"
 
-  RESULT_BASE_URL: "http://frontend-svc/api/getResults/" 
+  RESULT_BASE_URL: "http://150.254.30.175/api/getResults/" 
