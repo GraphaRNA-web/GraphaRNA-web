@@ -44,6 +44,23 @@ helm upgrade --install monitoring prometheus-community/kube-prometheus-stack -n 
 # Loki + promtail (agent to get logs from pods): you can add it in dashboard and set http://loki-stack.monitoring.svc.cluster.local:3100
 helm upgrade --install loki-stack grafana/loki-stack -n monitoring --set grafana.enabled=false --set loki.isDefault=false
 
+#create secrets:
+kubectl create secret generic postgres-secret --namespace grapharna \
+  --from-literal=POSTGRES_DB='dockerdjango' \
+  --from-literal=POSTGRES_USER='GraphaRNAweb' \
+  --from-literal=POSTGRES_PASSWORD='mojehaslo'
+
+
+kubectl create secret generic backend-secret --namespace grapharna \
+  --from-literal=DJANGO_SECRET_KEY='mojehaslo' \
+  --from-literal=EMAIL_HOST_USER='user@at.com' \
+  --from-literal=EMAIL_HOST_PASSWORD='mojehaslo'
+
+kubectl create secret generic rabbitmq-secret --namespace grapharna \
+  --from-literal=USER='guest' \
+  --from-literal=PASSWORD='guest' \
+  --from-literal=CELERY_BROKER_URL='amqp://guest:guest@rabbitmq-svc:5672//'
+
 # Install the GraphaRNA-web app
 helm upgrade --install grapharna-web . -n grapharna --create-namespace
 

@@ -9,7 +9,7 @@ data:
 
   DATABASE_ENGINE: "django.db.backends.postgresql"
   DATABASE_NAME: "dockerdjango"
-  DATABASE_HOST: "postgres-svc"
+  DATABASE_HOST: "db-svc"
   DATABASE_PORT: "5432"
 
   JOB_EXPIRATION_WEEKS: "2"
