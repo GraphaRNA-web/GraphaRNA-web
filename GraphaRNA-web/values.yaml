@@ -1,5 +1,5 @@
 monitoring:
-  enabled: true
+  enabled: false
   
 frontend:
   name: frontend
