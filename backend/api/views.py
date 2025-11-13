@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from typing import Optional, Any
 import random
 from datetime import date, timedelta
-from webapp.models import Job, JobResults
+from webapp.models import Job, JobResults, ExampleStructures
 from webapp.tasks import run_grapharna_task, send_email_task
 from uuid import UUID, uuid4
 import os
@@ -29,6 +29,7 @@ from .api_docs import (
     setup_test_job_schema,
     setup_test_job_results_schema,
     cleanup_test_jobs_schema,
+    process_example_request_data_schema,
 )
 
 import zipfile
@@ -301,7 +302,9 @@ def PostRnaValidation(request: Request) -> Response:
     results: dict = validator.ValidateRna()
 
     if results["Validation Result"]:
-        results["Validated RNA"] = results["Validated RNA"].replace(" ", results["strandSeparator"])
+        results["Validated RNA"] = results["Validated RNA"].replace(
+            " ", results["strandSeparator"]
+        )
         return Response(
             results,
             status=status.HTTP_200_OK,
@@ -479,6 +482,108 @@ def ProcessRequestData(request: Request) -> Response:
                 "Job": job.job_name,
                 "email_sent": False,
                 "job_hash": job.hashed_uid,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+@process_example_request_data_schema
+@api_view(["POST"])
+def ProcessExampleRequestData(request: Request) -> Response:
+    """Returns the results of a given example RNA input. If no results exist, creates the example job and its results."""
+    fasta_raw: Optional[str] = request.data.get("fasta_raw")
+    fasta_file: Optional[UploadedFile] = request.FILES.get("fasta_file")
+    email: Optional[str] = request.data.get("email")
+    example_number: int = request.data.get("example_number")
+
+    if not ValidateEmailAddress(email):
+        return Response(
+            {"success": False, "error": "Incorrect email format."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    example = ExampleStructures.objects.filter(id=example_number).first()
+    example_uidh = example.job.hashed_uid if example else None
+    if example_uidh:
+        send_email_task.delay(  # if email is provided, send notification
+            receiver_email=email,
+            template_path=settings.TEMPLATE_PATH_JOB_FINISHED,
+            title=settings.TITLE_JOB_FINISHED,
+            url=f"{settings.RESULT_BASE_URL}?uidh={example_uidh}",
+        )
+        return Response(
+            {"success": True, "uidh": example_uidh},
+            status=status.HTTP_200_OK,
+        )
+    else:
+        if fasta_raw is None and fasta_file is None:
+            return Response(
+                {"success": False, "error": "Missing RNA data."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        elif fasta_raw is not None and fasta_file is not None:
+            return Response(
+                {
+                    "success": False,
+                    "error": "RNA can be send via text or file not both.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        elif fasta_raw is None and fasta_file is not None:
+            sequence_raw = fasta_file.read().decode("utf-8")
+        else:
+            assert fasta_raw is not None
+            sequence_raw = fasta_raw
+
+        validator: RnaValidator = RnaValidator(sequence_raw)
+        validationResult = validator.ValidateRna()
+
+        if not validationResult["Validation Result"]:
+            return Response(
+                validationResult,
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            )
+
+        job_uuid: UUID = uuid4()
+        hashed_uid: str = hash_uuid(str(job_uuid))
+
+        input_dir: str = "/shared/samples/engine_inputs"
+        os.makedirs(input_dir, exist_ok=True)
+        input_filename: str = f"{str(job_uuid)}.dotseq"
+        input_filepath: str = os.path.join(input_dir, input_filename)
+        jobName = f"example_job_{example_number}"
+        seed = 1
+        dotseq_data = f">{jobName}\n{validationResult['Validated RNA']}"
+
+        with open(input_filepath, "w") as f:
+            f.write(dotseq_data)
+
+        relative_path = os.path.relpath(input_filepath, settings.MEDIA_ROOT)
+        job = Job.objects.create(
+            uid=job_uuid,
+            hashed_uid=hashed_uid,
+            input_structure=relative_path,
+            seed=seed,
+            job_name=jobName,
+            status="Q",
+            alternative_conformations=1,
+            strand_separator=validationResult["strandSeparator"],
+        )
+
+        run_grapharna_task.delay(
+            job.uid, is_example=True, example_number=example_number
+        )
+        send_email_task.delay(  # if email is provided, send notification (no email for finished job, its not stored in the model)
+            receiver_email=email,
+            template_path=settings.TEMPLATE_PATH_JOB_CREATED,
+            title=settings.TITLE_JOB_CREATED,
+            url=f"{settings.RESULT_BASE_URL}?uidh={job.hashed_uid}",
+        )
+        ExampleStructures.objects.create(id=example_number, job=job)
+        return Response(
+            {
+                "success": True,
+                "uidh": job.hashed_uid,
             },
             status=status.HTTP_200_OK,
         )

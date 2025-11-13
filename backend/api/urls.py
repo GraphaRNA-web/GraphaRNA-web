@@ -17,6 +17,11 @@ urlpatterns = [
     ),
     path("activeJobs/", api.views.getActiveJobs, name="getActiveJobs"),
     path("finishedJobs/", api.views.getFinishedJobs, name="getFinishedJobs"),
+    path(
+        "processExampleRequestData/",
+        api.views.ProcessExampleRequestData,
+        name="processExampleRequestData",
+    ),
 ]
 
 if settings.DEBUG:

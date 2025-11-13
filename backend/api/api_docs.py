@@ -204,6 +204,102 @@ setup_test_job_schema = swagger_auto_schema(
         ),
     },
 )
+process_example_request_data_schema = swagger_auto_schema(
+    method="post",
+    operation_description="Returns the results of a given example RNA input. If no results exist, creates the example job and its results.",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=["example_number"],
+        properties={
+            "example_number": openapi.Schema(
+                type=openapi.TYPE_INTEGER,
+                description="Identifier (number) of the example to retrieve or create.",
+            ),
+            "email": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_EMAIL,
+                description="User's email address for sending notifications (optional).",
+            ),
+            "fasta_raw": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Raw RNA sequence in FASTA format (e.g., '>seq\nACGU'). Use this field *or* the fasta_file field.",
+            ),
+            "fasta_file": openapi.Schema(
+                type=openapi.TYPE_FILE,
+                description="File containing the RNA sequence in FASTA format. Use this field *or* the fasta_raw field.",
+            ),
+        },
+        example={
+            "example_number": 1,
+            "email": "user@example.com",
+            "fasta_raw": ">example1\nGUACGUAC",
+        },
+    ),
+    responses={
+        200: openapi.Response(
+            description="Job retrieved or successfully created",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "uidh": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Hashed, unique job identifier.",
+                    ),
+                },
+            ),
+            examples={
+                "application/json": {
+                    "success": True,
+                    "uidh": "a1b2c3d4e5f6a1b2c3d4e5f6",
+                }
+            },
+        ),
+        400: openapi.Response(
+            description="Bad request — missing data, incorrect email, or submission of data in both formats (text and file)",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "error": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+            examples={
+                "application/json: Missing data": {
+                    "success": False,
+                    "error": "Missing RNA data.",
+                },
+                "application/json: Both inputs provided": {
+                    "success": False,
+                    "error": "RNA can be send via text or file not both.",
+                },
+                "application/json: Bad email": {
+                    "success": False,
+                    "error": "Incorrect email format.",
+                },
+            },
+        ),
+        422: openapi.Response(
+            description="Unprocessable Entity — RNA sequence validation error",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "Validation Result": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "error": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Validation error description",
+                    ),
+                },
+            ),
+            examples={
+                "application/json": {
+                    "Validation Result": False,
+                    "error": "Invalid character 'X' in sequence.",
+                }
+            },
+        ),
+    },
+)
 cleanup_test_jobs_schema = swagger_auto_schema(
     method="delete",
     request_body=openapi.Schema(

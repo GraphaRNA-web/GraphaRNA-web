@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
 from typing import Dict, Any
-from webapp.models import Job
+from webapp.models import Job, ExampleStructures
 import uuid
 from django.utils import timezone
 from django.urls import reverse
@@ -17,6 +17,162 @@ import zipfile
 import io
 import math
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
+
+
+class ProcessExampleRequestDataMockTests(TestCase):
+    def setUp(self) -> None:
+        self.client: APIClient = APIClient()
+        self.url: str = reverse("processExampleRequestData")
+
+        self.valid_payload: Dict[str, Any] = {
+            "fasta_raw": ">example_req\nAGC UUU\n(.. ..)",
+            "email": "test@example.com",
+            "example_number": 1,
+        }
+
+        self.patcher_example_structs = patch("api.views.ExampleStructures.objects")
+        self.patcher_job = patch("api.views.Job.objects")
+
+        self.patcher_open = patch("builtins.open", mock_open())
+        self.patcher_makedirs = patch("os.makedirs")
+        self.patcher_relpath = patch(
+            "os.path.relpath", return_value="mocked/path/file.dotseq"
+        )
+
+        self.patcher_task_engine = patch("webapp.tasks.run_grapharna_task.delay")
+        self.patcher_task_email = patch("webapp.tasks.send_email_task.delay")
+        self.patcher_validator = patch(
+            "api.validation_tools.RnaValidator", autospec=True
+        )
+
+        self.mock_example_objects = self.patcher_example_structs.start()
+        self.mock_job_objects = self.patcher_job.start()
+        self.mock_open = self.patcher_open.start()
+        self.mock_makedirs = self.patcher_makedirs.start()
+        self.mock_relpath = self.patcher_relpath.start()
+        self.mock_task_engine = self.patcher_task_engine.start()
+        self.mock_task_email = self.patcher_task_email.start()
+
+        self.mock_validator_class = self.patcher_validator.start()
+        self.mock_validator_instance = self.mock_validator_class.return_value
+
+    def tearDown(self) -> None:
+        self.patcher_example_structs.stop()
+        self.patcher_job.stop()
+        self.patcher_open.stop()
+        self.patcher_makedirs.stop()
+        self.patcher_relpath.stop()
+        self.patcher_task_engine.stop()
+        self.patcher_task_email.stop()
+        self.patcher_validator.stop()
+
+    def test_existing_example_returns_uid(self) -> None:
+        mock_job_instance = MagicMock()
+        mock_job_instance.hashed_uid = "mock_hash_123"
+
+        mock_example_instance = MagicMock()
+        mock_example_instance.job = mock_job_instance
+
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = mock_example_instance
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        response: Response = self.client.post(
+            self.url, self.valid_payload, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["uidh"], "mock_hash_123")
+        self.assertTrue(response.data["success"])
+
+        self.mock_example_objects.filter.assert_called_with(id=1)
+        self.mock_job_objects.create.assert_not_called()
+
+        self.mock_task_engine.assert_not_called()
+        self.mock_task_email.assert_called_once()
+
+    def test_create_new_example_success(self) -> None:
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = None
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        self.mock_validator_instance.ValidateRna.return_value = {
+            "Validation Result": True,
+            "Validated RNA": "AGCUUU\n(.. ..)",
+            "strandSeparator": None,
+        }
+
+        mock_new_job = MagicMock()
+        mock_new_job.uid = uuid.uuid4()
+        mock_new_job.hashed_uid = "new_job_hash"
+        mock_new_job.job_name = "example_job_1"
+        self.mock_job_objects.create.return_value = mock_new_job
+
+        response: Response = self.client.post(
+            self.url, self.valid_payload, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.mock_job_objects.create.assert_called_once()
+        self.mock_example_objects.create.assert_called_with(id=1, job=mock_new_job)
+
+        self.mock_task_engine.assert_called_once()
+        call_kwargs = self.mock_task_engine.call_args[1]
+        self.assertTrue(call_kwargs.get("is_example"))
+        self.assertEqual(call_kwargs.get("example_number"), 1)
+
+    def test_invalid_rna_prevents_db_creation(self) -> None:
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = None
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        self.mock_validator_instance.ValidateRna.return_value = {
+            "Validation Result": False,
+            "error": "Mocked validation error",
+        }
+
+        payload = self.valid_payload.copy()
+        payload["fasta_raw"] = ">bad\nZZZ\n..."
+
+        response: Response = self.client.post(self.url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        self.mock_job_objects.create.assert_not_called()
+        self.mock_example_objects.create.assert_not_called()
+
+        self.mock_task_engine.assert_not_called()
+
+    def test_file_upload_handling(self) -> None:
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = None
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        self.mock_validator_instance.ValidateRna.return_value = {
+            "Validation Result": True,
+            "Validated RNA": "AGC\n...",
+            "strandSeparator": None,
+        }
+
+        mock_new_job = MagicMock()
+        mock_new_job.hashed_uid = "mock-hash-for-file-upload"
+
+        self.mock_job_objects.create.return_value = mock_new_job
+
+        fasta_file = SimpleUploadedFile("test.fasta", b">file\nAGC\n...")
+        payload = {
+            "fasta_file": fasta_file,
+            "email": "test@example.com",
+            "example_number": 2,
+        }
+
+        response: Response = self.client.post(self.url, payload, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["uidh"], "mock-hash-for-file-upload")
+        self.mock_job_objects.create.assert_called_once()
+        self.mock_task_engine.assert_called_once()
 
 
 class PostRnaDataTests(TestCase):
@@ -447,6 +603,7 @@ class PostRnaValidationTests(TestCase):
         self.assertIn(
             "Parsing error: Mismatching strand lengths", response.data["Error List"]
         )
+
     def test_diffrent_strand_separators(self):
         rna_input = ">example1\nAGC-UUU\n(.. ..)"
         response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
@@ -458,6 +615,7 @@ class PostRnaValidationTests(TestCase):
         self.assertIn(
             "Parsing error: Mismatching strand separators", response.data["Error List"]
         )
+
     def test_diffrent_strand_separators_same_line(self):
         rna_input = ">example1\nAGC-U UU\n(..-. .)"
         response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
@@ -469,6 +627,7 @@ class PostRnaValidationTests(TestCase):
         self.assertIn(
             "Parsing error: Mismatching strand separators", response.data["Error List"]
         )
+
     def test_rna_with_extra_spaces(self):
         rna_input = ">example\nA U G C\n( . . )"
         response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Job, JobResults
+from .models import ExampleStructures, Job, JobResults
 
 
 @admin.register(Job)
@@ -29,3 +29,11 @@ class JobResultsAdmin(admin.ModelAdmin):
         "processing_time",
     )
     search_fields = ("result_tertiary_structure",)
+
+
+@admin.register(ExampleStructures)
+class ExampleStructuresAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "job",
+    )
