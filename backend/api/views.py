@@ -502,8 +502,12 @@ def ProcessExampleRequestData(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    example = ExampleStructures.objects.filter(id=example_number).first()
-    example_uidh = example.job.hashed_uid if example else None
+    example: ExampleStructures | None = ExampleStructures.objects.filter(id=example_number).first()
+    if example is not None and isinstance(example.job, Job):
+        example_uidh = example.job.hashed_uid
+    else:
+        example_uidh = None
+
     if example_uidh:
         send_email_task.delay(  # if email is provided, send notification
             receiver_email=email,
