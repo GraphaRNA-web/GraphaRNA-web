@@ -35,6 +35,9 @@ spec:
                 name: backend-config
             - secretRef:
                 name: backend-secret
+            - secretRef:
+                name: rabbitmq-secret
+
           volumeMounts:
             - name: shared-volume
               mountPath: /shared
@@ -42,6 +45,7 @@ spec:
               mountPath: /tmp
             - name: tmp-dir
               mountPath: /.config
+
           resources:
             requests:
               cpu: "50m"
@@ -49,6 +53,7 @@ spec:
             limits:
               cpu: "100m"
               memory: {{ .Values.backend.resources.limit.memory }}
+              
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

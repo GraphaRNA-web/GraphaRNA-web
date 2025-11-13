@@ -35,8 +35,6 @@ spec:
                 name: backend-secret
             - secretRef:
                 name: rabbitmq-secret
-            - secretRef:
-                name: postgres-secret
 
           ports:
             - containerPort: {{ .Values.backend.port }}

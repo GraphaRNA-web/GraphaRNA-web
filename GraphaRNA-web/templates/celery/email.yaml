@@ -35,16 +35,21 @@ spec:
             - -Q
             - email
             - --loglevel=info
+            
           envFrom:
             - configMapRef:
                 name: backend-config
             - secretRef:
                 name: backend-secret
+            - secretRef:
+                name: rabbitmq-secret
+
           volumeMounts:
             - name: tmp-dir
               mountPath: /tmp
             - name: tmp-dir
               mountPath: /.config
+
           resources:
             requests:
               cpu: "50m"
@@ -52,6 +57,7 @@ spec:
             limits:
               cpu: "100m"
               memory: {{ .Values.backend.resources.limit.memory }}
+
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
