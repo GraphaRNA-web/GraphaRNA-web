@@ -76,32 +76,32 @@ jobs:
       - name: Run api tests (PostRnaDataTests)
         run: |
           source backend/venv/bin/activate
-          python backend/manage.py test api.test_api.PostRnaDataTests
+          python backend/manage.py test api.tests_api.PostRnaDataTests
 
       - name: Run api tests (GetResultsTests)
         run: |
           source backend/venv/bin/activate
-          python backend/manage.py test api.test_api.GetResultsTests
+          python backend/manage.py test api.tests_api.GetResultsTests
           
       - name: Run api tests (SuggestSeedAndJobNameTests)
         run: |
           source backend/venv/bin/activate
-          python backend/manage.py test api.test_api.SuggestSeedAndJobNameTests
+          python backend/manage.py test api.tests_api.SuggestSeedAndJobNameTests
 
       - name: Run api tests (PostRnaValidationTests)
         run: |
           source backend/venv/bin/activate
-          python backend/manage.py test api.test_api.PostRnaValidationTests
+          python backend/manage.py test api.tests_api.PostRnaValidationTests
 
       - name: Run api tests (DownloadZipFileTests)
         run: |
           source backend/venv/bin/activate
-          python backend/manage.py test api.test_api.DownloadZipFileTests
+          python backend/manage.py test api.tests_api.DownloadZipFileTests
 
       - name: Run api tests (INF)
         run: |
           source backend/venv/bin/activate
-          python backend/manage.py test api.test_api.INF
+          python backend/manage.py test api.tests_api.INF
 
       - name: Code audit
         run: |
