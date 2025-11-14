@@ -26,6 +26,6 @@ data:
   EMAIL_TITLE_JOB_FINISHED: "Your job is finished!"
   EMAIL_TITLE_JOB_NEAR_EXPIRATION: "Your job is about to expire!"
 
-  ENGINE_URL: "http://grapharna-engine-svc:8080/test"
+  ENGINE_URL: "http://grapharna-engine-svc:8080/run"
 
   RESULT_BASE_URL: "http://150.254.30.175/api/getResults/" 
