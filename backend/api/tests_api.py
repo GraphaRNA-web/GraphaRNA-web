@@ -19,7 +19,7 @@ import math
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
 
-class ProcessExampleRequestDataMockTests(TestCase):
+class ProcessExampleRequestDataTests(TestCase):
     def setUp(self) -> None:
         self.client: APIClient = APIClient()
         self.url: str = reverse("processExampleRequestData")
@@ -67,7 +67,7 @@ class ProcessExampleRequestDataMockTests(TestCase):
         self.patcher_validator.stop()
 
     def test_existing_example_returns_uid(self) -> None:
-        mock_job_instance = MagicMock()
+        mock_job_instance = MagicMock(spec=Job)
         mock_job_instance.hashed_uid = "mock_hash_123"
 
         mock_example_instance = MagicMock()
@@ -79,7 +79,7 @@ class ProcessExampleRequestDataMockTests(TestCase):
 
         response: Response = self.client.post(
             self.url, self.valid_payload, format="json"
-        )
+        ) 
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["uidh"], "mock_hash_123")
@@ -89,7 +89,7 @@ class ProcessExampleRequestDataMockTests(TestCase):
         self.mock_job_objects.create.assert_not_called()
 
         self.mock_task_engine.assert_not_called()
-        self.mock_task_email.assert_called_once()
+        self.mock_task_email.assert_called_once() 
 
     def test_create_new_example_success(self) -> None:
         mock_qs = MagicMock()
