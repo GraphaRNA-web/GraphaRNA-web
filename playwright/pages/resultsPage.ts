@@ -39,7 +39,7 @@ export class ResultsPage extends BasePage {
   readonly prevButton: ButtonElement;
   readonly nextButton: ButtonElement;
   constructor(page: Page) {
-    super(page, undefined, "GraphaRNA-web", ".top-left");
+    super(page, undefined, "GraphaRNA-web", ".whole-page");
 
 
     // Top section
