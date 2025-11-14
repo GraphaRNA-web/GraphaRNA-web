@@ -502,7 +502,9 @@ def ProcessExampleRequestData(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    example: ExampleStructures | None = ExampleStructures.objects.filter(id=example_number).first()
+    example: ExampleStructures | None = ExampleStructures.objects.filter(
+        id=example_number
+    ).first()
     if example is not None and isinstance(example.job, Job):
         example_uidh = example.job.hashed_uid
     else:

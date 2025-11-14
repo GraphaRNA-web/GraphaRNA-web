@@ -354,7 +354,7 @@ def run_grapharna_task(
     job_data.save()
 
     if is_example and example_number is not None:
-        example_structure = ExampleStructures.objects.create(
+        ExampleStructures.objects.create(
             id=example_number,
             job=job_data,
         )

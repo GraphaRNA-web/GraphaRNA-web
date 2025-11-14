@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
 from typing import Dict, Any
-from webapp.models import Job, ExampleStructures
+from webapp.models import Job
 import uuid
 from django.utils import timezone
 from django.urls import reverse

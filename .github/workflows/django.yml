@@ -103,6 +103,11 @@ jobs:
           source backend/venv/bin/activate
           python backend/manage.py test api.tests_api.INF
 
+      - name: Run api tests (ProcessExampleRequestDataMockTests)
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py test api.tests_api.ProcessExampleRequestDataMockTests
+          
       - name: Code audit
         run: |
           source backend/venv/bin/activate
