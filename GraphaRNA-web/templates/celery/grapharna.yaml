@@ -50,8 +50,8 @@ spec:
 
           resources:
             requests:
-              cpu: {{ .Values.celery.grapharna.replicas.requests.cpu }}
-              memory: {{ .Values.celery.grapharna.replicas.requests.memory }}
+              cpu: {{ .Values.celery.grapharna.resources.requests.cpu }}
+              memory: {{ .Values.celery.grapharna.resources.requests.memory }}
             limits:
               cpu: {{ .Values.celery.grapharna.resources.limit.cpu }}
               memory: {{ .Values.celery.grapharna.resources.limit.memory }}

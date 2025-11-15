@@ -52,8 +52,8 @@ spec:
 
           resources:
             requests:
-              cpu: {{ .Values.celery.maintenance.replicas.requests.cpu }}
-              memory: {{ .Values.celery.maintenance.replicas.requests.memory }}
+              cpu: {{ .Values.celery.maintenance.requests.cpu }}
+              memory: {{ .Values.celery.maintenance.requests.memory }}
             limits:
               cpu: {{ .Values.celery.maintenance.resources.limit.cpu }}
               memory: {{ .Values.celery.maintenance.resources.limit.memory }}
