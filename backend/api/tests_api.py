@@ -351,12 +351,16 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["result_list"], [])
 
     def test_valid_get_with_results(self) -> None:
+        
         mock_full_qs = MagicMock()
         mock_full_qs.__iter__.return_value = iter(self.job_results)
         mock_full_qs.count.return_value = len(self.job_results)
+
+        mock_filtered_qs = MagicMock()
+        mock_filtered_qs.order_by.return_value = mock_full_qs
         with (
             patch("api.views.Job.objects.get", return_value=self.job),
-            patch("api.views.JobResults.objects.filter", return_value=mock_full_qs),
+            patch("api.views.JobResults.objects.filter", return_value=mock_filtered_qs),
         ):
 
             response: Response = self.client.get(
@@ -374,7 +378,6 @@ class GetResultsTests(TestCase):
         self.assertEqual(
             data["input_structure"], self.job.input_structure.read().decode("UTF-8")
         )
-
         self.assertEqual(len(data["result_list"]), len(self.job_results))
         for i, jr in enumerate(self.job_results):
             result_item = data["result_list"][i]

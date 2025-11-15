@@ -70,7 +70,7 @@ def SetupTestJob(request: Request) -> Response:
                 "success": True,
                 "message": "Test data setup completed.",
                 "job_uuid": job.uid,
-                "job_hashed_uid": job.hashed_uid,
+                "uidh": job.hashed_uid,
             },
             status=status.HTTP_200_OK,
         )
@@ -513,7 +513,9 @@ def GetResults(request: Request) -> Response:
     results_list: list = []
 
     if job.status == "C":
-        job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
+        job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job).order_by(
+            "completed_at"
+        )
 
         seed_counter: int = job.seed
 

@@ -185,7 +185,7 @@ setup_test_job_schema = swagger_auto_schema(
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "message": openapi.Schema(type=openapi.TYPE_STRING),
                     "job_uuid": openapi.Schema(type=openapi.TYPE_STRING),
-                    "job_hashed_uid": openapi.Schema(type=openapi.TYPE_STRING),
+                    "uidh": openapi.Schema(type=openapi.TYPE_STRING),
                 },
             ),
             examples={
@@ -193,7 +193,7 @@ setup_test_job_schema = swagger_auto_schema(
                     "success": True,
                     "message": "Test data setup completed.",
                     "job_uuid": "8d87fbd4-23ff-47c9-9b8b-fd52727f18a7",
-                    "job_hashed_uid": "abc12",
+                    "uidh": "abc12",
                 }
             },
         ),
