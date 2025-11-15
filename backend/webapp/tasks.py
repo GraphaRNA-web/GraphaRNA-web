@@ -12,14 +12,9 @@ from celery import shared_task
 from requests.exceptions import RequestException, HTTPError
 import os
 import json
-from webapp.visualization_tools import (
-    drawVARNAgraph,
-    generateRchieDiagram,
-)
 from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
 from django.template import Template, Context
-from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
 
 def log_to_file(message: str) -> None:
@@ -125,6 +120,12 @@ def send_email_task(
 
 @shared_task(queue="grapharna")
 def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> str:
+
+    from webapp.visualization_tools import (
+    drawVARNAgraph,
+    generateRchieDiagram,
+    )
+    from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
     logger = get_task_logger(__name__)
 
@@ -265,13 +266,9 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 target = job_data.input_structure.path
                 model = dotbracket_path
                 with open(target) as f:
-                    target_dict = dotbracketToPairs(
-                        f.read().strip().replace(" ", "").replace("-", "")
-                    )
+                    target_dict = dotbracketToPairs(f.read().replace(" ", "").replace("-", ""))
                 with open(model) as f:
-                    model_dict = dotbracketToPairs(
-                        f.read().strip().replace(" ", "").replace("-", "")
-                    )
+                    model_dict = dotbracketToPairs(f.read().replace(" ", "").replace("-", ""))
                 values = CalculateF1Inf(
                     target_dict["correctPairs"], model_dict["correctPairs"]
                 )

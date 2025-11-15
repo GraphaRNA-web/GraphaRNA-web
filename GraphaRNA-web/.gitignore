@@ -1,4 +1,3 @@
 secret.yaml
-configmap.yaml
 *.crt
 *.key

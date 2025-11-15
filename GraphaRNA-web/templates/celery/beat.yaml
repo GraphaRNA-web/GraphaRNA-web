@@ -9,8 +9,6 @@ metadata:
     app.kubernetes.io/component: celery
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    linkerd.io/inject: enabled
 spec:
   replicas: {{ .Values.celery.beat.replicas }}
   selector:
@@ -37,11 +35,15 @@ spec:
               mkdir -p /shared/beat &&
               celery -A GraphaRNA beat --loglevel=info
               --schedule=/shared/beat/celerybeat-schedule
+
           envFrom:
             - configMapRef:
                 name: backend-config
             - secretRef:
                 name: backend-secret
+            - secretRef:
+                name: rabbitmq-secret
+
           volumeMounts:
             - name: beat-storage
               mountPath: /shared/beat
@@ -49,13 +51,17 @@ spec:
               mountPath: /tmp
             - name: tmp-dir
               mountPath: /.config
+            - name: tmp-dir
+              mountPath: /.cache
+
           resources:
             requests:
-              cpu: "50m"
-              memory: "64Mi"
+              cpu: {{ .Values.celery.beat.resources.requests.cpu }}
+              memory: {{ .Values.celery.beat.resources.requests.memory }}
             limits:
-              cpu: "100m"
-              memory: {{ .Values.backend.resources.limit.memory }}
+              cpu: {{ .Values.celery.beat.resources.limit.cpu }}
+              memory: {{ .Values.celery.beat.resources.limit.memory }}
+              
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

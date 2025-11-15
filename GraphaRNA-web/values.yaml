@@ -1,5 +1,5 @@
 monitoring:
-  enabled: true
+  enabled: false
   
 frontend:
   name: frontend
@@ -42,41 +42,61 @@ backend:
   resources:
     requests:
       cpu: "250m"
-      memory: "2048Mi"
+      memory: "1024Mi"
     limit:
       cpu: "1000m"
-      memory: "4096Mi"
+      memory: "2048Mi"
 
   # Persistent Volume Claim
   pvc: shared-volume
-  storage: 5Gi
+  storage: 10Gi
 
-celery:
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limit:
-      cpu: "1000m"
-      memory: "4096Mi"
-  
+celery:  
   grapharna:
     name: celery-grapharna
     replicas: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
+      limit:
+        cpu: "500m"
+        memory: "4096Mi"
 
   beat:
     name: celery-beat
     replicas: 1
     pvc: beat-volume
     storage: 1Gi
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limit:
+        cpu: "100m"
+        memory: "512Mi"
 
   maintenance:
     name: celery-maintenance
     replicas: 1
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limit:
+        cpu: "100m"
+        memory: "4096Mi"
   
   email:
     name: celery-email
     replicas: 1
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limit:
+        cpu: "100m"
+        memory: "4096Mi"
 
 engine:
   name: grapharna-engine
@@ -90,15 +110,15 @@ engine:
 
   resources:
     requests:
-      cpu: "2000m"
-      memory: "4Gi"
+      cpu: "8000m"
+      memory: "6Gi"
     limit:
       cpu: "12000m"
-      memory: "16Gi"
+      memory: "12Gi"
 
   # Persistent Volume Claim
   pvc: shared-volume
-  storage: 5Gi
+  storage: 10Gi
 
 
 postgres:
@@ -115,7 +135,7 @@ postgres:
       cpu: "500m"
       memory: "2048Mi"
     limit:
-      cpu: "2000m"
+      cpu: "1000m"
       memory: "4096Mi"
 
   livenessCommand: ["pg_isready", "-U", "dbuser", "-d", "dockerdjango"]
@@ -123,7 +143,7 @@ postgres:
 
   # Persistent Volume Claim
   pvc: postgres-volume
-  storage: 5Gi
+  storage: 15Gi
 
 rabbitmq:
   name: rabbitmq
@@ -143,4 +163,4 @@ rabbitmq:
       memory: "4096Mi"
 
   pvc: rabbitmq-volume
-  storage: 2Gi # ZWIEKSZYC NA PROD!!! 
+  storage: 10Gi

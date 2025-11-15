@@ -9,8 +9,6 @@ metadata:
     app.kubernetes.io/component: backend
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    linkerd.io/inject: enabled
 spec:
   replicas: {{ .Values.backend.replicas }}
   selector:
@@ -35,6 +33,8 @@ spec:
                 name: backend-config
             - secretRef:
                 name: backend-secret
+            - secretRef:
+                name: rabbitmq-secret
 
           ports:
             - containerPort: {{ .Values.backend.port }}
