@@ -78,10 +78,14 @@ UUID_HASH_LENGTH=5
 MODEL_NAME=model_800.h5
 MODEL_EPOCHS=800
 
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=465
-EMAIL_HOST_USER=grapharnaput@gmail.com
-EMAIL_HOST_PASSWORD=luqmkuabzqhfpyib
+EXAMPLE_JOB_NAME_PREFIX=example_job_
+EXAMPLE_JOB_SEED=1
+EXAMPLE_ALTERNATIVE_CONFORMATIONS=1
+
+EMAIL_HOST=libra.cs.put.poznan.pl
+EMAIL_PORT=587
+EMAIL_HOST_USER=rnapolis@cs.put.poznan.pl
+EMAIL_HOST_PASSWORD=secret_password
 
 RESULT_BASE_URL=http://localhost:8000/api/getResults/
 

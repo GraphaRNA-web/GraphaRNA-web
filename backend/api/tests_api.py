@@ -41,9 +41,7 @@ class ProcessExampleRequestDataTests(TestCase):
 
         self.patcher_task_engine = patch("webapp.tasks.run_grapharna_task.delay")
         self.patcher_task_email = patch("webapp.tasks.send_email_task.delay")
-        self.patcher_validator = patch(
-            "api.validation_tools.RnaValidator", autospec=True
-        )
+        self.patcher_validator = patch("api.views.RnaValidator", autospec=True)
 
         self.mock_example_objects = self.patcher_example_structs.start()
         self.mock_job_objects = self.patcher_job.start()
@@ -79,7 +77,7 @@ class ProcessExampleRequestDataTests(TestCase):
 
         response: Response = self.client.post(
             self.url, self.valid_payload, format="json"
-        ) 
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["uidh"], "mock_hash_123")
@@ -89,7 +87,7 @@ class ProcessExampleRequestDataTests(TestCase):
         self.mock_job_objects.create.assert_not_called()
 
         self.mock_task_engine.assert_not_called()
-        self.mock_task_email.assert_called_once() 
+        self.mock_task_email.assert_called_once()
 
     def test_create_new_example_success(self) -> None:
         mock_qs = MagicMock()
@@ -119,8 +117,41 @@ class ProcessExampleRequestDataTests(TestCase):
 
         self.mock_task_engine.assert_called_once()
         call_kwargs = self.mock_task_engine.call_args[1]
-        self.assertTrue(call_kwargs.get("is_example"))
         self.assertEqual(call_kwargs.get("example_number"), 1)
+
+    def test_file_upload_handling(self) -> None:
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = None
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        self.mock_validator_instance.ValidateRna.return_value = {
+            "Validation Result": True,
+            "Validated RNA": "AGC\n...",
+            "strandSeparator": None,
+        }
+
+        mock_new_job = MagicMock()
+        mock_new_job.uid = uuid.uuid4()
+        mock_new_job.hashed_uid = "new_job_hash"
+        mock_new_job.job_name = "example_job_1"
+        self.mock_job_objects.create.return_value = mock_new_job
+
+        self.mock_job_objects.create.return_value = mock_new_job
+
+        fasta_file = SimpleUploadedFile("rna.fasta", b">example1\nAGC UUU\n(.. ..)")
+
+        payload = {
+            "fasta_file": fasta_file,
+            "email": "test@example.com",
+            "example_number": 2,
+        }
+
+        response: Response = self.client.post(self.url, payload, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["uidh"], "new_job_hash")
+        self.mock_job_objects.create.assert_called_once()
+        self.mock_task_engine.assert_called_once()
 
     def test_invalid_rna_prevents_db_creation(self) -> None:
         mock_qs = MagicMock()
@@ -143,36 +174,6 @@ class ProcessExampleRequestDataTests(TestCase):
         self.mock_example_objects.create.assert_not_called()
 
         self.mock_task_engine.assert_not_called()
-
-    def test_file_upload_handling(self) -> None:
-        mock_qs = MagicMock()
-        mock_qs.first.return_value = None
-        self.mock_example_objects.filter.return_value = mock_qs
-
-        self.mock_validator_instance.ValidateRna.return_value = {
-            "Validation Result": True,
-            "Validated RNA": "AGC\n...",
-            "strandSeparator": None,
-        }
-
-        mock_new_job = MagicMock()
-        mock_new_job.hashed_uid = "mock-hash-for-file-upload"
-
-        self.mock_job_objects.create.return_value = mock_new_job
-
-        fasta_file = SimpleUploadedFile("test.fasta", b">file\nAGC\n...")
-        payload = {
-            "fasta_file": fasta_file,
-            "email": "test@example.com",
-            "example_number": 2,
-        }
-
-        response: Response = self.client.post(self.url, payload, format="multipart")
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["uidh"], "mock-hash-for-file-upload")
-        self.mock_job_objects.create.assert_called_once()
-        self.mock_task_engine.assert_called_once()
 
 
 class PostRnaDataTests(TestCase):

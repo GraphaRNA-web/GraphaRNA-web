@@ -124,9 +124,7 @@ def send_email_task(
 
 
 @shared_task(queue="grapharna")
-def run_grapharna_task(
-    uuid_param: UUID, is_example: bool = False, example_number: int | None = None
-) -> str:
+def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> str:
 
     logger = get_task_logger(__name__)
 
@@ -346,14 +344,14 @@ def run_grapharna_task(
         except Exception as e:
             logger.error(f"Error replacing spaces in input structure: {e}")
             raise
-    if not is_example:
+    if example_number is None:  # not an example job
         job_data.expires_at = timezone.now() + timedelta(
             weeks=settings.JOB_EXPIRATION_WEEKS
         )
     job_data.status = "C"
     job_data.save()
 
-    if is_example and example_number is not None:
+    if example_number is not None:  # example job
         ExampleStructures.objects.create(
             id=example_number,
             job=job_data,
