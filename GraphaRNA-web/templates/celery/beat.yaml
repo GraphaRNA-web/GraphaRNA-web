@@ -54,11 +54,11 @@ spec:
 
           resources:
             requests:
-              cpu: "50m"
-              memory: "64Mi"
+              cpu: {{ .Values.celery.beat.replicas.requests.cpu }}
+              memory: {{ .Values.celery.beat.replicas.requests.memory }}
             limits:
-              cpu: "100m"
-              memory: {{ .Values.backend.resources.limit.memory }}
+              cpu: {{ .Values.celery.beat.resources.limit.cpu }}
+              memory: {{ .Values.celery.beat.resources.limit.memory }}
               
           securityContext:
             allowPrivilegeEscalation: false

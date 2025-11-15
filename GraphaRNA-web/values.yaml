@@ -51,32 +51,52 @@ backend:
   pvc: shared-volume
   storage: 10Gi
 
-celery:
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limit:
-      cpu: "500m"
-      memory: "512Mi"
-  
+celery:  
   grapharna:
     name: celery-grapharna
     replicas: 1
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
+      limit:
+        cpu: "500m"
+        memory: "4096Mi"
 
   beat:
     name: celery-beat
     replicas: 1
     pvc: beat-volume
     storage: 1Gi
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limit:
+        cpu: "100m"
+        memory: "512Mi"
 
   maintenance:
     name: celery-maintenance
     replicas: 1
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limit:
+        cpu: "100m"
+        memory: "512Mi"
   
   email:
     name: celery-email
     replicas: 1
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limit:
+        cpu: "100m"
+        memory: "512Mi"
 
 engine:
   name: grapharna-engine
