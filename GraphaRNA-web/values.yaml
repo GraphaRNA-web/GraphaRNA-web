@@ -85,7 +85,7 @@ celery:
         memory: "256Mi"
       limit:
         cpu: "100m"
-        memory: "512Mi"
+        memory: "4096Mi"
   
   email:
     name: celery-email
@@ -96,7 +96,7 @@ celery:
         memory: "256Mi"
       limit:
         cpu: "100m"
-        memory: "512Mi"
+        memory: "4096Mi"
 
 engine:
   name: grapharna-engine
