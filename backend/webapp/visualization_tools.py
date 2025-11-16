@@ -1,5 +1,3 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import os
 import varnaapi
 from api.validation_tools import RnaValidator 
@@ -75,6 +73,8 @@ def generateRchieDiagram(
     Both input strings will be cleaned of white spaces and stripped
     Output: String of "OK " + output_img_path or "ERROR*" if any have occured.
     """
+    import numpy as np
+    import matplotlib.pyplot as plt
     
     try:
         with open(fasta_input, "r") as f_in, open(fasta_output, "r") as f_out:
