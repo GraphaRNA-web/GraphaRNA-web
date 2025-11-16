@@ -138,8 +138,8 @@ postgres:
       cpu: "1000m"
       memory: "4096Mi"
 
-  livenessCommand: ["pg_isready", "-U", "dbuser", "-d", "dockerdjango"]
-  readinessCommand: ["pg_isready", "-U", "dbuser", "-d", "dockerdjango"]
+  livenessCommand: ["pg_isready", "-U", "GraphaRNAweb", "-d", "dockerdjango"]
+  readinessCommand: ["pg_isready", "-U", "GraphaRNAweb", "-d", "dockerdjango"]
 
   # Persistent Volume Claim
   pvc: postgres-volume

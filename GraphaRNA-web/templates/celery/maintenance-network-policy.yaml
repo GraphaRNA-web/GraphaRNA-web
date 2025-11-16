@@ -19,6 +19,13 @@ spec:
     - to:
         - podSelector:
             matchLabels:
+              app.kubernetes.io/name: {{ .Values.rabbitmq.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.rabbitmq.port }}
+    - to:
+        - podSelector:
+            matchLabels:
               app.kubernetes.io/name: {{ .Values.postgres.name }}
       ports:
         - protocol: TCP

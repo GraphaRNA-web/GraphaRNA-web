@@ -20,5 +20,19 @@ spec:
         - ipBlock:
             cidr: 0.0.0.0/0
       ports:
+      - protocol: TCP
+        port: 587
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.rabbitmq.name }}
+      ports:
         - protocol: TCP
-          port: 587
+          port: {{ .Values.rabbitmq.port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.postgres.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgres.port }}
