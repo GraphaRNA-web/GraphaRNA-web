@@ -331,7 +331,7 @@ def run_grapharna_task(uuid_param: UUID) -> str:
             except Exception as e:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
-    logger.info(f"Saved to database")
+    logger.info("Saved to database")
     
     """Post-processing: replace spaces with input strand separator in input structure file"""
     if job_data.strand_separator and job_data.strand_separator != " ":
