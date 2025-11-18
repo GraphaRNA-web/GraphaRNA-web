@@ -6,7 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { getActiveJobs, getFinishedJobs } from "@/lib/api";
 import Button from "../components/Button";
 import { useRouter } from "next/navigation";
-
+import { ReactComponent as ArrowLeftIcon } from '../../public/icons/arrow_left.svg'; 
+import { ReactComponent as ArrowRightIcon } from '../../public/icons/arrow_right.svg';
 
 interface JobResult {
   uid: string;
@@ -147,8 +148,8 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
         <div className="jobsPage-header">
           <p className="jobsPage-title">Active jobs queue</p>
           <div className="router-buttons">
-            <Button label="Start a job" variant="filled" width="220px" height="36px" action={() => router.push("/submitJob")}/>
-            <Button label="Guide" variant="outlined" width="150px" height="36px" action={() => router.push("/guide")} />
+            <Button label="Start a job" variant="filled" width="220px" height="30px" action={() => router.push("/submitJob")}/>
+            <Button label="Guide" variant="outlined" width="150px" height="30px" action={() => router.push("/guide")} />
           </div>
         </div>
 
@@ -156,7 +157,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
 
         <div className="Jobs-Pagination">
           <button className="Jobs-Pagination-Prev-Next" onClick={() => setActivePage((p) => Math.max(1, p - 1))} disabled={activePage <= 1}>
-            &lt; Previous
+            <img src="/icons/arrow_left.svg" alt="prev" className="arrow"/> Previous
           </button>
           {getPageRange(activePage, totalPagesActive).map((p, idx) =>
             p === "..." ? (
@@ -170,7 +171,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
             )
           )}
           <button className="Jobs-Pagination-Prev-Next" onClick={() => setActivePage((p) => Math.min(totalPagesActive, p + 1))} disabled={activePage >= totalPagesActive}>
-            Next &gt;
+            Next <img src="/icons/arrow_right.svg" alt="next" className="arrow"/>
           </button>
         </div>
       </div>
@@ -186,7 +187,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
 
         <div className="Jobs-Pagination">
           <button className="Jobs-Pagination-Prev-Next" onClick={() => setFinishedPage((p) => Math.max(1, p - 1))} disabled={finishedPage <= 1}>
-            &lt; Previous
+            <img src="/icons/arrow_left.svg" alt="prev" className="arrow" /> Previous
           </button>
           {getPageRange(finishedPage, totalPagesFinished).map((p, idx) =>
             p === "..." ? (
@@ -200,7 +201,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
             )
           )}
           <button className="Jobs-Pagination-Prev-Next" onClick={() => setFinishedPage((p) => Math.min(totalPagesFinished, p + 1))} disabled={finishedPage >= totalPagesFinished}>
-            Next &gt;
+            Next <img src="/icons/arrow_right.svg" alt="next" className="arrow"/>
           </button>
         </div>
       </div>
