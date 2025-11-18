@@ -146,8 +146,8 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
         <div className="jobsPage-header">
           <p className="jobsPage-title">Active jobs queue</p>
           <div className="router-buttons">
-            <Button label="Start a job" variant="filled" width="220px" height="30px" action={() => router.push("/submitJob")}/>
-            <Button label="Guide" variant="outlined" width="150px" height="30px" action={() => router.push("/guide")} />
+            <Button label="Start a job" variant="filled" width="220px" height="30px" fontWeight="600" action={() => router.push("/submitJob")}/>
+            <Button label="Guide" variant="outlined" width="150px" height="30px" fontWeight="600" action={() => router.push("/guide")} />
           </div>
         </div>
 
