@@ -50,6 +50,10 @@ process_request_data_schema = swagger_auto_schema(
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "Job": openapi.Schema(type=openapi.TYPE_STRING),
                     "email_sent": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "uidh": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Hashed unique ID for the job.",
+                    ),
                 },
             ),
             examples={
@@ -57,6 +61,7 @@ process_request_data_schema = swagger_auto_schema(
                     "success": True,
                     "Job": "my_rna_job",
                     "email_sent": True,
+                    "uidh": "a1b2c3d4e5",
                 }
             },
         ),
@@ -67,15 +72,21 @@ process_request_data_schema = swagger_auto_schema(
                 properties={
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "error": openapi.Schema(type=openapi.TYPE_STRING),
-                    "email_sent": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                 },
             ),
             examples={
-                "application/json": {
+                "application/json: Missing data": {
                     "success": False,
                     "error": "Missing RNA data.",
-                    "email_sent": False,
-                }
+                },
+                "application/json: Both inputs": {
+                    "success": False,
+                    "error": "RNA can be send via text or file not both.",
+                },
+                "application/json: Bad email": {
+                    "success": False,
+                    "error": "Incorrect email format.",
+                },
             },
         ),
         422: openapi.Response(
@@ -174,7 +185,7 @@ setup_test_job_schema = swagger_auto_schema(
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "message": openapi.Schema(type=openapi.TYPE_STRING),
                     "job_uuid": openapi.Schema(type=openapi.TYPE_STRING),
-                    "job_hashed_uid": openapi.Schema(type=openapi.TYPE_STRING),
+                    "uidh": openapi.Schema(type=openapi.TYPE_STRING),
                 },
             ),
             examples={
@@ -182,7 +193,7 @@ setup_test_job_schema = swagger_auto_schema(
                     "success": True,
                     "message": "Test data setup completed.",
                     "job_uuid": "8d87fbd4-23ff-47c9-9b8b-fd52727f18a7",
-                    "job_hashed_uid": "abc12",
+                    "uidh": "abc12",
                 }
             },
         ),
@@ -199,6 +210,116 @@ setup_test_job_schema = swagger_auto_schema(
                 "application/json": {
                     "success": False,
                     "error": "FASTA file not found.",
+                }
+            },
+        ),
+    },
+)
+process_example_request_data_schema = swagger_auto_schema(
+    method="post",
+    operation_description="Returns the results of a given example RNA input. If no results exist, creates the example job and its results.",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        required=["example_number"],
+        properties={
+            "example_number": openapi.Schema(
+                type=openapi.TYPE_INTEGER,
+                description="Identifier (number) of the example to retrieve or create.",
+            ),
+            "email": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_EMAIL,
+                description="User's email address for sending notifications (optional).",
+            ),
+            "fasta_raw": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Raw RNA sequence in FASTA format (e.g., '>seq\nACGU'). Use this field *or* the fasta_file field.",
+            ),
+            "fasta_file": openapi.Schema(
+                type=openapi.TYPE_FILE,
+                description="File containing the RNA sequence in FASTA format. Use this field *or* the fasta_raw field.",
+            ),
+        },
+        example={
+            "example_number": 1,
+            "email": "user@example.com",
+            "fasta_raw": ">example1\nGUACGUAC",
+        },
+    ),
+    responses={
+        200: openapi.Response(
+            description="Job retrieved or successfully created. The response structure depends on whether the job was pre-existing or created on-demand.",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "uidh": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Hashed, unique job identifier.",
+                    ),
+                    "Job": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Job name (only returned if a new job was created).",
+                    ),
+                    "email_sent": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN,
+                        description="Indicates if a notification email was sent (only returned if a new job was created).",
+                    ),
+                },
+            ),
+            examples={
+                "application/json (Job pre-existing)": {
+                    "success": True,
+                    "uidh": "a1b2c3d4e5f6a1b2c3d4e5f6",
+                },
+                "application/json (New job created)": {
+                    "success": True,
+                    "Job": "example_job_1",
+                    "email_sent": True,
+                    "uidh": "b2c3d4e5f6a1b2c3d4e5f6a",
+                },
+            },
+        ),
+        400: openapi.Response(
+            description="Bad request — missing data, incorrect email, or submission of data in both formats (text and file)",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "error": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+            examples={
+                "application/json: Missing data": {
+                    "success": False,
+                    "error": "Missing RNA data.",
+                },
+                "application/json: Both inputs provided": {
+                    "success": False,
+                    "error": "RNA can be send via text or file not both.",
+                },
+                "application/json: Bad email": {
+                    "success": False,
+                    "error": "Incorrect email format.",
+                },
+            },
+        ),
+        422: openapi.Response(
+            description="Unprocessable Entity — RNA sequence validation error",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "Validation Result": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "error": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Validation error description",
+                    ),
+                },
+            ),
+            examples={
+                "application/json": {
+                    "Validation Result": False,
+                    "error": "Invalid character 'X' in sequence.",
                 }
             },
         ),
@@ -228,17 +349,12 @@ cleanup_test_jobs_schema = swagger_auto_schema(
                 properties={
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "message": openapi.Schema(type=openapi.TYPE_STRING),
-                    "deleted_count": openapi.Schema(
-                        type=openapi.TYPE_INTEGER,
-                        description="Number of deleted records (including cascaded JobResults).",
-                    ),
                 },
             ),
             examples={
                 "application/json": {
                     "success": True,
                     "message": "Deleted 3 record(s) for provided hashed_uids.",
-                    "deleted_count": 3,
                 }
             },
         ),
@@ -393,15 +509,19 @@ validate_rna_schema = swagger_auto_schema(
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "RNA": openapi.Schema(
+            "fasta_raw": openapi.Schema(
                 type=openapi.TYPE_STRING,
-                description="RNA sequence in dot-bracket notation",
+                description="RNA sequence in FASTA format as raw text input",
+            ),
+            "fasta_file": openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format="binary",
+                description="RNA sequence uploaded via FASTA file",
             ),
         },
         example={
-            "RNA": ">example1\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))...."
+            "fasta_raw": ">example1\ngCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))...."
         },
-        required=["RNA"],
     ),
     responses={
         200: openapi.Response(
@@ -442,6 +562,26 @@ validate_rna_schema = swagger_auto_schema(
                     "Incorrect Pairs": [],
                     "Fix Suggested": False,
                 }
+            },
+        ),
+        400: openapi.Response(
+            description="Bad request - missing data or both data types provided",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    "error": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+            examples={
+                "application/json: Missing data": {
+                    "success": False,
+                    "error": "Missing RNA data.",
+                },
+                "application/json: Both inputs": {
+                    "success": False,
+                    "error": "RNA can be send via text or file not both.",
+                },
             },
         ),
         422: openapi.Response(
@@ -490,12 +630,12 @@ get_results_schema = swagger_auto_schema(
     method="get",
     manual_parameters=[
         openapi.Parameter(
-            "uid",
+            "uidh",
             openapi.IN_QUERY,
-            description="Job UID (UUID)",
+            description="Job Hashed UID (uidh)",
             type=openapi.TYPE_STRING,
             required=True,
-            example="fdf137ee-4765-4347-876c-a8a7a4cf57ae",
+            example="a1b2c3d4e5",
         )
     ],
     responses={
@@ -507,7 +647,7 @@ get_results_schema = swagger_auto_schema(
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "status": openapi.Schema(
                         type=openapi.TYPE_STRING,
-                        description="Job status: P (Processing), F (Finished), E (Error)",
+                        description="Job status: C (Completed), Q (Queued), R (Running), E (Error)",
                     ),
                     "job_name": openapi.Schema(type=openapi.TYPE_STRING),
                     "input_structure": openapi.Schema(
@@ -557,7 +697,7 @@ get_results_schema = swagger_auto_schema(
             examples={
                 "application/json": {
                     "success": True,
-                    "status": "F",
+                    "status": "C",
                     "job_name": "my_rna_job",
                     "input_structure": ">my_rna_job\nACGC\n....",
                     "created_at": "2025-09-15T21:27:57.298011Z",
@@ -580,7 +720,7 @@ get_results_schema = swagger_auto_schema(
             },
         ),
         400: openapi.Response(
-            description="Invalid UID or job not found",
+            description="Invalid UIDH or job not found",
             schema=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
@@ -596,23 +736,43 @@ get_results_schema = swagger_auto_schema(
 )
 get_suggested_seed_and_job_name_schema = swagger_auto_schema(
     method="get",
+    manual_parameters=[
+        openapi.Parameter(
+            "example_number",
+            openapi.IN_QUERY,
+            description="If provided, returns the pre-configured seed, name, and conformation count for that example.",
+            type=openapi.TYPE_INTEGER,
+            required=False,
+            example=1,
+        )
+    ],
     responses={
         200: openapi.Response(
-            description="Suggested seed and job name",
+            description="Suggested seed, job name, and conformation count. Response varies based on 'example_number'.",
             schema=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "success": openapi.Schema(type=openapi.TYPE_BOOLEAN),
                     "seed": openapi.Schema(type=openapi.TYPE_INTEGER),
                     "job_name": openapi.Schema(type=openapi.TYPE_STRING),
+                    "alternative_conformations": openapi.Schema(
+                        type=openapi.TYPE_INTEGER
+                    ),
                 },
             ),
             examples={
-                "application/json": {
+                "application/json (Standard Job)": {
                     "success": True,
                     "seed": 123456789,
                     "job_name": "job-20250915-2",
-                }
+                    "alternative_conformations": 1,
+                },
+                "application/json (Example Job)": {
+                    "success": True,
+                    "seed": 42,  # (Value from settings.EXAMPLE_JOB_SEED)
+                    "job_name": "example_1",  # (Value from settings.EXAMPLE_JOB_NAME_PREFIX)
+                    "alternative_conformations": 3,  # (Value from settings.EXAMPLE_ALTERNATIVE_CONFORMATIONS)
+                },
             },
         )
     },
@@ -640,11 +800,11 @@ download_zip_file_schema = swagger_auto_schema(
             examples={"api/downloadZip": "ZIP file"},
         ),
         400: openapi.Response(
-            description="Invalid UID or job not finished",
+            description="Invalid UIDH or job not finished",
             schema=openapi.Schema(
                 type=openapi.TYPE_STRING,
             ),
-            examples={"text/plain": "UUID error"},
+            examples={"text/plain": "Job is not finished"},
         ),
         404: openapi.Response(
             description="Job or file does not exist.",
@@ -684,6 +844,7 @@ job_pagination_schema = swagger_auto_schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "count": openapi.Schema(type=openapi.TYPE_INTEGER),
+                    "page_size": openapi.Schema(type=openapi.TYPE_INTEGER),
                     "next": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
                     "previous": openapi.Schema(type=openapi.TYPE_STRING, nullable=True),
                     "results": openapi.Schema(
@@ -726,12 +887,13 @@ job_pagination_schema = swagger_auto_schema(
             examples={
                 "application/json": {
                     "count": 4,
+                    "page_size": 10,
                     "next": "http://127.0.0.1:8000/api/activeJobs/?page=2",
                     "previous": None,
                     "results": [
                         {
                             "uid": "94eeb28c-19cd-40b9-bb2c-ebda604a7795",
-                            "hashed_uid": None,
+                            "hashed_uid": "a1b2c3d4e",
                             "input_structure": "/engine_inputs/94eeb28c-19cd-40b9-bb2c-ebda604a7795.dotseq",
                             "seed": 561573671,
                             "job_name": "job-20250804-0",
@@ -739,12 +901,49 @@ job_pagination_schema = swagger_auto_schema(
                             "created_at": "2025-08-04T21:54:01.537053+02:00",
                             "expires_at": None,
                             "sum_processing_time": None,
-                            "status": "P",
+                            "status": "R",
                             "alternative_conformations": 1,
                         }
                     ],
                 }
             },
+        )
+    },
+)
+
+# --- Schemas for undocumented views ---
+
+hello_view_schema = swagger_auto_schema(
+    method="get",
+    manual_parameters=[
+        openapi.Parameter(
+            "name",
+            openapi.IN_QUERY,
+            description="A name to include in the greeting.",
+            type=openapi.TYPE_STRING,
+            required=False,
+            default="Guest",
+        )
+    ],
+    responses={
+        200: openapi.Response(
+            description="A simple greeting.",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "message": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+            examples={"application/json": {"message": "Cześć, Guest!"}},
+        )
+    },
+)
+
+healthcheck_schema = swagger_auto_schema(
+    method="get",
+    responses={
+        200: openapi.Response(
+            description="Service is healthy.",
         )
     },
 )

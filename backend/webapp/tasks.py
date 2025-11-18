@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 import smtplib
 from django.utils import timezone
 from django.conf import settings
-from .models import Job, JobResults
+from .models import ExampleStructures, Job, JobResults
 from time import sleep
 from uuid import UUID
 import requests
@@ -106,9 +106,9 @@ def send_email_task(
     msg["To"] = receiver_email
     msg["Subject"] = title
     msg.attach(MIMEText(html_content, "html"))
-
     try:
-        with smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+        with smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT) as server:
+            server.starttls()
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, msg.as_string())
         logger.info(f"Email sent to {receiver_email}")
@@ -119,7 +119,7 @@ def send_email_task(
 
 
 @shared_task(queue="grapharna")
-def run_grapharna_task(uuid_param: UUID) -> str:
+def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> str:
 
     from webapp.visualization_tools import (
     drawVARNAgraph,
@@ -345,12 +345,18 @@ def run_grapharna_task(uuid_param: UUID) -> str:
         except Exception as e:
             logger.error(f"Error replacing spaces in input structure: {e}")
             raise
-
-    job_data.expires_at = timezone.now() + timedelta(
-        weeks=settings.JOB_EXPIRATION_WEEKS
-    )
+    if example_number is None:  # not an example job
+        job_data.expires_at = timezone.now() + timedelta(
+            weeks=settings.JOB_EXPIRATION_WEEKS
+        )
     job_data.status = "C"
     job_data.save()
+
+    if example_number is not None:  # example job
+        ExampleStructures.objects.create(
+            id=example_number,
+            job=job_data,
+        )
 
     if job_data.email:
         url = f"{settings.RESULT_BASE_URL}?uidh={job_data.hashed_uid}"
