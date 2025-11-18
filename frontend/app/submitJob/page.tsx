@@ -547,21 +547,21 @@ const goNext = async () => {
               <div className='sjp-buttons-section'>
                 <Button
                   color='primary'
-                  variant='filled'
-                  width='160px'
-                  height='40px'
-                  label='Next'
-                  fontSize='16px'
-                  action={handleNext}
-                />
-                <Button
-                  color='primary'
                   variant='outlined'
-                  width='230px'
+                  width='277px'
                   height='40px'
                   label='Validate structure'
                   action={handleValidate}
                   fontSize='16px'
+                />
+                <Button
+                  color='primary'
+                  variant='filled'
+                  width='201px'
+                  height='40px'
+                  label='Next'
+                  fontSize='16px'
+                  action={handleNext}
                 />
               </div>
           </div>
