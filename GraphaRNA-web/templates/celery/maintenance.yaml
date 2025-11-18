@@ -34,7 +34,7 @@ spec:
             - worker
             - -Q
             - maintenance
-            - --concurrency=1
+            - --pool=solo
             - --loglevel=info
 
           envFrom:

@@ -26,6 +26,12 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: {{ .Values.celery.grapharna.name }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.celery.maintenance.name }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.celery.email.name }}
       ports:
         - protocol: TCP
           port: {{ .Values.rabbitmq.port }}
