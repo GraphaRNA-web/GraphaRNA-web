@@ -6,8 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { getActiveJobs, getFinishedJobs } from "@/lib/api";
 import Button from "../components/Button";
 import { useRouter } from "next/navigation";
-import { ReactComponent as ArrowLeftIcon } from '../../public/icons/arrow_left.svg'; 
-import { ReactComponent as ArrowRightIcon } from '../../public/icons/arrow_right.svg';
 
 interface JobResult {
   uid: string;
