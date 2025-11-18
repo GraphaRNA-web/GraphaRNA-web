@@ -20,8 +20,10 @@ spec:
         - ipBlock:
             cidr: 0.0.0.0/0
       ports:
-      - protocol: TCP
-        port: 587
+        - protocol: TCP
+          port: 587
+        - protocol: TCP
+          port: 465
     - to:
         - podSelector:
             matchLabels:
