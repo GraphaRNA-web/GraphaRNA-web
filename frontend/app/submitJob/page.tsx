@@ -257,22 +257,30 @@ const handleNext = async () => {
     goNext();
   }
 };
-
+const [hasData, setHasData] = useState(false);
 const goNext = async () => {
-  setCurrentStep((prev) => prev + 1);
-  try {
-    const data = await getSuggestedData();
-    if (typeof data?.seed === "number") setSeed(data.seed);
-    if (data?.job_name) setJobname(data.job_name);
-    setAutoSeed(true);
-    setAutoName(true);
-  } catch (e) {
-    setSeed(34404);
-    setJobname("job-150625");
-    setAutoSeed(true);
-    setAutoName(true);
+  if (currentStep === 0 && !hasData) {
+    try {
+      const data = await getSuggestedData();
+      if (typeof data?.seed === "number") setSeed(data.seed);
+      if (data?.job_name) setJobname(data.job_name);
+      setHasData(true);
+    } catch (e) {
+      setSeed(34404);
+      setJobname("job-150625");
+      setHasData(true);
+    }
+    // setAutoSeed(true);
+    // setAutoName(true);
   }
-  };
+  else{
+    setAutoSeed(false);
+    setAutoName(false);
+  }
+
+  // Zawsze przejdź do następnego kroku
+  setCurrentStep((prev) => prev + 1);
+};
 
 
   const handleSubmit = async () => {
@@ -586,6 +594,7 @@ const goNext = async () => {
                     <CustomCheckbox
                       label="auto"
                       size={45}
+                      checked={autoSeed}
                       onChange={setAutoSeed}
                     />
                   </div>
@@ -600,10 +609,11 @@ const goNext = async () => {
 
                   {/* --- JOB NAME --- */}
                   <div className='sjp-seed-name-param'>
-                    <p>Name <span>{autoName ? jobname : "job"}</span></p>
+                    <p>Name <span>{autoName ? jobname : ""}</span></p>
                     <CustomCheckbox
                       label="auto"
                       size={45}
+                      checked={autoName}
                       onChange={setAutoName}
                     />
                   </div>
