@@ -74,7 +74,7 @@
     width: 700;
 }
 
-p{
+.not-found-error{
     color: var(--brown-lighten-10);
     font-size: 20px;
     font-weight: 300;
