@@ -28,7 +28,7 @@
 
 .home-header{
   width: 626px;
-  height: 222px;
+  /* height: 222px; */
   display: flex;
   flex-direction: column;
   gap: 30px;
@@ -42,12 +42,19 @@
   height: 144px;
   margin: 0px;
 }
-
+.home-description-header{
+  font-family: Inter;
+  font-weight: 300;
+  font-size: 18px;
+  height: 44px;
+  color: var(--brown-lighten-10);
+  margin: 0px;
+}
 .home-description-text{
   font-family: Inter;
   font-weight: 300;
-  font-size: 20px;
-  height: 48px;
+  font-size: 14px;
+  height: 34px;
   color: var(--brown-lighten-10);
   margin: 0px;
 }
