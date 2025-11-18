@@ -34,6 +34,7 @@ spec:
             - worker
             - -Q
             - email
+            - --concurrency=1
             - --loglevel=info
             
           envFrom:

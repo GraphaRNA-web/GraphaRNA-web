@@ -34,6 +34,7 @@ spec:
             - worker
             - -Q
             - maintenance
+            - --concurrency=1
             - --loglevel=info
 
           envFrom:
@@ -45,6 +46,8 @@ spec:
                 name: rabbitmq-secret
 
           volumeMounts:
+            - name: shared-volume
+              mountPath: /shared
             - name: tmp-dir
               mountPath: /tmp
             - name: tmp-dir
@@ -68,5 +71,8 @@ spec:
               drop:
                 - ALL
       volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.backend.pvc }}
         - name: tmp-dir
           emptyDir: {}

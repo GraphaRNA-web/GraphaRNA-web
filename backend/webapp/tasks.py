@@ -262,6 +262,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
             except Exception as e:
                 logger.error(f"Error generating arc diagram{e}")
                 raise
+            logger.info("Generated Arc and VARNA diagrams")
             try:
                 target = job_data.input_structure.path
                 model = dotbracket_path
@@ -275,6 +276,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
             except Exception as e:
                 logger.error(f"Error with generating F1 and INF value {e}")
                 raise
+            logger.info(f"Calculated inf and f1 values {values}")
 
             relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
             relative_path_dotseq = os.path.relpath(dotbracket_path, settings.MEDIA_ROOT)
@@ -329,8 +331,10 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
             except Exception as e:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
+    logger.info("Saved to database")
+    
     """Post-processing: replace spaces with input strand separator in input structure file"""
-    if job_data.strand_separator != " ":
+    if job_data.strand_separator and job_data.strand_separator != " ":
         try:
             with job_data.input_structure.open("r") as f:
                 input_data = f.read().decode("utf-8")
