@@ -159,8 +159,11 @@
         await pageManager.onResultsPage.arcDiagram.toHaveScreenshot("arc_diagram.png", { maxDiffPixelRatio: 0.05 });
         // there are two canvas elements rendered for 3D structure, explicitly select the first one
         await expect(pageManager.onResultsPage.structure3D.element().first()).toHaveScreenshot("3d_image.png", { maxDiffPixelRatio: 0.05 });
-        await pageManager.onResultsPage.nextButton.toBeVisible();
-        await pageManager.onResultsPage.nextButton.click();
+        if (i === jobResultsArray.length - 1) {
+          break;
+        }
+        await pageManager.onResultsPage.buttonContainer[i+1].toBeVisible();
+        await pageManager.onResultsPage.buttonContainer[i+1].click();
       }
     });
   });
