@@ -12,7 +12,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:15
@@ -69,12 +68,46 @@ jobs:
             sleep 3
           done
 
-      - name: Run tests
+      - name: Run Migrations
         run: |
           source backend/venv/bin/activate
           python backend/manage.py migrate --noinput
-          python backend/manage.py test webapp api
+      
+      - name: Run api tests (PostRnaDataTests)
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py test api.tests_api.PostRnaDataTests
 
+      - name: Run api tests (GetResultsTests)
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py test api.tests_api.GetResultsTests
+          
+      - name: Run api tests (SuggestSeedAndJobNameTests)
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py test api.tests_api.SuggestSeedAndJobNameTests
+
+      - name: Run api tests (PostRnaValidationTests)
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py test api.tests_api.PostRnaValidationTests
+
+      - name: Run api tests (DownloadZipFileTests)
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py test api.tests_api.DownloadZipFileTests
+
+      - name: Run api tests (INF)
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py test api.tests_api.INF
+
+      - name: Run api tests (ProcessExampleRequestDataTests)
+        run: |
+          source backend/venv/bin/activate
+          python backend/manage.py test api.tests_api.ProcessExampleRequestDataTests
+          
       - name: Code audit
         run: |
           source backend/venv/bin/activate

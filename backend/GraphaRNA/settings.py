@@ -52,6 +52,12 @@ UUID_HASH_LENGTH = int(os.getenv("UUID_HASH_LENGTH", 5))
 
 MAX_RNA_LENGTH = int(os.getenv("MAX_RNA_LENGTH", 500))
 
+EXAMPLE_JOB_NAME_PREFIX = os.getenv("EXAMPLE_JOB_NAME_PREFIX", "example_job_")
+EXAMPLE_JOB_SEED = int(os.getenv("EXAMPLE_JOB_SEED", 1))
+EXAMPLE_ALTERNATIVE_CONFORMATIONS = int(
+    os.getenv("EXAMPLE_ALTERNATIVE_CONFORMATIONS", 1)
+)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 

@@ -11,7 +11,7 @@ type JobData = {
     job_status: string;
     sum_processing_time: number;
     job_uuid?: string;
-    job_hashed_uid?: string;
+    uidh?: string;
   };
 
   type JobResultsData = {
@@ -54,9 +54,9 @@ type JobData = {
         throw new Error(`Failed to create test job: ${jobResponseJson.error}`);
       }
 
-      createdJobs.push(jobResponseJson.job_hashed_uid);
+      createdJobs.push(jobResponseJson.uidh);
       jobData.job_uuid = jobResponseJson.job_uuid;
-      jobData.job_hashed_uid = jobResponseJson.job_hashed_uid;
+      jobData.uidh = jobResponseJson.uidh;
 
     });
 
@@ -71,7 +71,7 @@ type JobData = {
 
 
     test("should open result page and show results", async ({ pageManager, frontendUrl }) => {
-      await pageManager.onResultsPage.goto(`${frontendUrl}/results?uidh=${jobData.job_hashed_uid}`);
+      await pageManager.onResultsPage.goto(`${frontendUrl}/results?uidh=${jobData.uidh}`);
       
       await pageManager.onResultsPage.waitForResultsToLoad();
 

@@ -65,6 +65,11 @@ class Job(models.Model):
         return super().delete(*args, **kwargs)
 
 
+class ExampleStructures(models.Model):
+    id: models.IntegerField = models.IntegerField(primary_key=True)
+    job: models.ForeignKey = models.ForeignKey(Job, on_delete=models.CASCADE)
+
+
 class JobResults(models.Model):
     job: models.ForeignKey = models.ForeignKey(Job, on_delete=models.CASCADE)
     completed_at: models.DateTimeField = models.DateTimeField(

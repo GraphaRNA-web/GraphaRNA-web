@@ -1,6 +1,6 @@
 import os
 import varnaapi
-from api.validation_tools import RnaValidator 
+from api.validation_tools import RnaValidator
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 varna_path = os.path.join(CURRENT_DIR, "VARNAv3-93.jar")
@@ -21,7 +21,8 @@ varnaapi.set_VARNA(varna_path)
 def getDotBracket(path: str) -> str:
     with open(path, "r") as f:
         return f.readlines()[2]
-    
+
+
 def getNucleotites(path: str) -> str:
     with open(path, "r") as f:
         return f.readlines()[1]
@@ -39,7 +40,9 @@ def drawVARNAgraph(input_filepath: str, output_path: str) -> str:
     if not os.path.exists(input_filepath):
         return "ERROR: Input file does not exist"
 
-    dotbracket: str = getDotBracket(input_filepath).strip().replace(" ", "").replace("-", "")
+    dotbracket: str = (
+        getDotBracket(input_filepath).strip().replace(" ", "").replace("-", "")
+    )
     seq: str = getNucleotites(input_filepath).strip().replace(" ", "").replace("-", "")
 
     if not seq:
@@ -89,7 +92,7 @@ def generateRchieDiagram(
 
         validator_input = RnaValidator(fasta_content_input)
         result_input = validator_input.ValidateRna()
-        
+
         # RnaValidator zwraca pary 0-indeksowe, konwertujemy na 1-indeksowe dla wykresu
         input_pairs_0_indexed = set(result_input.get("allPairs", set()))
         input_pairs = {(i + 1, j + 1) for i, j in input_pairs_0_indexed}
@@ -98,7 +101,7 @@ def generateRchieDiagram(
         result_output = validator_output.ValidateRna()
         output_pairs_0_indexed = set(result_output.get("allPairs", set()))
         output_pairs = {(i + 1, j + 1) for i, j in output_pairs_0_indexed}
-        
+
     except Exception as e:
         return f"ERROR: RnaValidator failed. Details: {e}"
 
@@ -109,21 +112,19 @@ def generateRchieDiagram(
     n = max(len(input_lines[1]), len(input_lines[2]), len(output_lines[1]), len(output_lines[2]))
     if n == 0:
         return "ERROR: Input sequences or structures are empty."
-        
+
     all_pairs = input_pairs | output_pairs
     # max_span jest teraz 1-indeksowy, co jest poprawne dla reszty kodu
     max_span = max((j - i) for (i, j) in all_pairs) if all_pairs else 1
-    max_r = max_span / 2.0 + 1 
-
+    max_r = max_span / 2.0 + 1
 
     total_arcs = len(all_pairs)
     lw = np.clip(1.5 * (50 / max(total_arcs, 1)), 0.5, 1.85)
-    
-    
+
     y_offset = max_r * 0.01
-    text_y_padding = 0.5 
-    
-    seq_font_size = np.clip(300 / n, 5, 10) 
+    text_y_padding = 0.5
+
+    seq_font_size = np.clip(300 / n, 5, 10)
     index_font_size = seq_font_size * 0.85
 
     fig, ax = plt.subplots(figsize=(n / 2.5, 5))
@@ -137,30 +138,29 @@ def generateRchieDiagram(
         ax.plot(xs, ys, color=color, lw=lw)
 
     total_plot_height = max_r + text_y_padding
-    
+
     for x in range(1, n + 1, grid_step):
         ax.vlines(x, -total_plot_height, total_plot_height, color="lightgrey", lw=0.5)
 
-    
     for i in range(n):
         if i < len(nucleotites_input):
             ax.text(
                 i + 1,
-                0, 
+                0,
                 nucleotites_input[i],
                 ha="center",
-                va="top", 
+                va="top",
                 fontsize=seq_font_size,
                 fontfamily="monospace",
             )
-    
+
         if (i + 1) % 10 == 0:
             ax.text(
                 i + 1,
-                0, 
+                0,
                 str(i + 1),
                 ha="center",
-                va="bottom", 
+                va="bottom",
                 fontsize=index_font_size,
                 color="gray",
             )
@@ -175,8 +175,8 @@ def generateRchieDiagram(
     for i, j in common_pairs:
         draw_arc(i, j, color="green", top=False)
 
-    ax.set_xlim(0.5, n + 0.5) 
-    ax.set_ylim(-total_plot_height, total_plot_height) 
+    ax.set_xlim(0.5, n + 0.5)
+    ax.set_ylim(-total_plot_height, total_plot_height)
     ax.set_aspect("equal")
     ax.axis("off")
 
