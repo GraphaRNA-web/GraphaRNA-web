@@ -2,24 +2,14 @@
 import React from 'react';
 import '../styles/AltConfSlider.css';
 
-interface DotsIndicatorProps {
+interface AltConfSliderProps {
   count: number;
   activeIndex: number; // Prop do odbierania aktualnego indeksu
   onIndexChange: (newIndex: number) => void; // Prop do informowania rodzica o zmianie
 }
 
-const DotsIndicator: React.FC<DotsIndicatorProps> = ({ count, activeIndex, onIndexChange }) => {
+const AltConfSlider: React.FC<AltConfSliderProps> = ({ count, activeIndex, onIndexChange }) => {
   if (count <= 1) return null;
-
-  const handlePrev = () => {
-    const newIndex = activeIndex === 0 ? count - 1 : activeIndex - 1;
-    onIndexChange(newIndex); // Poinformuj rodzica o nowym indeksie
-  };
-
-  const handleNext = () => {
-    const newIndex = activeIndex === count - 1 ? 0 : activeIndex + 1;
-    onIndexChange(newIndex); // Poinformuj rodzica o nowym indeksie
-  };
 
   return (
     
@@ -35,4 +25,4 @@ const DotsIndicator: React.FC<DotsIndicatorProps> = ({ count, activeIndex, onInd
   );
 };
 
-export default DotsIndicator;
+export default AltConfSlider;
