@@ -2,7 +2,7 @@ import { test as base } from "@playwright/test";
 import { PageManager } from "./pages/pageManager";
 //import { DatabaseClient } from "./config/database";
 import * as dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ debug: false });
 
 export type TestOptions = {
     frontendUrl: string;

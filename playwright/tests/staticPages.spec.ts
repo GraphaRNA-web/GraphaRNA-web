@@ -110,7 +110,7 @@ test.describe("Content verification", () => {
 
         await expect(citePage.title).toHaveText("Cite us");
         await expect(citePage.subtitle).toContainText("Any published work which has made use of");
-        await expect(citePage.citationText).toContainText("Justyna M, Zirbel CL, Antczak M, Szachniuk M (2025)");
+        await expect(citePage.citationText).toContainText("Marek Justyna, Craig Zirbel, Maciej Antczak, Marta Szachniuk, Graph neural network and diffusion model for modeling RNA interatomic interactions, Bioinformatics, Volume 41, Issue 9, September 2025, btaf515, https://doi.org/10.1093/bioinformatics/btaf515");
     });
 
     test("Guide content check and anchor links", async ({ page, pageManager, baseURL }) => {

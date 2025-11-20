@@ -36,8 +36,8 @@ export class ResultsPage extends BasePage {
   readonly errorInfo: TextElement;
 
   // Carousel buttons 
-  readonly prevButton: ButtonElement;
-  readonly nextButton: ButtonElement;
+  readonly buttonContainer: ButtonElement[] = [];
+
   constructor(page: Page) {
     super(page, undefined, "GraphaRNA-web", ".whole-page");
 
@@ -71,9 +71,9 @@ export class ResultsPage extends BasePage {
     this.errorInfo = new TextElement(".job-failed .error-info", page);
 
     // Carousel buttons
-    this.prevButton = new ButtonElement("img[alt='prev']", this.page);
-    this.nextButton = new ButtonElement("img[alt='next']", this.page);
-
+    for (let i = 1; i <= 5; i++) {
+      this.buttonContainer.push(new ButtonElement(`span:has-text('#${i}')`, this.page));
+    }
   }
 
   async goto(url: string) {
