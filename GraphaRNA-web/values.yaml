@@ -1,5 +1,7 @@
 monitoring:
   enabled: false
+
+networkpolicy: true
   
 frontend:
   name: frontend
