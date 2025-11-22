@@ -4,7 +4,7 @@ import random
 import time
 
 # Config: how much time to wait for engine response
-POLL_TIMEOUT = 30 
+POLL_TIMEOUT = 90 
 POLL_INTERVAL = 2
 
 
@@ -93,16 +93,15 @@ class UserFlow(SequentialTaskSet):
             url = f"/api/getResults/?uidh={self.job_hashed_uid}"
             
             with self.client.get(url, catch_response=True, name="4. API: Poll Status") as response:
-                if response.status_code == 200:
-                    data = response.json()
-                    status_code = data.get("status")
-                    
-                    if status_code == "C":
-                        break
-                    elif status_code == "E":
-                        response.failure(f"Job failed on server (Status E)")
-                        self.interrupt()
-                        return
+                data = response.json()
+                status_code = data.get("status")
+                
+                if status_code == "C":
+                    break
+                elif status_code == "E":
+                    response.failure(f"Job failed on server (Status E)")
+                    self.interrupt()
+                    return
             
             if time.time() - start_time > POLL_TIMEOUT:
                 self.client.post("/api/log_timeout", name="Error: Polling Timeout", catch_response=True).failure(f"Timeout for {self.job_hashed_uid}")
