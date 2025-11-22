@@ -8,9 +8,10 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   onFileUploaded: (file: File) => void;
+  setSelectedExampleNumber: (value: number) => void;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelectedExampleNumber }) => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -38,6 +39,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded }) => {
     if (isValidFile(file)) {
       setUploadedFiles([file]);
       setErrorMessage(null);
+      setSelectedExampleNumber(0);
     } else {
       setUploadedFiles([]);
       setErrorMessage('File has other format than .fasta or .txt');
@@ -56,6 +58,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded }) => {
     if (isValidFile(file)) {
       setUploadedFiles([file]);
       setErrorMessage(null);
+      setSelectedExampleNumber(0);
     } else {
       setUploadedFiles([]);
       setErrorMessage('File has other format than .fasta or .txt');
@@ -67,17 +70,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded }) => {
   };
 
   const exampleFiles = {
-    example1: `>Example 1
-CCGAGUAGGUA
-((.....))..`,
-
-    example2: `>Example 2
-GACUUAUAGAU UGAGUCC
-(((((..(... )))))).`,
-
-    example3: `>Example 3
-UUAUGUGCC UGUUA AAUACAAUAG
-.....(... (.(.. ).....)..)`
+    example1: `CCGAGUAGGUA\n((.....))..`,
+    example2: `GACUUAUAGAU UGAGUCC\n(((((..(... )))))).`,
+    example3: `UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)`
   };
 
   const handleDownloadExample = (exampleKey: keyof typeof exampleFiles) => {
@@ -95,6 +90,7 @@ UUAUGUGCC UGUUA AAUACAAUAG
   const handleExampleClick = (exampleKey: keyof typeof exampleFiles) => {
     const content = exampleFiles[exampleKey];
     const file = new File([content], `${exampleKey}.fasta`, { type: 'text/plain' });
+    setSelectedExampleNumber(parseInt(exampleKey.replace('example', '')));
     setUploadedFiles([file]);
     setErrorMessage(null);
   };
