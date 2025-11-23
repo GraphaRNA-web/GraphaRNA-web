@@ -34,7 +34,7 @@ class UserFlow(SequentialTaskSet):
         self.job_hashed_uid = None
         self.job_uuid = None
     
-    # @task
+    # @task # Commented since i need to change it for CD pipeline later and does not work in docker compose
     # def load_pages(self):
     #     self.client.get("/", name="1. Page: Home")
     #     self.client.get("/about", name="1. Page: About")
