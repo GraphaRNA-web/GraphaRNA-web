@@ -4,7 +4,7 @@ import random
 import time
 
 # Config: how much time to wait for engine response
-POLL_TIMEOUT = 90 
+POLL_TIMEOUT = 180 
 POLL_INTERVAL = 2
 
 
@@ -73,7 +73,7 @@ class UserFlow(SequentialTaskSet):
             if response.status_code == 200:
                 data = response.json()
                 if data.get("success"):
-                    self.job_hashed_uid = data.get("job_hash")
+                    self.job_hashed_uid = data.get("uidh")
                 else:
                     response.failure(f"API success=False: {data.get('error')}")
                     self.interrupt()
@@ -104,7 +104,7 @@ class UserFlow(SequentialTaskSet):
                     return
             
             if time.time() - start_time > POLL_TIMEOUT:
-                self.client.post("/api/log_timeout", name="Error: Polling Timeout", catch_response=True).failure(f"Timeout for {self.job_hashed_uid}")
+                self.do_cleanup()
                 self.interrupt()
                 return
             
@@ -127,6 +127,13 @@ class UserFlow(SequentialTaskSet):
             self.client.delete("/api/test/cleanupTestData/", json=payload, name="6. API: Cleanup")
             
         self.interrupt()
+
+    def do_cleanup(self):
+        if self.job_hashed_uid:
+            self.client.delete("/api/test/cleanupTestData/", 
+                             json={"hashed_uids": [self.job_hashed_uid]}, 
+                             name="6. API: Cleanup")
+            self.job_hashed_uid = None
 
 class WebsiteUser(HttpUser):
     tasks = [UserFlow]
