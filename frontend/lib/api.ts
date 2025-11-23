@@ -121,7 +121,7 @@ export async function submitExampleJobRequest(params: {
     form.append("fasta_file", params.fasta_file, params.fasta_file.name);
     if (params.fasta_raw) form.append("fasta_raw", params.fasta_raw);
     if (params.email) form.append("email", params.email);
-    if (params.example_number !== undefined) form.append("example_number", String(params.example_number));
+    if (params.example_number !== 0) form.append("example_number", String(params.example_number));
     body = form;
   } else {
     const json: any = { ...params };

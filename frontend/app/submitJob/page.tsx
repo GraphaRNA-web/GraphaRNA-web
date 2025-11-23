@@ -14,9 +14,16 @@ import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
 import ValidationWarningModal from "../components/ValidationWarningModal";
 import FileDisplay from '../components/FileDisplay';
-const exampleRNA: string[] = [`CCGAGUAGGUA\n((.....))..`,
-    `GACUUAUAGAU UGAGUCC\n(((((..(... )))))).`,
-    `UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)`];
+const getEnvExample = (val: string | undefined) => {
+  if (!val) return "";
+  return val.replace(/\\n/g, "\n");
+};
+
+const exampleRNA: string[] = [
+  getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_1),
+  getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_2),
+  getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_3)
+];
 
 export default function SubmitJob() {
   const router = useRouter();
@@ -631,14 +638,12 @@ const goNextWithGetSuggestedData = async () => {
                 {/* --- SEED --- */}
                   <div className='sjp-seed-name-param'>
                     <p>Seed <span>{autoSeed ? seed : ""}</span></p>
-                    {displayCheckbox && (
                       <CustomCheckbox
                         label="auto"
                         size={45}
                         onChange={setAutoSeed}
+                        isActive={displayCheckbox}
                       />
-                      )
-                    }
                   </div>
                   {!autoSeed && (
                     <TextArea
@@ -652,13 +657,12 @@ const goNextWithGetSuggestedData = async () => {
                   {/* --- JOB NAME --- */}
                   <div className='sjp-seed-name-param'>
                     <p>Name <span>{autoName ? jobname : "job"}</span></p>
-                    {displayCheckbox && (
-                      <CustomCheckbox
+                    <CustomCheckbox
                         label="auto"
                         size={45}
-                        onChange={setAutoName}
+                        onChange={setAutoSeed}
+                        isActive={displayCheckbox}
                       />
-                    )}
                   </div>
                   {!autoName && (
                     <TextArea

@@ -69,10 +69,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
     setUploadedFiles([]);
   };
 
+  const getEnvExample = (val: string | undefined) => {
+  if (!val) return "";
+  return val.replace(/\\n/g, "\n");
+};
+
+
   const exampleFiles = {
-    example1: `CCGAGUAGGUA\n((.....))..`,
-    example2: `GACUUAUAGAU UGAGUCC\n(((((..(... )))))).`,
-    example3: `UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)`
+    example1: getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_1),
+    example2: getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_2),
+    example3: getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_3)
   };
 
   const handleDownloadExample = (exampleKey: keyof typeof exampleFiles) => {
