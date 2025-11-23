@@ -18,6 +18,9 @@ There is a necessery .env file in the root folder of the project, the structure 
 DATABASE_NAME=dockerdjango 
 DATABASE_USERNAME=dbuser
 DATABASE_PASSWORD=dbpassword
+NEXT_PUBLIC_EXAMPLE_RNA_1=CCGAGUAGGUA\n((.....))..
+NEXT_PUBLIC_EXAMPLE_RNA_2=GACUUAUAGAU UGAGUCC\n(((((..(... )))))).
+NEXT_PUBLIC_EXAMPLE_RNA_3=UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)
 ```
 
 
