@@ -30,8 +30,14 @@ export default function SubmitJob() {
   const [approves, setApproves] = useState<string[]>([]);
   const [autoSeed, setAutoSeed] = useState(true);
   const [autoName, setAutoName] = useState(true);
-  const [seed, setSeed] = useState(0);
-  const [jobname, setJobname] = useState("job-155555");
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const randomSeed = Math.floor(Math.random() * 90000) + 10000;
+  const randomJob = Math.floor(Math.random() * 900) + 100;
+  const [seed, setSeed] = useState(randomSeed);
+  const [jobname, setJobname] = useState(`job-${day}${month}${year}-${randomJob}`);
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
   const [structures, setStructures] = useState<string[]>([""]);
@@ -266,12 +272,8 @@ const goNext = async () => {
       if (data?.job_name) setJobname(data.job_name);
       setHasData(true);
     } catch (e) {
-      setSeed(34404);
-      setJobname("job-150625");
       setHasData(true);
     }
-    // setAutoSeed(true);
-    // setAutoName(true);
   }
   else{
     setAutoSeed(false);
