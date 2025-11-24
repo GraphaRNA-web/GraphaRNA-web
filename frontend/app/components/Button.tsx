@@ -8,6 +8,7 @@ type ButtonProps = {
   height?: string;
   label?: string;
   fontSize?: string;
+  fontWeight?: string;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
   action?: React.MouseEventHandler<HTMLButtonElement>;
