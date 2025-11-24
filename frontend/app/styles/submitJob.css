@@ -348,13 +348,23 @@
     height: 30px;
     display: flex;
     justify-content: center;
+    cursor: pointer;
 }
 
 .sjp-add-structure p{
     font-size: 20px;
     text-align: center;
 }
+.sjp-add-structure:hover {
+    background-color: var(--primary2-base);
+    color: white;
+    border-color: var(--primary2-base);
+    transition: 0.2s ease;
+}
 
+.sjp-add-structure:hover p {
+    color: white;
+}
 .sjp-step1-buttons{
     display: flex;
     flex-direction: row;
