@@ -5,16 +5,16 @@ import smtplib
 from django.utils import timezone
 from django.conf import settings
 from .models import ExampleStructures, Job, JobResults
-from time import sleep , time
+from time import sleep, time
 from uuid import UUID
 import requests
 from celery import shared_task
-from requests.exceptions import RequestException, HTTPError
 import os
 import json
 from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
 from django.template import Template, Context
+from typing import Any
 
 
 def log_to_file(message: str) -> None:
@@ -118,19 +118,25 @@ def send_email_task(
         return False
 
 
-def execute_and_poll_engine(uuid, seed, timeout=6000, check_interval=40):
+def execute_and_poll_engine(
+    uuid: str, seed: int, timeout: int = 6000, check_interval: int = 40
+) -> dict[str, Any]:
+
     logger = get_task_logger(__name__)
-    engine_url = getattr(settings, 'ENGINE_URL', 'http://grapharna-engine:8000')
+    engine_url = getattr(settings, "ENGINE_URL", "http://grapharna-engine:8000")
     run_url = f"{engine_url}/run"
     logger.info(f"Sending request to engine at {run_url} for UUID: {uuid}")
+
     try:
-        response = requests.post(run_url, data={'uuid': uuid, 'seed': seed})
+        response = requests.post(run_url, data={"uuid": uuid, "seed": seed})
         response.raise_for_status()
     except requests.RequestException as e:
         raise Exception(f"Failed to contact engine: {e}")
+
     logger.info(f"Received response with status code {response.status_code}")
     start_time = time()
     status_url = f"{engine_url}/status/{uuid}"
+
     while True:
         logger.info("Polling engine for results...")
         if time() - start_time > timeout:
@@ -146,27 +152,30 @@ def execute_and_poll_engine(uuid, seed, timeout=6000, check_interval=40):
 
         if status_resp.status_code == 200:
             logger.info("Engine has completed processing the request.")
-            return status_resp.json()
-        
+            result: dict[str, Any] = status_resp.json()
+            return result
+
         elif status_resp.status_code == 202:
             logger.info("Engine is still processing the request...")
             sleep(check_interval)
             continue
-        
+
         elif status_resp.status_code == 500:
             error_detail = status_resp.json()
             raise Exception(f"Engine reported error: {error_detail}")
-        
+
         else:
-            raise Exception(f"Unexpected status code from engine: {status_resp.status_code}")
+            raise Exception(
+                f"Unexpected status code from engine: {status_resp.status_code}"
+            )
 
 
 @shared_task(queue="grapharna")
 def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> str:
 
     from webapp.visualization_tools import (
-    drawVARNAgraph,
-    generateRchieDiagram,
+        drawVARNAgraph,
+        generateRchieDiagram,
     )
     from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
@@ -195,15 +204,15 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
         logger.exception(f"Failed to update job status: {str(e)}")
         raise
 
-    engine_url = settings.ENGINE_URL
     max_retries = settings.ENGINE_REQUEST_MAX_RETRIES
     retry_timeout = settings.ENGINE_REQUEST_RETRY_DELAY
 
     for i in range(job_data.alternative_conformations):
         processing_start: datetime = timezone.now()
 
-        response = None
         retries: int = 0
+
+        result_data: dict[str, Any] = {}
 
         while retries < max_retries:
             try:
@@ -211,9 +220,9 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                     uuid=uuid_str,
                     seed=seed + i,
                     timeout=settings.ENGINE_TIMEOUT_SECONDS,
-                    check_interval=settings.ENGINE_POLL_INTERVAL_SECONDS
+                    check_interval=settings.ENGINE_POLL_INTERVAL_SECONDS,
                 )
-                
+
                 break
             except Exception as e:
                 logger.warning(
@@ -226,13 +235,21 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
         output_path_pdb = result_data.get("pdbFilePath")
         output_path_json = result_data.get("jsonFilePath")
 
+        if not isinstance(output_path_pdb, str) or not isinstance(
+            output_path_json, str
+        ):
+            logger.error(
+                f"Invalid file paths returned from engine: PDB={output_path_pdb}, JSON={output_path_json}"
+            )
+            raise Exception("Engine returned invalid file paths (None or non-string)")
+
         if not os.path.exists(output_path_pdb):
             logger.error(f"Can't find {output_path_pdb}")
-            raise
+            raise Exception(f"PDB file missing at {output_path_pdb}")
 
         if not os.path.exists(output_path_json):
             logger.error(f"Can't find {output_path_json}")
-            raise
+            raise Exception(f"JSON file missing at {output_path_json}")
 
         try:
             with open(output_path_json, "r") as f:
@@ -266,6 +283,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
         except Exception as e:
             logger.exception(f"Error processing JSON data: {e}")
             raise
+
         os.remove(output_path_json)
 
         if dotbracket_from_annotator:
@@ -295,9 +313,13 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 target = job_data.input_structure.path
                 model = dotbracket_path
                 with open(target) as f:
-                    target_dict = dotbracketToPairs(f.read().replace(" ", "").replace("-", ""))
+                    target_dict = dotbracketToPairs(
+                        f.read().replace(" ", "").replace("-", "")
+                    )
                 with open(model) as f:
-                    model_dict = dotbracketToPairs(f.read().replace(" ", "").replace("-", ""))
+                    model_dict = dotbracketToPairs(
+                        f.read().replace(" ", "").replace("-", "")
+                    )
                 values = CalculateF1Inf(
                     target_dict["correctPairs"], model_dict["correctPairs"]
                 )
@@ -360,7 +382,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
     logger.info("Saved to database")
-    
+
     """Post-processing: replace spaces with input strand separator in input structure file"""
     if job_data.strand_separator and job_data.strand_separator != " ":
         try:

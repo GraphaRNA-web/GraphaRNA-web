@@ -304,7 +304,9 @@ def PostRnaValidation(request: Request) -> Response:
 
     if results["Validation Result"]:
         if results["strandSeparator"] != "N":
-            results["Validated RNA"] = results["Validated RNA"].replace(" ", results["strandSeparator"])
+            results["Validated RNA"] = results["Validated RNA"].replace(
+                " ", results["strandSeparator"]
+            )
         return Response(
             results,
             status=status.HTTP_200_OK,
