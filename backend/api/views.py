@@ -629,7 +629,7 @@ def getActiveJobs(request: Request) -> Response:
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
     data = Job.objects.filter(
-        statusin=["C", "E"]).order_by("created_at","uid")
+        status__in=["C", "E"]).order_by("-created_at","uid")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:
