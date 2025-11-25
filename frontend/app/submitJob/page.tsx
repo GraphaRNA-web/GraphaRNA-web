@@ -286,9 +286,13 @@ const goNext = async () => {
 
 
   const handleSubmit = async () => {
-    if (seed === null || seed === "" || Number.isNaN(Number(seed))) {
+    if (seed === null || seed === "" ) {
       setErrors(["Seed cannot be empty."]);
       return;
+    }
+    if (Number.isNaN(Number(seed))){
+      setErrors(["Seed need to be a number."]);
+      return
     }
     if (email === "" || emailValidator(email)){
       setCurrentStep(prev => prev + 1)
