@@ -286,6 +286,8 @@ const goNext = async () => {
 
 
   const handleSubmit = async () => {
+    setErrors([]);
+
     if (seed === null || seed === "" ) {
       setErrors(["Seed cannot be empty."]);
       return;
@@ -294,7 +296,11 @@ const goNext = async () => {
       setErrors(["Seed need to be a number."]);
       return
     }
-    if (email === "" || emailValidator(email)){
+    if (email !== "" && !emailValidator(email)) {
+      setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
+      return;
+    }
+    else{
       setCurrentStep(prev => prev + 1)
       try {
         const response = await submitJobRequest({
@@ -305,6 +311,11 @@ const goNext = async () => {
           alternative_conformations: alternativeConformations,
         });
 
+      if (response.success === false) {
+        setErrors([response.message || "Server returned an error"]);
+        return;
+    }
+
         console.log("[handleSubmit] job created:", response);
         setApproves([`Job '${response.job_name}' submitted successfully.`]);
         setCurrentStep(prev => prev + 1);
@@ -313,9 +324,6 @@ const goNext = async () => {
         console.error("[handleSubmit] error", err);
         setErrors([err.message]);
       }
-    }
-    else{
-        setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
     }
   }
 
@@ -700,6 +708,7 @@ const goNext = async () => {
                   <p>E-mail <span>(optional)</span></p>
                   <TextArea
                     rows={1}
+                    type="email"
                     value={email}
                     onChange={setEmail}
                     placeholder="your@email.com"
