@@ -80,11 +80,15 @@ jobs:
                   ./frontend
             
             - name: Build Test Image
-              run: |
-                docker build \
-                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-tests:${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
-                  --file tests/Dockerfile \
-                  . 
+              uses: docker/build-push-action@v5
+              with:
+                context: .
+                file: tests/Dockerfile
+                push: false
+                tags: ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-tests:${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+                cache-from: type=gha
+                cache-to: type=gha,mode=max
+                load: true
 
             - name: Scan backend image
               uses: aquasecurity/trivy-action@master
@@ -176,9 +180,9 @@ jobs:
               echo "--- 4. Install Helm Deployment"
               helm upgrade --install grapharna-staging $CHART_PATH \
                 --namespace $STAGING_NS \
-                --set backend.image.tag=$TAG \
-                --set frontend.image.tag=$TAG \
-                --values $CHART_PATH/values_staging.yaml \
+                --set backend.image=$REGISTRY/grapharna-web:backend-$TAG \
+                --set frontend.image=$REGISTRY/grapharna-web:frontend-$TAG \
+                --values $CHART_PATH/values-staging.yaml \
                 --wait --timeout 5m
 
               echo "--- 5. Run Tests (K8s Job) ---"
