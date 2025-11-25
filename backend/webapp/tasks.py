@@ -123,7 +123,7 @@ def execute_and_poll_engine(
 ) -> dict[str, Any]:
 
     logger = get_task_logger(__name__)
-    engine_url = getattr(settings, "ENGINE_URL", "http://grapharna-engine:8000")
+    engine_url = settings.ENGINE_URL
     run_url = f"{engine_url}/run"
     logger.info(f"Sending request to engine at {run_url} for UUID: {uuid}")
 
@@ -231,7 +231,11 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 )
                 retries += 1
                 sleep(retry_timeout)
-
+        if retries == max_retries:
+            logger.error("Max retries reached. Failing the job.")
+            job_data.status = "E"
+            job_data.save()
+            raise
         output_path_pdb = result_data.get("pdbFilePath")
         output_path_json = result_data.get("jsonFilePath")
 
