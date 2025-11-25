@@ -709,7 +709,6 @@ const goNext = async () => {
                   <p>E-mail <span>(optional)</span></p>
                   <TextArea
                     rows={1}
-                    type="email"
                     value={email}
                     onChange={setEmail}
                     placeholder="your@email.com"
