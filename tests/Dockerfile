@@ -11,13 +11,13 @@ WORKDIR /tests
 
 RUN pip3 install --no-cache-dir locust
 
-COPY playwright/package.json playwright/package-lock.json ./playwright/
+COPY ./playwright/package.json ./playwright/package-lock.json ./playwright/
 
 WORKDIR /tests/playwright
 RUN npm ci
 
 WORKDIR /tests
-COPY load_tests/ ./load_tests/
-COPY playwright/ ./playwright/
+COPY ./load_tests/ ./load_tests/
+COPY ./playwright/ ./playwright/
 
 CMD ["echo", "Ready"]
