@@ -628,17 +628,8 @@ def getActiveJobs(request: Request) -> Response:
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    now = timezone.now()
-    one_day_ago = now - timedelta(hours=24)
-
     data = Job.objects.filter(
-        status__in=["C", "E"], created_at__gte=one_day_ago
-    ).order_by("created_at")
-    if not data.exists():
-        five_days_ago = now - timedelta(days=5)
-        data = Job.objects.filter(
-            status__in=["C", "E"], created_at__gte=five_days_ago
-        ).order_by("created_at")
+        statusin=["C", "E"]).order_by("created_at","uid")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:
