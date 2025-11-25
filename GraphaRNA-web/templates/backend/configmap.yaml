@@ -4,8 +4,8 @@ metadata:
   name: backend-config
   namespace: grapharna
 data:
-  DEBUG: "True"
-  DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175"
+  DEBUG: {{ .Values.backend.debug | default "False" | quote }}
+  DJANGO_ALLOWED_HOSTS: {{ .Values.env.DJANGO_ALLOWED_HOSTS | quote }}
 
   DATABASE_ENGINE: "django.db.backends.postgresql"
   DATABASE_NAME: "dockerdjango"
@@ -26,6 +26,6 @@ data:
   EMAIL_TITLE_JOB_FINISHED: "Your job is finished!"
   EMAIL_TITLE_JOB_NEAR_EXPIRATION: "Your job is about to expire!"
 
-  ENGINE_URL: "http://grapharna-engine-svc:8080/run"
+  ENGINE_URL: {{ .Values.backend.engine_url | default "http://grapharna-engine-svc:8080/run" }}
 
-  RESULT_BASE_URL: "http://150.254.30.175/api/getResults/" 
+  RESULT_BASE_URL: "https://grapharna.cs.put.poznan.pl/api/getResults/"

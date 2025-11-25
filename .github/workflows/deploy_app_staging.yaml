@@ -3,7 +3,11 @@ on:
     push:
         branches:
           - 'Deploy'
-    
+          - 'continous_deployment'
+
+env:
+  REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
+  STAGING_NS: staging-${{ github.sha }}
 
 jobs:
     build-scan-push:
@@ -74,6 +78,13 @@ jobs:
                   --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest \
                   --file frontend/Dockerfile \
                   ./frontend
+            
+            - name: Build Test Image
+              run: |
+                docker build \
+                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-tests:${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
+                  --file tests/Dockerfile \
+                  . 
 
             - name: Scan backend image
               uses: aquasecurity/trivy-action@master
@@ -100,30 +111,121 @@ jobs:
               run: |
                  docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
                  docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest
+
+            - name: Push Test Image
+              run: |
+                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-tests:${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
             
 
-    #deploy to host server (Only possible after we have a server to deploy to :))
-    # deploy-to-server:
-    #   name: Deploy to staging server
-    #   runs-on: ubuntu-latest
+    staging-and-test:
+      name: Deploy to staging server and run tests
+      needs: build-scan-push
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repo files
+          uses: actions/checkout@v4
 
+        - name: Copy Helm charts to the server
+          uses: appleboy/scp-action@master
+          with:
+            host: ${{ secrets.SSH_IP }}
+            username: ${{ secrets.SSH_USER }}
+            password: ${{ secrets.SSH_PASSWD }}
+            port: ${{ secrets.SERVER_PORT || 22 }}
+            source: "GraphaRNA-web/*"
+            target: "/tmp/deploy-${{ github.sha }}"
+
+        - name: Deploy & Test using SSH
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.SSH_IP }}
+            username: ${{ secrets.SSH_USER }}
+            password: ${{ secrets.SSH_PASSWD }}
+            port: ${{ secrets.SERVER_PORT || 22 }}
+            envs: STAGING_NS, REGISTRY
+            script: |
+              TAG="${{ needs.build-scan-push.outputs.image_tag }}"
+              CHART_PATH="/tmp/deploy-${{ github.sha }}/GraphaRNA-web/"
+              
+              echo "--- 1. Clean up potential leftovers ---"
+              kubectl delete ns $STAGING_NS --ignore-not-found
+
+              echo "--- 2. Create Staging Namespace ---"
+              kubectl create ns $STAGING_NS
+
+              echo "--- 3. Create generic secrets ---"
+              kubectl create secret generic backend-secret \
+                --from-literal=DJANGO_SECRET_KEY=django_secret_key \
+                --from-literal=EMAIL_HOST_PASSWORD=nothing \
+                --from-literal=EMAIL_HOST_USER=nothing \
+                --from-literal=DATABASE_PASSWORD=admin \
+                --from-literal=DATABASE_USERNAME=admin
+              kubectl create secret generic postgres-secret \
+                --from-literal=POSTGRES_DB=dockerdjango \
+                --from-literal=POSTGRES_PASSWORD=admin \
+                --from-literal=POSTGRES_USER=admin
+              kubectl create secret generic rabbitmq-secret \
+                --from-literal=CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672// \
+                --from-literal=PASSWORD=guest \
+                --from-literal=USER=guest
+
+              echo "--- 4. Install Helm Deployment"
+              helm upgrade --install grapharna-staging $CHART_PATH \
+                --namespace $STAGING_NS \
+                --set backend.image.tag=$TAG \
+                --set frontend.image.tag=$TAG \
+                --values $CHART_PATH/values-staging.yaml \
+                --wait --timeout 5m
+
+              echo "--- 5. Run Tests (K8s Job) ---"
+              cat <<EOF | kubectl apply -f -
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                name: test-runner
+                namespace: $STAGING_NS
+              spec:
+                backoffLimit: 0
+                template:
+                  spec:
+                    containers:
+                    - name: runner
+                      image: $REGISTRY/grapharna-tests:$TAG
+                      command: ["/bin/bash", "-c"]
+                      args:
+                        - |
+                          echo "Running E2E..."
+                          export BASE_URL="http://grapharna-staging-frontend:3000"
+                          npx playwright test
+                          
+                          echo "Running Load Tests..."
+                          export FRONTEND_HOST="http://grapharna-staging-frontend:3000"
+                          python -m locust -f load_tests/locustfile.py --headless -u 10 -r 2 -t 2m --host http://grapharna-staging-backend:8000 --exit-code-on-error 1
+                    restartPolicy: Never
+              EOF
+              
+              echo "Waiting for tests..."
+              kubectl wait --for=condition=complete job/test-runner -n $STAGING_NS --timeout=10m
+
+              echo "--- 6. Cleanup Staging ---"
+              helm uninstall grapharna-staging -n $STAGING_NS
+              kubectl delete ns $STAGING_NS
+
+
+    # deliver:
+    #   name: Deliver the tested version to production namespace
+    #   runs-on: ubuntu-latest
+      
     #   steps:
-    #     - name: Deploy using SSH
+    #     - name: Deliver using SSH
     #       uses: appleboy/ssh-action@master
     #       with:
-    #         host: ${{ secrets.SERVER_HOST }}
-    #         username: ${{ secrets.SERVER_USERNAME }}
-    #         key: ${{ secrets.SERVER_SSH_KEY }}
+    #         host: ${{ secrets.SSH_IP }}
+    #         username: ${{ secrets.SSH_USER }}
+    #         password: ${{ secrets.SSH_PASSWD }}
     #         port: ${{ secrets.SERVER_PORT || 22 }}
     #         script: |
     #           cd /GraphaRNA-web
-    #           echo "Pulling images"
-    #           docker compose pull backend frontend grapharna-engine
-    #           echo "Restarting containers"
-    #           docker compose up -d --remove-orphans
-    #           echo "Cleaning up old images..."
-    #           docker image prune -f
-    #           echo "Done!"
-
-
-
+    #           git pull # (Tu dodaj login i ssh key z sekretow gita. Da sie jakos tu podac passy organizacji a nie mojego konta i moj klucz ssh?)
+    #           helm install grapharna-web . -n grapharna # (jak tu sprecyzować którego ma używać value seta?)
+    #           kubectl rollout restart deployments -n grapharna

@@ -1,3 +1,8 @@
+env:
+  DEBUG: "True"
+  DJANGO_ALLOWED_HOSTS: "*" 
+  RESULT_BASE_URL: "http://backend-svc:8000/api/getResults/"
+
 global:
   networkPolicy:
     enabled: true
@@ -27,7 +32,7 @@ frontend:
       memory: "256Mi"
 
   # Ingress
-  ingressEnabled: true
+  ingressEnabled: false
   ingressHost: frontend.local
 
 backend:
@@ -35,9 +40,9 @@ backend:
   image: grapharnaweb/grapharna-web:backend-latest
   pullPolicy: Always
   port: 8000
-  debug: "False"
+  debug: "True"
   engine_url: "http://grapharna-engine-svc:8080/test"
-  allowed_hosts: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
+  allowed_hosts: "*"
 
   replicas: 1
 
@@ -117,11 +122,11 @@ engine:
 
   resources:
     requests:
-      cpu: "8000m"
-      memory: "6Gi"
+      cpu: "500m"
+      memory: "256Mi"
     limit:
-      cpu: "12000m"
-      memory: "12Gi"
+      cpu: "100m"
+      memory: "1024Mi"
 
   # Persistent Volume Claim
   pvc: shared-volume
