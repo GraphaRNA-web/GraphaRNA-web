@@ -132,7 +132,7 @@ jobs:
             username: ${{ secrets.SSH_USER }}
             password: ${{ secrets.SSH_PASSWD }}
             port: ${{ secrets.SERVER_PORT || 22 }}
-            source: "GraphaRNA-web/*"
+            source: "GraphaRNA-web"
             target: "/tmp/deploy-${{ github.sha }}"
 
         - name: Deploy & Test using SSH
@@ -144,8 +144,12 @@ jobs:
             port: ${{ secrets.SERVER_PORT || 22 }}
             envs: STAGING_NS, REGISTRY
             script: |
+              set -e
               TAG="${{ needs.build-scan-push.outputs.image_tag }}"
-              CHART_PATH="/tmp/deploy-${{ github.sha }}/GraphaRNA-web/"
+              CHART_PATH="/tmp/deploy-${{ github.sha }}/GraphaRNA-web"
+
+              echo "--- Debug: Listing chart files ---"
+              ls -F $CHART_PATH
               
               echo "--- 1. Clean up potential leftovers ---"
               kubectl delete ns $STAGING_NS --ignore-not-found
@@ -210,6 +214,7 @@ jobs:
               echo "--- 6. Cleanup Staging ---"
               helm uninstall grapharna-staging -n $STAGING_NS
               kubectl delete ns $STAGING_NS
+              rm -rf "/tmp/deploy-${{ github.sha }}"
 
 
     # deliver:
