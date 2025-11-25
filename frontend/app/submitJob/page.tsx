@@ -50,6 +50,8 @@ export default function SubmitJob() {
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [selectedExampleNumber, setSelectedExampleNumber] = useState<number>(0);
   const [displayCheckbox, setDisplayCheckbox] = useState(true);
+  const [server500, setServer500] = useState(false);
+
 
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
@@ -171,6 +173,14 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
       return "ok";
     } catch (err: any) {
+      console.error("Validation failed:", err);
+
+      if (err?.response?.status === 500) {
+        setErrors(["Server error (500): validator is not responding. Try again later."]);
+        setServer500(true);
+        return "error";
+      }
+
       setErrors([err.message || "Server validation error"]);
       return "error";
     }
@@ -238,6 +248,14 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
         return "ok";
       } catch (err: any) {
+        console.error("Validation failed:", err);
+
+        if (err?.response?.status === 500) {
+          setErrors(["Server error (500): validator is not responding. Try again later."]);
+          setServer500(true);
+          return "error";
+        }
+
         setErrors([err.message || "Server validation error"]);
         return "error";
       }
@@ -798,6 +816,15 @@ const goNextWithGetSuggestedData = async () => {
             <p>{email} {text} {seed} {jobname} {structures}</p>
           </div>
         )}
+        {server500 && (
+          <div className="sjp-500-error">
+            <MessageBox
+              type="error"
+              messages={["Internal server error (500). Please try again later."]}
+            />
+          </div>
+        )}
+
         <ValidationWarningModal
           isOpen={showValidation || showValidationNext}
           onClose={() => {
