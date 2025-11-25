@@ -286,6 +286,10 @@ const goNext = async () => {
 
 
   const handleSubmit = async () => {
+    if (seed === null || seed === "" || Number.isNaN(Number(seed))) {
+      setErrors(["Seed cannot be empty."]);
+      return;
+    }
     if (email === "" || emailValidator(email)){
       setCurrentStep(prev => prev + 1)
       try {
@@ -603,8 +607,16 @@ const goNext = async () => {
                   {!autoSeed && (
                     <TextArea
                       rows={1}
-                      value={seed.toString()}
-                      onChange={(val) => setSeed(Number(val))}
+                      value={seed === null ? "" : seed.toString()}
+                      onChange={(val) => {
+                        if (val === "") {
+                          setSeed("");
+                          return;
+                        }
+                        if (/^\d+$/.test(val)) {
+                          setSeed(Number(val));
+                        }
+                      }}
                       placeholder="Enter custom seed"
                     />
                   )}
