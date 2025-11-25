@@ -182,7 +182,7 @@ jobs:
                 --namespace $STAGING_NS \
                 --set backend.image=$REGISTRY/grapharna-web:backend-$TAG \
                 --set frontend.image=$REGISTRY/grapharna-web:frontend-$TAG \
-                --values $CHART_PATH/values-staging.yaml \
+                --values $CHART_PATH/values_staging.yaml \
                 --wait --timeout 5m
 
               echo "--- 5. Run Tests (K8s Job) ---"
