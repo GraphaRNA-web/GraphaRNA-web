@@ -78,16 +78,16 @@ def generateRchieDiagram(
     """
     import numpy as np
     import matplotlib.pyplot as plt
-    
+
     try:
         with open(fasta_input, "r") as f_in, open(fasta_output, "r") as f_out:
             fasta_content_input = f_in.read()
             fasta_content_output = f_out.read()
             fasta_content_input.replace(" ", "").replace("-", "")
 
-        input_lines = fasta_content_input.split('\n')
-        output_lines = fasta_content_output.split('\n')
-        
+        input_lines = fasta_content_input.split("\n")
+        output_lines = fasta_content_output.split("\n")
+
         nucleotites_input = input_lines[1].strip()
 
         validator_input = RnaValidator(fasta_content_input)
@@ -109,7 +109,12 @@ def generateRchieDiagram(
     missing_pairs = input_pairs - common_pairs
     added_pairs = output_pairs - common_pairs
 
-    n = max(len(input_lines[1]), len(input_lines[2]), len(output_lines[1]), len(output_lines[2]))
+    n = max(
+        len(input_lines[1]),
+        len(input_lines[2]),
+        len(output_lines[1]),
+        len(output_lines[2]),
+    )
     if n == 0:
         return "ERROR: Input sequences or structures are empty."
 
