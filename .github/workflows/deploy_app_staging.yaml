@@ -158,17 +158,17 @@ jobs:
               kubectl create ns $STAGING_NS
 
               echo "--- 3. Create generic secrets ---"
-              kubectl create secret generic backend-secret \
+              kubectl create secret generic backend-secret -n $STAGING_NS \
                 --from-literal=DJANGO_SECRET_KEY=django_secret_key \
                 --from-literal=EMAIL_HOST_PASSWORD=nothing \
                 --from-literal=EMAIL_HOST_USER=nothing \
                 --from-literal=DATABASE_PASSWORD=admin \
                 --from-literal=DATABASE_USERNAME=admin
-              kubectl create secret generic postgres-secret \
+              kubectl create secret generic postgres-secret -n $STAGING_NS \
                 --from-literal=POSTGRES_DB=dockerdjango \
                 --from-literal=POSTGRES_PASSWORD=admin \
                 --from-literal=POSTGRES_USER=admin
-              kubectl create secret generic rabbitmq-secret \
+              kubectl create secret generic rabbitmq-secret -n $STAGING_NS \
                 --from-literal=CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672// \
                 --from-literal=PASSWORD=guest \
                 --from-literal=USER=guest
