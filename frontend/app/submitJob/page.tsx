@@ -36,7 +36,7 @@ export default function SubmitJob() {
   const year = date.getFullYear();
   const randomSeed = Math.floor(Math.random() * 90000) + 10000;
   const randomJob = Math.floor(Math.random() * 900) + 100;
-  const [seed, setSeed] = useState(randomSeed);
+  const [seed, setSeed] = useState<number | "">(randomSeed);
   const [jobname, setJobname] = useState(`job-${day}${month}${year}-${randomJob}`);
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
@@ -252,6 +252,7 @@ const handleValidate = async () => {
 };
 
 const handleNext = async () => {
+  setErrors([]);
   if (currentStep === 0) {
     const res = await validateStructure(true);
     if (res === "warning") {
@@ -288,7 +289,7 @@ const goNext = async () => {
   const handleSubmit = async () => {
     setErrors([]);
 
-    if (seed === null || seed === "" ) {
+    if (seed === null || seed === "") {
       setErrors(["Seed cannot be empty."]);
       return;
     }

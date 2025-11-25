@@ -90,6 +90,7 @@
     flex-direction: column;
     gap: 15px;
     width: 490px;
+    margin-top: 30px;
   }
 
   .home-description-text{
