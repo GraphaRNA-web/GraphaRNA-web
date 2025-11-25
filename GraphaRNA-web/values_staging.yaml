@@ -9,6 +9,9 @@ global:
 
 monitoring:
   enabled: false
+
+clusterIssuer:
+  enabled: false
   
 frontend:
   name: frontend
