@@ -119,7 +119,8 @@ def send_email_task(
 
 
 def execute_and_poll_engine(
-    uuid: str, seed: int, timeout: int = 6000, check_interval: int = 40
+    uuid: str, seed: int, timeout: int = settings.ENGINE_TIMEOUT_SECONDS,
+                    check_interval: int = settings.ENGINE_POLL_INTERVAL_SECONDS
 ) -> dict[str, Any]:
 
     logger = get_task_logger(__name__)
@@ -219,8 +220,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 result_data = execute_and_poll_engine(
                     uuid=uuid_str,
                     seed=seed + i,
-                    timeout=settings.ENGINE_TIMEOUT_SECONDS,
-                    check_interval=settings.ENGINE_POLL_INTERVAL_SECONDS,
+                    
                 )
 
                 break
