@@ -5,7 +5,7 @@ import smtplib
 from django.utils import timezone
 from django.conf import settings
 from .models import ExampleStructures, Job, JobResults
-from time import sleep
+from time import sleep , time
 from uuid import UUID
 import requests
 from celery import shared_task
@@ -118,6 +118,49 @@ def send_email_task(
         return False
 
 
+def execute_and_poll_engine(uuid, seed, timeout=6000, check_interval=40):
+    logger = get_task_logger(__name__)
+    engine_url = getattr(settings, 'ENGINE_URL', 'http://grapharna-engine:8000')
+    run_url = f"{engine_url}/run"
+    logger.info(f"Sending request to engine at {run_url} for UUID: {uuid}")
+    try:
+        response = requests.post(run_url, data={'uuid': uuid, 'seed': seed})
+        response.raise_for_status()
+    except requests.RequestException as e:
+        raise Exception(f"Failed to contact engine: {e}")
+    logger.info(f"Received response with status code {response.status_code}")
+    start_time = time()
+    status_url = f"{engine_url}/status/{uuid}"
+    while True:
+        logger.info("Polling engine for results...")
+        if time() - start_time > timeout:
+            logger.error("Engine timed out while processing request")
+            raise Exception("Engine timed out while processing request")
+
+        try:
+            status_resp = requests.get(status_url)
+        except requests.RequestException:
+            logger.warning("Failed to get status from engine, retrying...")
+            sleep(check_interval)
+            continue
+
+        if status_resp.status_code == 200:
+            logger.info("Engine has completed processing the request.")
+            return status_resp.json()
+        
+        elif status_resp.status_code == 202:
+            logger.info("Engine is still processing the request...")
+            sleep(check_interval)
+            continue
+        
+        elif status_resp.status_code == 500:
+            error_detail = status_resp.json()
+            raise Exception(f"Engine reported error: {error_detail}")
+        
+        else:
+            raise Exception(f"Unexpected status code from engine: {status_resp.status_code}")
+
+
 @shared_task(queue="grapharna")
 def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> str:
 
@@ -164,17 +207,15 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
 
         while retries < max_retries:
             try:
-                response = requests.post(
-                    engine_url,
-                    data={"uuid": uuid_str, "seed": seed + i},
+                result_data = execute_and_poll_engine(
+                    uuid=uuid_str,
+                    seed=seed + i,
+                    timeout=settings.ENGINE_TIMEOUT_SECONDS,
+                    check_interval=settings.ENGINE_POLL_INTERVAL_SECONDS
                 )
-                response.raise_for_status()
-
-                logger.info(
-                    f"Grapharna response status: {response.status_code}, body: {response.text}"
-                )
+                
                 break
-            except (RequestException, HTTPError) as e:
+            except Exception as e:
                 logger.warning(
                     f"Engine request failed (attempt {retries + 1}/{max_retries}). "
                     f"Retrying in {retry_timeout}s. Error: {e}"
@@ -182,21 +223,8 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 retries += 1
                 sleep(retry_timeout)
 
-        if response is None:
-            logger.error("Grapharna API error: No response received after all retries.")
-            job_data.status = "E"
-            job_data.save()
-            raise
-
-        if response.status_code != 200:
-            logger.error(f"Grapharna API error: {response.text}")
-            job_data.status = "E"
-            job_data.save()
-            raise
-
-        data = response.json()
-        output_path_pdb = data.get("pdbFilePath")
-        output_path_json = data.get("jsonFilePath")
+        output_path_pdb = result_data.get("pdbFilePath")
+        output_path_json = result_data.get("jsonFilePath")
 
         if not os.path.exists(output_path_pdb):
             logger.error(f"Can't find {output_path_pdb}")
