@@ -144,7 +144,7 @@ def execute_and_poll_engine(
             raise Exception("Engine timed out while processing request")
 
         try:
-            status_resp = requests.get(status_url)
+            status_resp = requests.get(f"{status_url}?seed={seed}")
         except requests.RequestException:
             logger.warning("Failed to get status from engine, retrying...")
             sleep(check_interval)
