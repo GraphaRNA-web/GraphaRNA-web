@@ -5,7 +5,7 @@ env:
 
 global:
   networkPolicy:
-    enabled: true
+    enabled: false
 
 monitoring:
   enabled: false
@@ -28,10 +28,10 @@ frontend:
   # Resources
   resources:
     requests:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: "50m"
+      memory: "64Mi"
     limit:
-      cpu: "500m"
+      cpu: "300m"
       memory: "256Mi"
 
   # Ingress
@@ -56,10 +56,10 @@ backend:
   # Resources
   resources:
     requests:
-      cpu: "250m"
-      memory: "1024Mi"
+      cpu: "100m"
+      memory: "256Mi"
     limit:
-      cpu: "1000m"
+      cpu: "500m"
       memory: "2048Mi"
 
   # Persistent Volume Claim
@@ -72,8 +72,8 @@ celery:
     replicas: 1
     resources:
       requests:
-        cpu: "100m"
-        memory: "512Mi"
+        cpu: "50m"
+        memory: "128Mi"
       limit:
         cpu: "500m"
         memory: "4096Mi"
@@ -85,21 +85,21 @@ celery:
     storage: 1Gi
     resources:
       requests:
-        cpu: "50m"
-        memory: "256Mi"
+        cpu: "25m"
+        memory: "64Mi"
       limit:
         cpu: "100m"
-        memory: "512Mi"
+        memory: "256Mi"
 
   maintenance:
     name: celery-maintenance
     replicas: 1
     resources:
       requests:
-        cpu: "50m"
-        memory: "256Mi"
+        cpu: "25m"
+        memory: "64Mi"
       limit:
-        cpu: "100m"
+        cpu: "50m"
         memory: "4096Mi"
   
   email:
@@ -107,10 +107,10 @@ celery:
     replicas: 1
     resources:
       requests:
-        cpu: "50m"
-        memory: "256Mi"
+        cpu: "25m"
+        memory: "64Mi"
       limit:
-        cpu: "100m"
+        cpu: "50m"
         memory: "4096Mi"
 
 engine:
@@ -125,11 +125,11 @@ engine:
 
   resources:
     requests:
-      cpu: "500m"
+      cpu: "100m"
       memory: "256Mi"
     limit:
-      cpu: "100m"
-      memory: "1024Mi"
+      cpu: "500m"
+      memory: "2048Mi"
 
   # Persistent Volume Claim
   pvc: shared-volume
@@ -147,11 +147,11 @@ postgres:
   # Resources
   resources:
     requests:
-      cpu: "500m"
-      memory: "2048Mi"
+      cpu: "100m"
+      memory: "256Mi"
     limit:
-      cpu: "1000m"
-      memory: "4096Mi"
+      cpu: "500m"
+      memory: "1024Mi"
 
   livenessCommand: ["pg_isready", "-U", "GraphaRNAweb", "-d", "dockerdjango"]
   readinessCommand: ["pg_isready", "-U", "GraphaRNAweb", "-d", "dockerdjango"]
@@ -172,7 +172,7 @@ rabbitmq:
   resources:
     requests:
       cpu: "100m"
-      memory: "2048Mi"
+      memory: "1024Mi"
     limits:
       cpu: "500m"
       memory: "4096Mi"
