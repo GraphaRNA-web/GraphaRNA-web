@@ -178,7 +178,7 @@ jobs:
                 --namespace $STAGING_NS \
                 --set backend.image.tag=$TAG \
                 --set frontend.image.tag=$TAG \
-                --values $CHART_PATH/values-staging.yaml \
+                --values $CHART_PATH/values_staging.yaml \
                 --wait --timeout 5m
 
               echo "--- 5. Run Tests (K8s Job) ---"
