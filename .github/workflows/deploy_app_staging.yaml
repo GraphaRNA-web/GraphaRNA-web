@@ -13,6 +13,8 @@ jobs:
     build-scan-push:
         name: Build scan and push images
         runs-on: ubuntu-latest
+        outputs:
+          image_tag: ${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
         permissions:
             contents: read
             packages: write
@@ -208,12 +210,12 @@ jobs:
                       args:
                         - |
                           echo "Running E2E..."
-                          export BASE_URL="http://grapharna-staging-frontend:3000"
+                          export BASE_URL="http://grapharna-staging-frontend-svc:3000"
                           npx playwright test
                           
                           echo "Running Load Tests..."
-                          export FRONTEND_HOST="http://grapharna-staging-frontend:3000"
-                          python -m locust -f load_tests/locustfile.py --headless -u 10 -r 2 -t 2m --host http://grapharna-staging-backend:8000 --exit-code-on-error 1
+                          export FRONTEND_HOST="http://grapharna-staging-frontend-svc:3000"
+                          python -m locust -f load_tests/locustfile.py --headless -u 10 -r 2 -t 2m --host http://grapharna-staging-backend-svc:8000 --exit-code-on-error 1
                     restartPolicy: Never
               EOF
               
