@@ -141,19 +141,24 @@ jobs:
 
         - name: Deploy & Test using SSH
           uses: appleboy/ssh-action@master
+          env:
+            TAG: ${{ needs.build-scan-push.outputs.image_tag }}
           with:
             host: ${{ secrets.SSH_IP }}
             username: ${{ secrets.SSH_USER }}
             password: ${{ secrets.SSH_PASSWD }}
             port: ${{ secrets.SERVER_PORT || 22 }}
-            envs: STAGING_NS, REGISTRY
+            envs: STAGING_NS, REGISTRY, TAG
             script: |
               set -e
-              TAG="${{ needs.build-scan-push.outputs.image_tag }}"
-              CHART_PATH="/tmp/deploy-${{ github.sha }}/GraphaRNA-web"
 
-              echo "--- Debug: Listing chart files ---"
-              ls -F $CHART_PATH
+              TAG="${{ needs.build-scan-push.outputs.image_tag }}"
+              if [ -z "$TAG" ]; then
+                echo "ERROR: TAG variable is empty!"
+                exit 1
+              fi
+
+              CHART_PATH="/tmp/deploy-${{ github.sha }}/GraphaRNA-web"
               
               echo "--- 1. Clean up potential leftovers ---"
               kubectl delete ns $STAGING_NS --ignore-not-found
