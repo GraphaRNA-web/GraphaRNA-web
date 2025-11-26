@@ -13,8 +13,8 @@
 .home-container{
   display: flex;
   flex-direction: column;
-  width: 626px;
-  height: 310px;
+  width: 726px;
+  height: 510px;
   margin-left: calc(166px - (1440px - 100vw)*0.2);
   gap: 40px;
 }
@@ -23,15 +23,17 @@
   display: flex;
   justify-content: space-between;
   height: 48px;
-  width: 626px;
+  width: 726px;
+  padding-top: 50px;
 }
 
 .home-header{
-  width: 626px;
+  width: 726px;
   height: 222px;
   display: flex;
   flex-direction: column;
   gap: 30px;
+  
 }
 
 .home-intro-text{
@@ -43,13 +45,32 @@
   margin: 0px;
 }
 
-.home-description-text{
+.home-description-text-1{
   font-family: Inter;
-  font-weight: 300;
-  font-size: 20px;
   height: 48px;
   color: var(--brown-lighten-10);
   margin: 0px;
+  font-weight: 300;
+  font-style: Light;
+  font-size: 22px;
+  line-height: 100%;
+  letter-spacing: 0%;
+
+}
+.home-description-text-2{
+  font-family: Inter;
+  height: 48px;
+  color: var(--brown-lighten-10);
+  margin: 0px;
+  font-weight: 300;
+  font-style: Light;
+  font-size: 18px;
+  line-height: 100%;
+  letter-spacing: 0%;
+}
+
+.home-description-text-2 p b {
+  font-weight: 600;
 }
 
 .intro-explore,

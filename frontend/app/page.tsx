@@ -30,8 +30,11 @@ export default function Home() {
               <span className="intro-rna-web">RNA-web</span>
             </span>
           </div>
-          <div className="home-description-text">
-            <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.</p>
+          <div className="home-description-text-1">
+            <p>Define interaction graphs, predict RNA structure, and visualize the results for structural analysis easily.</p>
+          </div>
+          <div className="home-description-text-2">
+            <p>GraphaRNA-web is the web implementation of <b>'Graph neural network and diffusion model for modeling RNA interatomic interactions'</b> .</p>
           </div>
         </div>
 
@@ -43,7 +46,7 @@ export default function Home() {
               variant="filled"
               label="Start a job"
               fontSize="20px"
-              width={isSmall ? '260px' : '392px'}
+              width={isSmall ? '260px' : '452px'}
               height="48px"
               disabled={false}
             />
@@ -55,7 +58,7 @@ export default function Home() {
               variant="outlined"
               label="Guide"
               fontSize="20px"
-              width={isSmall ? '260px' : '214px'}
+              width={isSmall ? '260px' : '254px'}
               height="48px"
               disabled={false}
             />
