@@ -15,6 +15,7 @@ COPY tests/playwright/package.json tests/playwright/package-lock.json ./playwrig
 
 WORKDIR /tests/playwright
 RUN npm ci
+RUN npx playwright install --with-deps
 
 WORKDIR /tests
 COPY tests/load_tests/ ./load_tests/
