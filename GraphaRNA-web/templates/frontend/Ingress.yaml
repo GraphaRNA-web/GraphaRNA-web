@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
 spec:
-  ingressClassName: nginx
+  ingressClassName: public
   rules:
   - http:
       paths:
