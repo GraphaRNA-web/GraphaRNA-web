@@ -11,6 +11,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.backend.pvc }}
+      storage: {{ .Values.backend.storage }}
+
 
 
