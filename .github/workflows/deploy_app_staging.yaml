@@ -218,6 +218,13 @@ jobs:
                     containers:
                     - name: runner
                       image: $REGISTRY/grapharna-tests:$TAG
+                      env:
+                      - name: FRONTEND_URL
+                        value: "http://frontend-svc:3000"
+                      - name: BACKEND_URL
+                        value: "http://backend-svc:8000"
+                      - name: FRONTEND_HOST
+                        value: "http://frontend-svc:3000"
                       command: ["/bin/bash", "-c"]
                       args:
                         - |

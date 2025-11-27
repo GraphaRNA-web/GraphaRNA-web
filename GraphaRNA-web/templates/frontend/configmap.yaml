@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: frontend-config
 data:
-  BACKEND_URL: "http://backend-svc:8000"
-  DOMAIN_URL: "http://150.254.30.175,http://127.0.0.1,http://localhost"
-  NODE_ENV: "production"
+  {{- range $key, $value := .Values.frontend.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

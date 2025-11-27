@@ -13,7 +13,6 @@ frontend:
   image: grapharnaweb/grapharna-web:frontend-latest
   pullPolicy: Always
   port: 3000
-
   replicas: 1
 
   # Probes
@@ -33,15 +32,22 @@ frontend:
   ingressEnabled: true
   ingressHost: frontend.local
 
+  # --- Full frontend config ---
+  config:
+    # Backend adress in the cluster
+    BACKEND_URL: "http://backend-svc:8000"
+    
+    # Allowed domains (for )
+    DOMAIN_URL: "http://150.254.30.175,http://127.0.0.1,http://localhost,http://grapharna-web.cs.put.poznan.pl,https://grapharna-web.cs.put.poznan.pl,https://grapharna.cs.put.poznan.pl,http://grapharna.cs.put.poznan.pl"
+    
+    # production/staging
+    NODE_ENV: "production"
+
 backend:
   name: backend
   image: grapharnaweb/grapharna-web:backend-latest
   pullPolicy: Always
   port: 8000
-  debug: "False"
-  engine_url: "http://grapharna-engine-svc:8080/test"
-  allowed_hosts: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
-
   replicas: 1
 
   # Probes
@@ -60,6 +66,37 @@ backend:
   # Persistent Volume Claim
   pvc: shared-volume
   storage: 10Gi
+
+  # --- Full backend config ---
+  config:
+    DEBUG: "False"
+    DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
+    
+    # Database
+    DATABASE_ENGINE: "django.db.backends.postgresql"
+    DATABASE_NAME: "dockerdjango"
+    DATABASE_HOST: "db-svc"
+    DATABASE_PORT: "5432"
+
+    # Models parameters
+    JOB_EXPIRATION_WEEKS: "2"
+    MODEL_NAME: "model_800.h5"
+    MODEL_EPOCHS: "800"
+    UUID_HASH_LENGTH: "5"
+    
+    # Email
+    EMAIL_HOST: "smtp.gmail.com"
+    EMAIL_PORT: "465"
+    TEMPLATE_PATH_JOB_CREATED: "email_templates/template_job_created.html"
+    TEMPLATE_PATH_JOB_FINISHED: "email_templates/template_job_finished.html"
+    TEMPLATE_PATH_JOB_NEAR_EXPIRATION: "email_templates/template_job_near_expiration.html"
+    EMAIL_TITLE_JOB_CREATED: "Your job has been created!"
+    EMAIL_TITLE_JOB_FINISHED: "Your job is finished!"
+    EMAIL_TITLE_JOB_NEAR_EXPIRATION: "Your job is about to expire!"
+
+    # URLs
+    ENGINE_URL: "http://grapharna-engine-svc:8080/run"
+    RESULT_BASE_URL: "https://grapharna.cs.put.poznan.pl/api/getResults/"
 
 celery:  
   grapharna:
@@ -161,7 +198,6 @@ rabbitmq:
   pullPolicy: IfNotPresent
   port: 5672
   uiPort: 15672
-
   replicas: 1
 
   resources:
@@ -174,3 +210,7 @@ rabbitmq:
 
   pvc: rabbitmq-volume
   storage: 10Gi
+
+  # --- RabbitMQ config ---
+  config:
+    consumer_timeout: "129600000"

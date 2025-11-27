@@ -3,28 +3,6 @@ kind: ConfigMap
 metadata:
   name: backend-config
 data:
-  DEBUG: {{ .Values.backend.debug | default "False" | quote }}
-  DJANGO_ALLOWED_HOSTS: {{ .Values.env.DJANGO_ALLOWED_HOSTS | quote }}
-
-  DATABASE_ENGINE: "django.db.backends.postgresql"
-  DATABASE_NAME: "dockerdjango"
-  DATABASE_HOST: "db-svc"
-  DATABASE_PORT: "5432"
-
-  JOB_EXPIRATION_WEEKS: "2"
-  MODEL_NAME: "model_800.h5"
-  MODEL_EPOCHS: "800"
-  UUID_HASH_LENGTH: "5"
-  
-  EMAIL_HOST: "smtp.gmail.com"
-  EMAIL_PORT: "465"
-  TEMPLATE_PATH_JOB_CREATED: "email_templates/template_job_created.html"
-  TEMPLATE_PATH_JOB_FINISHED: "email_templates/template_job_finished.html"
-  TEMPLATE_PATH_JOB_NEAR_EXPIRATION: "email_templates/template_job_near_expiration.html"
-  EMAIL_TITLE_JOB_CREATED: "Your job has been created!"
-  EMAIL_TITLE_JOB_FINISHED: "Your job is finished!"
-  EMAIL_TITLE_JOB_NEAR_EXPIRATION: "Your job is about to expire!"
-
-  ENGINE_URL: {{ .Values.backend.engine_url | default "http://grapharna-engine-svc:8080/run" }}
-
-  RESULT_BASE_URL: "https://grapharna.cs.put.poznan.pl/api/getResults/"
+  {{- range $key, $value := .Values.backend.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
