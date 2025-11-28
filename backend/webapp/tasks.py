@@ -190,7 +190,12 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
     except Exception as e:
         logger.exception(f"Unexpected error fetching job: {str(e)}")
         raise
-
+    
+    if job_data.status == "C": # fallback for celery worker restarts
+        logger.info(f"Job {uuid_param} is already completed. Exiting task.")
+        return "Job already completed"
+    
+        
     seed = job_data.seed
     uuid_str = str(uuid_param)
 
@@ -420,6 +425,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
             title=settings.TITLE_JOB_FINISHED,
             url=url,
         )
+    logger.info("GraphaRNA run completed successfully.")
 
     return "OK"
 
