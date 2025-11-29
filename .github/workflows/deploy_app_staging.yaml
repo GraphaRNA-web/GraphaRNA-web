@@ -1,9 +1,9 @@
 name: Deployment
 on:
-    push:
-        branches:
-          - 'Deploy'
-          - 'continous_deployment'
+  push:
+  pull_request:
+    branches:
+      - 'Deploy'
 
 env:
   REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
@@ -250,20 +250,3 @@ jobs:
               rm -rf "/tmp/deploy-${{ github.sha }}"
 
 
-    # deliver:
-    #   name: Deliver the tested version to production namespace
-    #   runs-on: ubuntu-latest
-      
-    #   steps:
-    #     - name: Deliver using SSH
-    #       uses: appleboy/ssh-action@master
-    #       with:
-    #         host: ${{ secrets.SSH_IP }}
-    #         username: ${{ secrets.SSH_USER }}
-    #         password: ${{ secrets.SSH_PASSWD }}
-    #         port: ${{ secrets.SERVER_PORT || 22 }}
-    #         script: |
-    #           cd /GraphaRNA-web
-    #           git pull # (Tu dodaj login i ssh key z sekretow gita. Da sie jakos tu podac passy organizacji a nie mojego konta i moj klucz ssh?)
-    #           helm install grapharna-web . -n grapharna # (jak tu sprecyzować którego ma używać value seta?)
-    #           kubectl rollout restart deployments -n grapharna
