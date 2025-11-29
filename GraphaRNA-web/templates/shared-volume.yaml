@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ values.backend.pvc }}
+  name: {{ .Values.backend.pvc }}
   labels:
-    app.kubernetes.io/name: {{ values.backend.pvc }}
+    app.kubernetes.io/name: {{ .Values.backend.pvc }}
     app.kubernetes.io/component: storage
     app.kubernetes.io/part-of: grapharna-web
 spec:
@@ -11,4 +11,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ values.backend.storage }}
+      storage: {{ .Values.backend.storage }}
+
+
+
