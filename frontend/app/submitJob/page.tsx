@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { validateRNA, getSuggestedData, submitJobRequest, submitExampleJobRequest } from "@/lib/api";
 import { useRouter } from "next/navigation";  
 import Modal from '../components/Modal';
@@ -19,13 +19,28 @@ const getEnvExample = (val: string | undefined) => {
   return val.replace(/\\n/g, "\n");
 };
 
-const exampleRNA: string[] = [
-  getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_1),
-  getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_2),
-  getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_3)
-];
-
 export default function SubmitJob() {
+  const [examples, setExamples] = useState<string[]>(["", "", ""]);
+  
+  useEffect(() => {
+    fetch('/api/config')
+      .then((res) => {
+        if (!res.ok) throw new Error("Config fetch failed");
+        return res.json();
+      })
+      .then((data) => {
+        const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
+        
+        setExamples([
+          fixNewlines(data.rnaExample1),
+          fixNewlines(data.rnaExample2),
+          fixNewlines(data.rnaExample3)
+        ]);
+      })
+      .catch((err) => console.error("Failed to load runtime config:", err));
+  }, []);
+
+
   const router = useRouter();
   const [inputFormat, setInputFormat] = useState("Text");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -274,7 +289,7 @@ const goNextWithGetSuggestedData = async () => {
 
   let effectiveExampleNumber = selectedExampleNumber;
 
-  const isExampleValid = selectedExampleNumber !== 0 && exampleRNA.includes(text);
+  const isExampleValid = selectedExampleNumber !== 0 && examples.includes(text);
   
   if  (isExampleValid){
     setDisplayCheckbox(false);
@@ -304,7 +319,7 @@ const goNextWithGetSuggestedData = async () => {
 
   const handleSubmit = async () => {
     if (uploadedFile === null && selectedExampleNumber !== 0){
-      if ((!exampleRNA.includes(text))){
+      if ((!examples.includes(text))){
         setSelectedExampleNumber(0);
       }
     }
@@ -357,17 +372,17 @@ const goNextWithGetSuggestedData = async () => {
   }
 
   const handleExampleClick1 = async () => {
-      setText(exampleRNA[0]);
+      setText(examples[0]);
       setSelectedExampleNumber(1);
   };
 
   const handleExampleClick2 = async () => {
-      setText(exampleRNA[1]);
+      setText(examples[1]);
       setSelectedExampleNumber(2);
   };
 
   const handleExampleClick3 = async () => {
-      setText(exampleRNA[2]);
+      setText(examples[2]);
       setSelectedExampleNumber(3);
   };
 
