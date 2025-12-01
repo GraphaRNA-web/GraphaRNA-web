@@ -58,7 +58,6 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
       <tbody>
         {rows.map((row) => (
           <tr key={row.id}
-              onClick={() => handleRowClick((row as any).uidh)}
               style={{ cursor: "pointer" }}>
             {!isFinishedTable && <td>{row.id}</td>}
             <td>{row.job_name}</td>
