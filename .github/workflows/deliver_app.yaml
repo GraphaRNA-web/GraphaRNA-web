@@ -127,7 +127,7 @@ jobs:
                 --wait --timeout 5m
 
               echo "--- 2. Restart Rollout (Optional check) ---"
-              kubectl rollout status deployment/backend deployment/frontend -n grapharna
+              kubectl rollout status deployments -n grapharna
 
               echo "--- 3. Cleanup ---"
               rm -rf "/home/${{ secrets.SSH_USER }}/deploy-prod"
