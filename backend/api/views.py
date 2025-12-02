@@ -37,7 +37,6 @@ import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 from django.core.files import File
-from django.utils import timezone
 from api.misc_tools import CreateNewJob
 
 
