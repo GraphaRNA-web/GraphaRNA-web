@@ -10,10 +10,19 @@ metadata:
     app.kubernetes.io/component: frontend
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: public
+  tls:
+  - hosts:
+    - grapharna.cs.put.poznan.pl
+    secretName: grapharna-tls-secret-prod-final
+  
   rules:
-  - http:
+  - host: grapharna.cs.put.poznan.pl
+    http:
       paths:
       - pathType: Prefix
         path: "/"

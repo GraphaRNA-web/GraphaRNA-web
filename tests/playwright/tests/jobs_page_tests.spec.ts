@@ -90,7 +90,7 @@
                     throw new Error(`Failed to create test job: ${jobResponseJson.error}`);
                 }
 
-                createdJobs.push(jobResponseJson.job_hashed_uid);
+                createdJobs.push(jobResponseJson.uidh);
             }
         }  
     });
@@ -146,6 +146,8 @@
 
       await pageManager.onJobsPage.clickStartJob();
       
+      await pageManager.currentPage.waitForLoadState("domcontentloaded");
+
       await expect(page).toHaveURL("/submitJob");
     });
 

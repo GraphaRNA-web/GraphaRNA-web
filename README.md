@@ -18,6 +18,9 @@ There is a necessery .env file in the root folder of the project, the structure 
 DATABASE_NAME=dockerdjango 
 DATABASE_USERNAME=dbuser
 DATABASE_PASSWORD=dbpassword
+NEXT_PUBLIC_EXAMPLE_RNA_1=CCGAGUAGGUA\n((.....))..
+NEXT_PUBLIC_EXAMPLE_RNA_2=GACUUAUAGAU UGAGUCC\n(((((..(... )))))).
+NEXT_PUBLIC_EXAMPLE_RNA_3=UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)
 ```
 
 
@@ -69,7 +72,9 @@ VALID_NUCLEOTIDES=AUGCT
 VALID_PAIRS = "GCCGAUUAGUUG"
 
 ENGINE_TEST_URL = http://grapharna-engine:8080/test
-ENGINE_URL = http://grapharna-engine:8080/test
+ENGINE_URL = http://grapharna-engine:8080
+ENGINE_TIMEOUT_SECONDS=60000
+ENGINE_POLL_INTERVAL_SECONDS=60
 
 JOB_EXPIRATION_WEEKS=2
 

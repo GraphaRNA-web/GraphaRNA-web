@@ -3,6 +3,12 @@ kind: ConfigMap
 metadata:
   name: frontend-config
 data:
+<<<<<<< HEAD
   {{- range $key, $value := .Values.frontend.config }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
+=======
+  BACKEND_URL: "http://backend-svc:8000"
+  DOMAIN_URL: "http://150.254.30.175,http://127.0.0.1,http://localhost,http://grapharna-web.cs.put.poznan.pl,https://grapharna-web.cs.put.poznan.pl,https://grapharna.cs.put.poznan.pl,http://grapharna.cs.put.poznan.pl"
+  NODE_ENV: "production"
+>>>>>>> b5acbe818d60cd370088cdffeb56538153ebdbf4

@@ -351,7 +351,7 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["result_list"], [])
 
     def test_valid_get_with_results(self) -> None:
-        
+
         mock_full_qs = MagicMock()
         mock_full_qs.__iter__.return_value = iter(self.job_results)
         mock_full_qs.count.return_value = len(self.job_results)

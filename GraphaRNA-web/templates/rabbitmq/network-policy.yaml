@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {{- if .Values.global.networkPolicy.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -37,3 +38,42 @@ spec:
         - protocol: TCP
           port: {{ .Values.rabbitmq.port }}
 {{- end }}
+=======
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.rabbitmq.name }}-network-policy
+  labels:
+    app.kubernetes.io/name: {{ .Values.rabbitmq.name }}-network-policy
+    app.kubernetes.io/instance: {{ .Values.releaseName }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: network
+    app.kubernetes.io/part-of: grapharna-web
+    app.kubernetes.io/managed-by: Helm
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.rabbitmq.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.backend.name }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.celery.beat.name }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.celery.grapharna.name }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.celery.maintenance.name }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.celery.email.name }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.rabbitmq.port }}
+>>>>>>> b5acbe818d60cd370088cdffeb56538153ebdbf4

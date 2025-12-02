@@ -37,9 +37,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
     }
 
+    const { search } = new URL(req.url);
     const headersToForward = forwardHeaders(req);
-    const backendUrl = `${BACKEND_URL}${endpoint}`;
-
+    const backendUrl = `${BACKEND_URL}${endpoint}${search}`;
     const backendRes = await fetch(backendUrl, {
       method: "GET",
       headers: headersToForward,
