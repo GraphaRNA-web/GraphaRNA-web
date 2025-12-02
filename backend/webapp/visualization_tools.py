@@ -103,13 +103,17 @@ def generateRchieDiagram(
 
     except Exception as e:
         return f"ERROR: RnaValidator or file reading failed. Details: {e}"
-
+    
     common_pairs = input_pairs & output_pairs
     missing_pairs = input_pairs - common_pairs
     added_pairs = output_pairs - common_pairs
 
-    # Obliczanie długości sekwencji (bezpieczniej wziąć len(nucleotites_input))
-    n = len(nucleotites_input)
+    n = max(
+        len(input_lines[1]),
+        len(input_lines[2]),
+        len(output_lines[1]),
+        len(output_lines[2]),
+    )
     
     if n == 0:
         return "ERROR: Input sequences or structures are empty."
