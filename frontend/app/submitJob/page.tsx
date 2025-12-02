@@ -302,7 +302,6 @@ const goNextWithGetSuggestedData = async () => {
     effectiveExampleNumber = examples.findIndex(ex => ex === text) + 1;
     setDisplayCheckbox(false);
     setSelectedExampleNumber(effectiveExampleNumber);
-    console.log("isEXAMPLEVALID ODPALONy")
   }
   else {
     setDisplayCheckbox(true);
@@ -314,8 +313,9 @@ const goNextWithGetSuggestedData = async () => {
     const data = await getSuggestedData(effectiveExampleNumber);
     if (typeof data?.seed === "number") setSeed(data.seed);
     if (data?.job_name) setJobname(data.job_name);
-    if (typeof data?.alternative_conformations === 'number') setAlternativeConformations(1)
-      
+    if (isExampleValid){
+        setAlternativeConformations(1)
+      }
     
     setAutoSeed(true);
     setAutoName(true);
