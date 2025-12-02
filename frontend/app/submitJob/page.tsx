@@ -12,6 +12,7 @@ import TextArea from '../components/TextArea';
 import CustomCheckbox from '../components/CustomCheckbox';
 import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
+import ServerErrorModal from '../components/ServerErrorModal';
 import ValidationWarningModal from "../components/ValidationWarningModal";
 import FileDisplay from '../components/FileDisplay';
 const getEnvExample = (val: string | undefined) => {
@@ -151,7 +152,17 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
     try {
       console.log("[validateStructure] calling validateRNA...");
-      const result = await validateRNA({fasta_raw: trimmedText});
+      const { result, status} = await validateRNA({fasta_raw: trimmedText});
+      console.log(result, status);
+
+      if(status >= 400 && status < 500){
+        setErrors([result.error]);
+        return "error";
+      }
+      else if(status >= 500){
+        setServer500(true);
+        return "error";
+      }
 
       setMismatchingBrackets(result["Mismatching Brackets"] || []);
       setIncorrectPairs(result["Incorrect Pairs"] || []);
@@ -189,13 +200,6 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       return "ok";
     } catch (err: any) {
       console.error("Validation failed:", err);
-
-      if (err?.response?.status === 500) {
-        setErrors(["Server error (500): validator is not responding. Try again later."]);
-        setServer500(true);
-        return "error";
-      }
-
       setErrors([err.message || "Server validation error"]);
       return "error";
     }
@@ -230,10 +234,19 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
       try {
         console.log("[validateStructure] calling validateRNA...");
-        const result = await validateRNA({fasta_raw: normalized});
+        const { result, status} = await validateRNA({fasta_raw: normalized});
 
         setMismatchingBrackets(result["Mismatching Brackets"] || []);
         setIncorrectPairs(result["Incorrect Pairs"] || []);
+
+        if(status >= 400 && status < 500){
+          setErrors([result.error]);
+          return "error";
+        }
+        else if(status >= 500){
+          setServer500(true);
+          return "error";
+        }
 
         if (!result["Validation Result"]) {
           const errorList: string[] = [];
@@ -264,13 +277,6 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
         return "ok";
       } catch (err: any) {
         console.error("Validation failed:", err);
-
-        if (err?.response?.status === 500) {
-          setErrors(["Server error (500): validator is not responding. Try again later."]);
-          setServer500(true);
-          return "error";
-        }
-
         setErrors([err.message || "Server validation error"]);
         return "error";
       }
@@ -292,6 +298,7 @@ const handleValidate = async () => {
 const handleNext = async () => {
   if (currentStep === 0) {
     const res = await validateStructure(true);
+    console.log(res);
     if (res === "warning") {
       setShowValidationNext(true)
     } else if (res === "ok") {
@@ -831,14 +838,43 @@ const goNextWithGetSuggestedData = async () => {
             <p>{email} {text} {seed} {jobname} {structures}</p>
           </div>
         )}
-        {server500 && (
-          <div className="sjp-500-error">
-            <MessageBox
-              type="error"
-              messages={["Internal server error (500). Please try again later."]}
-            />
-          </div>
-        )}
+
+        <ServerErrorModal
+          isOpen={server500}
+          onClose={() => setServer500(false)}
+        />
+
+        <ValidationWarningModal
+          isOpen={showValidation || showValidationNext}
+          onClose={() => {
+            setShowValidation(false);
+            setShowValidationNext(false);
+          }}
+          onConfirm={() => {
+            setText(correctedText);
+
+            if (inputFormat === "Interactive") {
+              const blocks = correctedText
+                .split("\n>")
+                .map((b, i) => (i === 0 ? b : ">" + b))
+                .filter((b) => b.trim() !== "");
+
+              setStructures(blocks);
+            }
+
+            if (showValidationNext) {
+              goNext();
+            }
+
+            setShowValidation(false);
+            setShowValidationNext(false);
+          }}
+          text={text}
+          correctedText={correctedText}
+          mismatchingBrackets={mismatchingBrackets}
+          incorrectPairs={incorrectPairs}
+        />
+        
 
         <ValidationWarningModal
           isOpen={showValidation || showValidationNext}

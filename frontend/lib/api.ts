@@ -31,7 +31,7 @@ export async function validateRNA(params: { fasta_raw?: string; fasta_file?: Fil
   console.log("[validateRNA] response status", res.status);
   const data = await res.json();
   console.log("[validateRNA] parsed data", data);
-  return data;
+  return { result: data, status: res.status };
 }
 
 export type SuggestedData = { seed: number; job_name: string };
