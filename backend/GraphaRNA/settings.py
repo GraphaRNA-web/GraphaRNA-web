@@ -31,7 +31,9 @@ VALID_PAIRS = os.getenv("VALID_PAIRS", "GCCGAUUAGUUG")
 
 ENGINE_TEST_URL = os.getenv("ENGINE_TEST_URL", "http://grapharna-engine:8080/test")
 
-ENGINE_URL = os.getenv("ENGINE_URL", "http://grapharna-engine:8080/run")
+ENGINE_URL = os.getenv("ENGINE_URL", "http://grapharna-engine:8080")
+ENGINE_TIMEOUT_SECONDS = int(os.getenv("ENGINE_TIMEOUT_SECONDS", 6000))
+ENGINE_POLL_INTERVAL_SECONDS = int(os.getenv("ENGINE_POLL_INTERVAL_SECONDS", 60))
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = os.getenv("EMAIL_PORT")

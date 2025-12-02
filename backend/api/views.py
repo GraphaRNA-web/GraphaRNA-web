@@ -304,7 +304,9 @@ def PostRnaValidation(request: Request) -> Response:
 
     if results["Validation Result"]:
         if results["strandSeparator"] != "N":
-            results["Validated RNA"] = results["Validated RNA"].replace(" ", results["strandSeparator"])
+            results["Validated RNA"] = results["Validated RNA"].replace(
+                " ", results["strandSeparator"]
+            )
         return Response(
             results,
             status=status.HTTP_200_OK,
@@ -449,12 +451,13 @@ def ProcessExampleRequestData(request: Request) -> Response:
         example_uidh = None
 
     if example_uidh:
-        send_email_task.delay(  # if email is provided, send notification
-            receiver_email=email,
-            template_path=settings.TEMPLATE_PATH_JOB_FINISHED,
-            title=settings.TITLE_JOB_FINISHED,
-            url=f"{settings.RESULT_BASE_URL}?uidh={example_uidh}",
-        )
+        if email:    
+            send_email_task.delay(  # if email is provided, send notification
+                receiver_email=email,
+                template_path=settings.TEMPLATE_PATH_JOB_FINISHED,
+                title=settings.TITLE_JOB_FINISHED,
+                url=f"{settings.RESULT_BASE_URL}?uidh={example_uidh}",
+            )
         return Response(
             {"success": True, "uidh": example_uidh},
             status=status.HTTP_200_OK,
