@@ -291,38 +291,38 @@ const handleNext = async () => {
   }
 };
 const [hasData, setHasData] = useState(false);
-const [exampleMode, setExampleMode] = useState(false);
+// const [exampleMode, setExampleMode] = useState(false);
 
 const goNextWithGetSuggestedData = async () => {
-  if (currentStep === 0 && !hasData) {
-  
   let effectiveExampleNumber = selectedExampleNumber;
 
-  const isExampleValid = selectedExampleNumber !== 0 && examples.includes(text);
-  
+  const isExampleValid =examples.includes(text);
+
   if  (isExampleValid){
+    effectiveExampleNumber = examples.findIndex(ex => ex === text) + 1;
     setDisplayCheckbox(false);
+    setSelectedExampleNumber(effectiveExampleNumber);
+    console.log("isEXAMPLEVALID ODPALONy")
   }
-  else{
+  else {
     setDisplayCheckbox(true);
     setSelectedExampleNumber(0);
-    effectiveExampleNumber = 0;  
-  } 
-  try {
-      const data = await getSuggestedData(effectiveExampleNumber);
-      if (typeof data?.seed === "number") setSeed(data.seed);
-      if (data?.job_name) setJobname(data.job_name);
-      setHasData(true);
-    } catch (e) {
-      setHasData(true);
-    }
-  }
-  else{
-    setAutoSeed(false);
-    setAutoName(false);
+    effectiveExampleNumber = 0;
   }
 
-  // Zawsze przejdź do następnego kroku
+  try {
+    const data = await getSuggestedData(effectiveExampleNumber);
+    if (typeof data?.seed === "number") setSeed(data.seed);
+    if (data?.job_name) setJobname(data.job_name);
+    if (typeof data?.alternative_conformations === 'number') {
+      setAlternativeConformations(data.alternative_conformations);
+    }
+    setAutoSeed(true);
+    setAutoName(true);
+    setHasData(true);
+  } catch (e) {
+    setHasData(true);
+  }
   setCurrentStep((prev) => prev + 1);
 };
 
@@ -405,7 +405,7 @@ const handleExampleClick1 = async () => {
     setSelectedExampleNumber(1);
     setAutoSeed(true);
     setAutoName(true);
-    setDisplayCheckbox(false);   // blokujemy slider/checkboxy
+    setDisplayCheckbox(false);
 };
 
 const handleExampleClick2 = async () => {
@@ -700,22 +700,23 @@ const handleExampleClick3 = async () => {
                         isActive={displayCheckbox}
                       />
                   </div>
-                  {!autoSeed && (
-                    <TextArea
-                      rows={1}
-                      value={seed === null ? "" : seed.toString()}
-                      onChange={(val) => {
-                        if (val === "") {
-                          setSeed("");
-                          return;
-                        }
-                        if (/^\d+$/.test(val)) {
-                          setSeed(Number(val));
-                        }
-                      }}
-                      placeholder="Enter custom seed"
-                    />
-                  )}
+                    {!autoSeed && selectedExampleNumber === 0 && (
+                      <TextArea
+                        rows={1}
+                        value={seed === null ? "" : seed.toString()}
+                        onChange={(val) => {
+                          if (val === "") {
+                            setSeed("");
+                            return;
+                          }
+                          if (/^\d+$/.test(val)) {
+                            setSeed(Number(val));
+                          }
+                        }}
+                        placeholder="Enter custom seed"
+                      />
+                    )}
+
 
                   {/* --- JOB NAME --- */}
                   <div className='sjp-seed-name-param'>
@@ -728,14 +729,15 @@ const handleExampleClick3 = async () => {
                         isActive={displayCheckbox}
                       />
                   </div>
-                  {!autoName && (
-                    <TextArea
-                      rows={1}
-                      value={jobname}
-                      onChange={setJobname}
-                      placeholder="Enter custom job name"
-                    />
-                  )}
+                    {!autoName && selectedExampleNumber === 0 && (
+                      <TextArea
+                        rows={1}
+                        value={jobname}
+                        onChange={setJobname}
+                        placeholder="Enter custom job name"
+                      />
+                    )}
+
 
 
                 {/* --- INTEGER FIELD --- */}
