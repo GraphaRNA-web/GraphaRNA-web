@@ -19,10 +19,14 @@ from typing import Any
 
 class EngineTimeoutError(Exception):
     """Exception raised when the engine task exceeds the allowed time."""
-    def __init__(self, message="The engine operation timed out", job_uuid=None):
+
+    def __init__(
+        self, message: str = "The engine operation timed out", job_uuid: Any = None
+    ) -> None:
         self.message = message
         self.job_uuid = job_uuid
         super().__init__(self.message)
+
 
 def log_to_file(message: str) -> None:
     ts = datetime.now().isoformat()
@@ -126,8 +130,10 @@ def send_email_task(
 
 
 def execute_and_poll_engine(
-    uuid: str, seed: int, timeout: int = settings.ENGINE_TIMEOUT_SECONDS,
-                    check_interval: int = settings.ENGINE_POLL_INTERVAL_SECONDS
+    uuid: str,
+    seed: int,
+    timeout: int = settings.ENGINE_TIMEOUT_SECONDS,
+    check_interval: int = settings.ENGINE_POLL_INTERVAL_SECONDS,
 ) -> dict[str, Any]:
 
     logger = get_task_logger(__name__)
@@ -145,7 +151,6 @@ def execute_and_poll_engine(
     start_time = time()
     status_url = f"{engine_url}/status/{uuid}"
     cancel_url = f"{engine_url}/cancel/{uuid}"
-    
 
     while True:
         logger.info("Polling engine for results...")
@@ -204,12 +209,11 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
     except Exception as e:
         logger.exception(f"Unexpected error fetching job: {str(e)}")
         raise
-    
-    if job_data.status == "C": # fallback for celery worker restarts
+
+    if job_data.status == "C":  # fallback for celery worker restarts
         logger.info(f"Job {uuid_param} is already completed. Exiting task.")
         return "Job already completed"
-    
-        
+
     seed = job_data.seed
     uuid_str = str(uuid_param)
 
@@ -239,7 +243,6 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 result_data = execute_and_poll_engine(
                     uuid=uuid_str,
                     seed=seed + i,
-                    
                 )
 
                 break
