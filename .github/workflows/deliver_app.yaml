@@ -127,7 +127,19 @@ jobs:
                 --wait --timeout 5m
 
               echo "--- 2. Restart Rollout (Optional check) ---"
-              kubectl rollout status deployments -n grapharna
+              NAMESPACE=grapharna
+              EXCLUDE_ENGINE=grapharna-engine
+              EXCLUDE_QUEUE=rabbitmq
+
+              kubectl get deployments -n $NAMESPACE --no-headers -o custom-columns=":metadata.name" | while read deploy; do
+                if [ "$deploy" != "$EXCLUDE_ENGINE" ] && [ "$deploy" != "$EXCLUDE_QUEUE" ]; then
+                  echo "Restarting deployment: $deploy"
+                  kubectl rollout restart deployment/$deploy -n $NAMESPACE
+                else
+                  echo "Skipping restart for: $deploy"
+                fi
+              done
+
 
               echo "--- 3. Cleanup ---"
               rm -rf "/home/${{ secrets.SSH_USER }}/deploy-prod"
