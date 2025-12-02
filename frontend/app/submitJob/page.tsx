@@ -675,7 +675,7 @@ const goNextWithGetSuggestedData = async () => {
                     <CustomCheckbox
                         label="auto"
                         size={45}
-                        onChange={setAutoSeed}
+                        onChange={setAutoName}
                         isActive={displayCheckbox}
                       />
                   </div>
