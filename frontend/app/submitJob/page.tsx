@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { validateRNA, getSuggestedData, submitJobRequest } from "@/lib/api";
+import { useState, useEffect } from 'react';
+import { validateRNA, getSuggestedData, submitJobRequest, submitExampleJobRequest } from "@/lib/api";
 import { useRouter } from "next/navigation";  
 import Modal from '../components/Modal';
 import Slider from '../components/Slider';
@@ -14,9 +14,33 @@ import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
 import ValidationWarningModal from "../components/ValidationWarningModal";
 import FileDisplay from '../components/FileDisplay';
-
+const getEnvExample = (val: string | undefined) => {
+  if (!val) return "";
+  return val.replace(/\\n/g, "\n");
+};
 
 export default function SubmitJob() {
+  const [examples, setExamples] = useState<string[]>(["", "", ""]);
+  
+  useEffect(() => {
+    fetch('/api/config')
+      .then((res) => {
+        if (!res.ok) throw new Error("Config fetch failed");
+        return res.json();
+      })
+      .then((data) => {
+        const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
+        
+        setExamples([
+          fixNewlines(data.rnaExample1),
+          fixNewlines(data.rnaExample2),
+          fixNewlines(data.rnaExample3)
+        ]);
+      })
+      .catch((err) => console.error("Failed to load runtime config:", err));
+  }, []);
+
+
   const router = useRouter();
   const [inputFormat, setInputFormat] = useState("Text");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -45,6 +69,8 @@ export default function SubmitJob() {
   const [incorrectPairs, setIncorrectPairs] = useState<[number, number][]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+  const [selectedExampleNumber, setSelectedExampleNumber] = useState<number>(0);
+  const [displayCheckbox, setDisplayCheckbox] = useState(true);
 
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
@@ -258,17 +284,32 @@ const handleNext = async () => {
     if (res === "warning") {
       setShowValidationNext(true)
     } else if (res === "ok") {
-      goNext();
+      goNextWithGetSuggestedData();
     }
   } else {
     goNext();
   }
 };
 const [hasData, setHasData] = useState(false);
-const goNext = async () => {
+const [exampleMode, setExampleMode] = useState(false);
+
+const goNextWithGetSuggestedData = async () => {
   if (currentStep === 0 && !hasData) {
-    try {
-      const data = await getSuggestedData();
+  
+  let effectiveExampleNumber = selectedExampleNumber;
+
+  const isExampleValid = selectedExampleNumber !== 0 && examples.includes(text);
+  
+  if  (isExampleValid){
+    setDisplayCheckbox(false);
+  }
+  else{
+    setDisplayCheckbox(true);
+    setSelectedExampleNumber(0);
+    effectiveExampleNumber = 0;  
+  } 
+  try {
+      const data = await getSuggestedData(effectiveExampleNumber);
       if (typeof data?.seed === "number") setSeed(data.seed);
       if (data?.job_name) setJobname(data.job_name);
       setHasData(true);
@@ -285,8 +326,16 @@ const goNext = async () => {
   setCurrentStep((prev) => prev + 1);
 };
 
+  const goNext = async () => {
+    setCurrentStep((prev) => prev + 1);
+  };
 
   const handleSubmit = async () => {
+    if (uploadedFile === null && selectedExampleNumber !== 0){
+      if ((!examples.includes(text))){
+        setSelectedExampleNumber(0);
+      }
+    }
     setErrors([]);
 
     if (seed === null || seed === "") {
@@ -303,27 +352,46 @@ const goNext = async () => {
     }
     else{
       setCurrentStep(prev => prev + 1)
-      try {
-        const response = await submitJobRequest({
-          fasta_raw: text,
-          seed: seed,
-          job_name: jobname,
-          email: email,
-          alternative_conformations: alternativeConformations,
-        });
+      if  (selectedExampleNumber === 0){
+        try {
+          const response = await submitJobRequest({
+            fasta_raw: text,
+            seed: seed,
+            job_name: jobname,
+            email: email,
+            alternative_conformations: alternativeConformations,
+          });
 
       if (response.success === false) {
         setErrors([response.message || "Server returned an error"]);
         return;
     }
 
-        console.log("[handleSubmit] job created:", response);
-        setApproves([`Job '${response.job_name}' submitted successfully.`]);
-        setCurrentStep(prev => prev + 1);
-        router.push(`/results?uidh=${response.job_hash}`);
-      } catch (err: any) {
-        console.error("[handleSubmit] error", err);
-        setErrors([err.message]);
+          console.log("[handleSubmit] job created:", response);
+          setApproves([`Job '${response.job_name}' submitted successfully.`]);
+          setCurrentStep(prev => prev + 1);
+          router.push(`/results?uidh=${response.uidh}`);
+        } catch (err: any) {
+          console.error("[handleSubmit] error", err);
+          setErrors([err.message]);
+        }
+      }
+      else{
+        try {
+          const response = await submitExampleJobRequest({
+            fasta_raw: text,
+            email: email,
+            example_number: selectedExampleNumber,
+          });
+
+          console.log("[handleSubmit] job created:", response);
+          setApproves([`Job '${response.job_name}' submitted successfully.`]);
+          setCurrentStep(prev => prev + 1);
+          router.push(`/results?uidh=${response.uidh}`);
+        } catch (err: any) {
+          console.error("[handleSubmit] error", err);
+          setErrors([err.message]);
+        }
       }
     }
   }
@@ -332,17 +400,30 @@ const goNext = async () => {
     setCurrentStep(prev => prev - 1);
   }
 
-  const handleExampleClick1 = async () => {
-      setText("CCGAGUAGGUA\n((.....))..");
-  };
+const handleExampleClick1 = async () => {
+    setText(examples[0]);
+    setSelectedExampleNumber(1);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);   // blokujemy slider/checkboxy
+};
 
-  const handleExampleClick2 = async () => {
-      setText("GACUUAUAGAU UGAGUCC\n(((((..(... )))))).");
-  };
+const handleExampleClick2 = async () => {
+    setText(examples[1]);
+    setSelectedExampleNumber(2);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);
+};
 
-  const handleExampleClick3 = async () => {
-      setText("UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)");
-  };
+const handleExampleClick3 = async () => {
+    setText(examples[2]);
+    setSelectedExampleNumber(3);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);
+};
+
 
   return (
     <div className='submit-jobs-page'>
@@ -556,7 +637,8 @@ const goNext = async () => {
                 isOpen={isFileModalOpen}
                 onClose={() => setIsFileModalOpen(false)}
                 onFileUploaded={handleFileUploaded}
-              />
+                setSelectedExampleNumber={setSelectedExampleNumber}
+                />
 
               {errors.length > 0 && (
                 <div className="sjp-errors" >
@@ -605,17 +687,18 @@ const goNext = async () => {
                   You can provide some optional parameters for the calculation process
                 </p>
               </div>
-
+              
               <div className='sjp-params-fields'>
                 {/* --- SEED --- */}
                   <div className='sjp-seed-name-param'>
                     <p>Seed <span>{autoSeed ? seed : ""}</span></p>
-                    <CustomCheckbox
-                      label="auto"
-                      size={45}
-                      checked={autoSeed}
-                      onChange={setAutoSeed}
-                    />
+                      <CustomCheckbox
+                        label="auto"
+                        size={45}
+                        checked={autoSeed}
+                        onChange={setAutoSeed}
+                        isActive={displayCheckbox}
+                      />
                   </div>
                   {!autoSeed && (
                     <TextArea
@@ -638,11 +721,12 @@ const goNext = async () => {
                   <div className='sjp-seed-name-param'>
                     <p>Name <span>{autoName ? jobname : ""}</span></p>
                     <CustomCheckbox
-                      label="auto"
-                      size={45}
-                      checked={autoName}
-                      onChange={setAutoName}
-                    />
+                        label="auto"
+                        size={45}
+                        checked={autoName}
+                        onChange={setAutoName}
+                        isActive={displayCheckbox}
+                      />
                   </div>
                   {!autoName && (
                     <TextArea
@@ -656,6 +740,8 @@ const goNext = async () => {
 
                 {/* --- INTEGER FIELD --- */}
                 <div className='sjp-alt-param'>
+                 {displayCheckbox && (
+                  <div>
                   <p>#Alternative conformations</p>
                   <IntegerField
                     min={1}
@@ -664,9 +750,20 @@ const goNext = async () => {
                     height="50px"
                     defaultValue={alternativeConformations}
                     onChange={(val) => setAlternativeConformations(val)}
+                    isActive={displayCheckbox}
                   />
+                  </div>
+                  )} 
+
+                  {!displayCheckbox && (
+                  <div>
+                    <p>#Alternative conformations <span>{alternativeConformations}</span></p>
+                  </div>
+                  )}
+
                 </div>
               </div>
+              
 
               <div className='sjp-step1-buttons'>
                 <Button

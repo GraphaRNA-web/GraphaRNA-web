@@ -16,7 +16,7 @@ import AdmZip from 'adm-zip';
     job_status: string;
     sum_processing_time: number;
     job_uuid?: string;
-    job_hashed_uid?: string;
+    uidh?: string;
   };
 
   type JobResultsData = {
@@ -88,9 +88,9 @@ import AdmZip from 'adm-zip';
         throw new Error(`Failed to create test job: ${jobResponseJson.error}`);
       }
 
-      createdJobs.push(jobResponseJson.job_hashed_uid);
+      createdJobs.push(jobResponseJson.uidh);
       jobData.job_uuid = jobResponseJson.job_uuid;
-      jobData.job_hashed_uid = jobResponseJson.job_hashed_uid;
+      jobData.uidh = jobResponseJson.uidh;
 
 
       for (const jobResult of jobResultsArray) {
@@ -119,7 +119,7 @@ import AdmZip from 'adm-zip';
 
     test("zip download contains all result files", async ({ page, pageManager, frontendUrl }) => {
     const resultsPage: ResultsPage = pageManager.onResultsPage;
-    const jobHashedUid = jobData.job_hashed_uid!;
+    const jobHashedUid = jobData.uidh!;
     await resultsPage.goto(`${frontendUrl}/results?uidh=${jobHashedUid}`);
     await resultsPage.waitForResultsToLoad();
 

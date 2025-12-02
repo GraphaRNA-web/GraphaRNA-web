@@ -102,7 +102,6 @@ export default function JobsQueue() {
       status: job.status ?? "Q",
       created: job.created_at ?? "-",
       job_name: job.job_name ?? "-",
-      uidh: job.hashed_uid ?? "-",
     })) ?? [];
 
   const finishedRows =
@@ -112,7 +111,6 @@ export default function JobsQueue() {
       created: job.created_at ?? "-",
       job_name: job.job_name ?? "-",
       processing_time: job.sum_processing_time ?? "-",
-      uidh: job.hashed_uid ?? "-",
     })) ?? [];
 
 const getPageRange = (current: number, total: number, delta = 2): (number | string)[] => {

@@ -13,7 +13,7 @@
     job_status: string;
     sum_processing_time: number;
     job_uuid?: string;
-    job_hashed_uid?: string;
+    uidh?: string;
   };
 
   type JobResultsData = {
@@ -85,9 +85,9 @@
         throw new Error(`Failed to create test job: ${jobResponseJson.error}`);
       }
 
-      createdJobs.push(jobResponseJson.job_hashed_uid);
+      createdJobs.push(jobResponseJson.uidh);
       jobData.job_uuid = jobResponseJson.job_uuid;
-      jobData.job_hashed_uid = jobResponseJson.job_hashed_uid;
+      jobData.uidh = jobResponseJson.uidh;
 
 
       for (const jobResult of jobResultsArray) {
@@ -116,7 +116,7 @@
 
 
     test("should open result page and show results", async ({ pageManager, frontendUrl }) => {
-      await pageManager.onResultsPage.goto(`${frontendUrl}/results?uidh=${jobData.job_hashed_uid}`);
+      await pageManager.onResultsPage.goto(`${frontendUrl}/results?uidh=${jobData.uidh}`);
       
       await pageManager.onResultsPage.waitForResultsToLoad();
       await pageManager.onResultsPage.verifyJobCompleted();
@@ -141,7 +141,7 @@
     });
 
     test("carusel displays multiple results and switches between them correctly", async ({ pageManager, frontendUrl }) => {
-      await pageManager.onResultsPage.goto(`${frontendUrl}/results?uidh=${jobData.job_hashed_uid}`);
+      await pageManager.onResultsPage.goto(`${frontendUrl}/results?uidh=${jobData.uidh}`);
       await pageManager.onResultsPage.waitForResultsToLoad();
       await pageManager.onResultsPage.verifyJobCompleted();
       
@@ -159,8 +159,11 @@
         await pageManager.onResultsPage.arcDiagram.toHaveScreenshot("arc_diagram.png", { maxDiffPixelRatio: 0.05 });
         // there are two canvas elements rendered for 3D structure, explicitly select the first one
         await expect(pageManager.onResultsPage.structure3D.element().first()).toHaveScreenshot("3d_image.png", { maxDiffPixelRatio: 0.05 });
-        await pageManager.onResultsPage.nextButton.toBeVisible();
-        await pageManager.onResultsPage.nextButton.click();
+        if (i === jobResultsArray.length - 1) {
+          break;
+        }
+        await pageManager.onResultsPage.buttonContainer[i+1].toBeVisible();
+        await pageManager.onResultsPage.buttonContainer[i+1].click();
       }
     });
   });

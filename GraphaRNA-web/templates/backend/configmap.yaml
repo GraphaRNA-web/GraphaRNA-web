@@ -5,7 +5,7 @@ metadata:
   namespace: grapharna
 data:
   DEBUG: "True"
-  DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175"
+  DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
 
   DATABASE_ENGINE: "django.db.backends.postgresql"
   DATABASE_NAME: "dockerdjango"
@@ -28,4 +28,4 @@ data:
 
   ENGINE_URL: "http://grapharna-engine-svc:8080/run"
 
-  RESULT_BASE_URL: "http://150.254.30.175/api/getResults/" 
+  RESULT_BASE_URL: "https://grapharna.cs.put.poznan.pl/api/getResults/" 

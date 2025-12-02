@@ -14,7 +14,8 @@ spec:
   policyTypes:
     - Ingress
     - Egress
-  ingress: []
+  ingress:
+    - from: []
   egress:
     - to:
       - namespaceSelector: {}
@@ -23,4 +24,3 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-

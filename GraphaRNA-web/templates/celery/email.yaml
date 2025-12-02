@@ -34,7 +34,7 @@ spec:
             - worker
             - -Q
             - email
-            - --concurrency=1
+            - --pool=solo
             - --loglevel=info
             
           envFrom:
@@ -71,3 +71,4 @@ spec:
       volumes:
         - name: tmp-dir
           emptyDir: {}
+

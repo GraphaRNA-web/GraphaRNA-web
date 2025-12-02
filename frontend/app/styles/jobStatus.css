@@ -21,3 +21,14 @@
     font-family: 'Inter';
     text-align: right;
 }
+
+@media (max-width: 510px){
+    .dot-and-text{
+        width: 100%;
+        gap: 5px;
+    }
+
+    .field-value{
+        font-size: 12px;
+    }
+}

@@ -10,9 +10,9 @@ from django.core.exceptions import ValidationError
 from typing import Optional, Any
 import random
 from datetime import date, timedelta
-from webapp.models import Job, JobResults
-from webapp.tasks import run_grapharna_task, send_email_task
-from uuid import UUID, uuid4
+from webapp.models import Job, JobResults, ExampleStructures
+from webapp.tasks import send_email_task
+from uuid import uuid4
 import os
 from django.db.models.query import QuerySet
 from api.validation_tools import RnaValidator
@@ -29,6 +29,7 @@ from .api_docs import (
     setup_test_job_schema,
     setup_test_job_results_schema,
     cleanup_test_jobs_schema,
+    process_example_request_data_schema,
 )
 
 import zipfile
@@ -36,6 +37,8 @@ import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 from django.core.files import File
+from django.utils import timezone
+from api.misc_tools import CreateNewJob
 
 
 @setup_test_job_schema
@@ -67,7 +70,7 @@ def SetupTestJob(request: Request) -> Response:
                 "success": True,
                 "message": "Test data setup completed.",
                 "job_uuid": job.uid,
-                "job_hashed_uid": job.hashed_uid,
+                "uidh": job.hashed_uid,
             },
             status=status.HTTP_200_OK,
         )
@@ -301,7 +304,9 @@ def PostRnaValidation(request: Request) -> Response:
 
     if results["Validation Result"]:
         if results["strandSeparator"] != "N":
-            results["Validated RNA"] = results["Validated RNA"].replace(" ", results["strandSeparator"])
+            results["Validated RNA"] = results["Validated RNA"].replace(
+                " ", results["strandSeparator"]
+            )
         return Response(
             results,
             status=status.HTTP_200_OK,
@@ -374,7 +379,7 @@ def ProcessRequestData(request: Request) -> Response:
     seed_raw = request.data.get("seed")
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
-    job_alternative_conformations = request.data.get("alternative_conformations")
+    job_alternative_conformations: int = request.data.get("alternative_conformations")
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
@@ -400,6 +405,12 @@ def ProcessRequestData(request: Request) -> Response:
         assert fasta_raw is not None
         sequence_raw = fasta_raw
 
+    if not ValidateEmailAddress(email):
+        return Response(
+            {"success": False, "error": "Incorrect email format."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     if job_alternative_conformations is None:
         job_alternative_conformations = 1
 
@@ -408,14 +419,22 @@ def ProcessRequestData(request: Request) -> Response:
     except (TypeError, ValueError):
         seed = random.randint(1, 1000000000)
 
-    validator: RnaValidator = RnaValidator(sequence_raw)
-    validationResult = validator.ValidateRna()
+    if not jobName:
+        jobName = f"job-{today_str}-{count}"
 
-    if not validationResult["Validation Result"]:
-        return Response(
-            validationResult,
-            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
+    return CreateNewJob(
+        sequence_raw, jobName, seed, job_alternative_conformations, email, None
+    )
+
+
+@process_example_request_data_schema
+@api_view(["POST"])
+def ProcessExampleRequestData(request: Request) -> Response:
+    """Returns the results of a given example RNA input. If no results exist, creates the example job and its results."""
+    fasta_raw: Optional[str] = request.data.get("fasta_raw")
+    fasta_file: Optional[UploadedFile] = request.FILES.get("fasta_file")
+    email: Optional[str] = request.data.get("email")
+    example_number: int = request.data.get("example_number")
 
     if not ValidateEmailAddress(email):
         return Response(
@@ -423,64 +442,53 @@ def ProcessRequestData(request: Request) -> Response:
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if not jobName:
-        jobName = f"job-{today_str}-{count}"
+    example: ExampleStructures | None = ExampleStructures.objects.filter(
+        id=example_number
+    ).first()
+    if example is not None and isinstance(example.job, Job):
+        example_uidh = example.job.hashed_uid
+    else:
+        example_uidh = None
 
-    job_uuid: UUID = uuid4()
-    hashed_uid: str = hash_uuid(str(job_uuid))
-
-    input_dir: str = "/shared/samples/engine_inputs"
-    os.makedirs(input_dir, exist_ok=True)
-    input_filename: str = f"{str(job_uuid)}.dotseq"
-    input_filepath: str = os.path.join(input_dir, input_filename)
-
-    dotseq_data = f">{jobName}\n{validationResult['Validated RNA']}"
-
-    with open(input_filepath, "w") as f:
-        f.write(dotseq_data)
-
-    relative_path = os.path.relpath(input_filepath, settings.MEDIA_ROOT)
-
-    job = Job.objects.create(
-        uid=job_uuid,
-        hashed_uid=hashed_uid,
-        input_structure=relative_path,
-        seed=seed,
-        job_name=jobName,
-        email=email,
-        status="Q",
-        alternative_conformations=job_alternative_conformations,
-        strand_separator=validationResult["strandSeparator"],
-    )
-
-    run_grapharna_task.delay(job.uid)
-
-    if email:
-        url = f"{settings.RESULT_BASE_URL}?uidh={job.hashed_uid}"
-        send_email_task.delay(
-            receiver_email=email,
-            template_path=settings.TEMPLATE_PATH_JOB_CREATED,
-            title=settings.TITLE_JOB_CREATED,
-            url=url,
-        )
+    if example_uidh:
+        if email:    
+            send_email_task.delay(  # if email is provided, send notification
+                receiver_email=email,
+                template_path=settings.TEMPLATE_PATH_JOB_FINISHED,
+                title=settings.TITLE_JOB_FINISHED,
+                url=f"{settings.RESULT_BASE_URL}?uidh={example_uidh}",
+            )
         return Response(
-            {
-                "success": True,
-                "Job": job.job_name,
-                "email_sent": True,
-                "job_hash": job.hashed_uid,
-            },
+            {"success": True, "uidh": example_uidh},
             status=status.HTTP_200_OK,
         )
     else:
-        return Response(
-            {
-                "success": True,
-                "Job": job.job_name,
-                "email_sent": False,
-                "job_hash": job.hashed_uid,
-            },
-            status=status.HTTP_200_OK,
+        if fasta_raw is None and fasta_file is None:
+            return Response(
+                {"success": False, "error": "Missing RNA data."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        elif fasta_raw is not None and fasta_file is not None:
+            return Response(
+                {
+                    "success": False,
+                    "error": "RNA can be send via text or file not both.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        elif fasta_raw is None and fasta_file is not None:
+            sequence_raw = fasta_file.read().decode("utf-8")
+        else:
+            assert fasta_raw is not None
+            sequence_raw = fasta_raw
+
+        return CreateNewJob(
+            sequence_raw,
+            f"{settings.EXAMPLE_JOB_NAME_PREFIX}{example_number}",
+            settings.EXAMPLE_JOB_SEED,
+            settings.EXAMPLE_ALTERNATIVE_CONFORMATIONS,
+            email,
+            example_number,
         )
 
 
@@ -507,7 +515,9 @@ def GetResults(request: Request) -> Response:
     results_list: list = []
 
     if job.status == "C":
-        job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job)
+        job_results_qs: QuerySet = JobResults.objects.filter(job__exact=job).order_by(
+            "completed_at"
+        )
 
         seed_counter: int = job.seed
 
@@ -578,13 +588,26 @@ def GetResults(request: Request) -> Response:
 @api_view(["GET"])
 def GetSuggestedSeedAndJobName(request: Request) -> Response:
     """Generates and returns a random seed and a suggested job name based on current date and existing jobs."""
-    seed = random.randint(1, 100_000_000_0)
-    today_str = date.today().strftime("%Y%m%d")
-    count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
-    jobName = f"job-{today_str}-{count}"
+    example_number: Optional[int] = request.GET.get("example_number")
+
+    if example_number is not None:
+        jobName = f"{settings.EXAMPLE_JOB_NAME_PREFIX}{example_number}"
+        alternative_conformations = settings.EXAMPLE_ALTERNATIVE_CONFORMATIONS
+        seed = settings.EXAMPLE_JOB_SEED
+    else:
+        seed = random.randint(1, 100_000_000_0)
+        today_str = date.today().strftime("%Y%m%d")
+        count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
+        jobName = f"job-{today_str}-{count}"
+        alternative_conformations = None
 
     return Response(
-        {"success": True, "seed": seed, "job_name": jobName},
+        {
+            "success": True,
+            "seed": seed,
+            "job_name": jobName,
+            "alternative_conformations": alternative_conformations,
+        },
         status=status.HTTP_200_OK,
     )
 

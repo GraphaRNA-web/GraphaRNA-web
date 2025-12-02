@@ -5,9 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { getResultDetails, downloadZip } from "@/lib/api";
 import '../styles/results.css';
 import PdbViewer from "../components/PdbViewer";
-import DotsIndicator from '../components/DotsIndicator';
 import ImageViewer from '../components/ImageViewer';
 import JobStatus from '../components/JobStatus';
+import AltConfSlider from '../components/AltConfSlider';
 
 interface JobResult {
   completed_at: string;
@@ -229,7 +229,10 @@ const formatDate = (dateString: string) => {
           {jobFinished && currentResult && (
             <div className='finished'>
               <div className='pagination'>
-                <DotsIndicator
+              <div className='pagination-divider'></div>
+
+              <p className='conf-label'>Alternative Conformations</p>
+                <AltConfSlider
                   count={jobData.result_list.length}
                   activeIndex={currentResultIndex}
                   onIndexChange={setCurrentResultIndex}
