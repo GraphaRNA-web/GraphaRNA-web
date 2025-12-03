@@ -77,7 +77,7 @@ spec:
       volumes: 
         - name: shared-volume
           persistentVolumeClaim:
-            claimName: {{ .Values.engine.pvc }}
+            claimName: {{ .Values.backend.pvc }}
         - name: tmp-dir
           emptyDir: {}
         - name: data-volume
