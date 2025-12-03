@@ -1,12 +1,12 @@
 global:
   networkPolicy:
-    enabled: true
+    enabled: false
 
 monitoring:
   enabled: false
 
 clusterIssuer:
-  enabled: true
+  enabled: false
   
 frontend:
   name: frontend
@@ -29,15 +29,17 @@ frontend:
       memory: "256Mi"
 
   # Ingress
-  ingressEnabled: true
+  ingressEnabled: false
   ingressHost: frontend.local
 
   # --- Full frontend config ---
   config:
     # Backend adress in the cluster
     BACKEND_URL: "http://backend-svc:8000"
+    
     # Allowed domains (for )
     DOMAIN_URL: "http://150.254.30.175,http://127.0.0.1,http://localhost,http://grapharna-web.cs.put.poznan.pl,https://grapharna-web.cs.put.poznan.pl,https://grapharna.cs.put.poznan.pl,http://grapharna.cs.put.poznan.pl"
+    
     # production/staging
     NODE_ENV: "production"
 
@@ -63,12 +65,12 @@ backend:
 
   # Persistent Volume Claim
   pvc: shared-volume
-  storage: 5Gi
+  storage: 10Gi
 
   # --- Full backend config ---
   config:
-    DEBUG: "False"
-    DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
+    DEBUG: "True"
+    DJANGO_ALLOWED_HOSTS: "*"
     
     # Database
     DATABASE_ENGINE: "django.db.backends.postgresql"
@@ -94,7 +96,7 @@ backend:
 
     # URLs
     ENGINE_URL: "http://grapharna-engine-svc:8080/run"
-    RESULT_BASE_URL: "https://grapharna.cs.put.poznan.pl/api/getResults/"
+    RESULT_BASE_URL: "http://backend-svc:8000/api/getResults/"
 
 celery:  
   grapharna:
@@ -102,8 +104,8 @@ celery:
     replicas: 1
     resources:
       requests:
-        cpu: "100m"
-        memory: "512Mi"
+        cpu: "50m"
+        memory: "128Mi"
       limit:
         cpu: "500m"
         memory: "4096Mi"
@@ -115,21 +117,21 @@ celery:
     storage: 1Gi
     resources:
       requests:
-        cpu: "50m"
-        memory: "256Mi"
+        cpu: "25m"
+        memory: "64Mi"
       limit:
         cpu: "100m"
-        memory: "512Mi"
+        memory: "256Mi"
 
   maintenance:
     name: celery-maintenance
     replicas: 1
     resources:
       requests:
-        cpu: "50m"
-        memory: "256Mi"
+        cpu: "25m"
+        memory: "64Mi"
       limit:
-        cpu: "100m"
+        cpu: "50m"
         memory: "4096Mi"
   
   email:
@@ -137,10 +139,10 @@ celery:
     replicas: 1
     resources:
       requests:
-        cpu: "50m"
-        memory: "256Mi"
+        cpu: "25m"
+        memory: "64Mi"
       limit:
-        cpu: "100m"
+        cpu: "50m"
         memory: "4096Mi"
 
 engine:
@@ -155,11 +157,15 @@ engine:
 
   resources:
     requests:
-      cpu: "8000m"
-      memory: "6Gi"
+      cpu: "100m"
+      memory: "256Mi"
     limit:
-      cpu: "12000m"
-      memory: "12Gi"
+      cpu: "500m"
+      memory: "2048Mi"
+
+  # Persistent Volume Claim
+  pvc: shared-volume
+  storage: 10Gi
 
 
 postgres:
@@ -173,11 +179,11 @@ postgres:
   # Resources
   resources:
     requests:
-      cpu: "500m"
-      memory: "2048Mi"
+      cpu: "100m"
+      memory: "256Mi"
     limit:
-      cpu: "1000m"
-      memory: "4096Mi"
+      cpu: "500m"
+      memory: "1024Mi"
 
   livenessCommand: ["pg_isready", "-U", "GraphaRNAweb", "-d", "dockerdjango"]
   readinessCommand: ["pg_isready", "-U", "GraphaRNAweb", "-d", "dockerdjango"]
@@ -197,7 +203,7 @@ rabbitmq:
   resources:
     requests:
       cpu: "100m"
-      memory: "2048Mi"
+      memory: "1024Mi"
     limits:
       cpu: "500m"
       memory: "4096Mi"

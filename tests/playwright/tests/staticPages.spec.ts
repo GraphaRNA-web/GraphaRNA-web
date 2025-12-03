@@ -1,9 +1,6 @@
-// playwright/tests/staticPages.spec.ts
-
-import { test } from '../test-options'; // Używamy Twojego niestandardowego 'test'
+import { test } from '../test-options';
 import { expect } from '@playwright/test';
 
-// Zestaw 1: Testy nawigacji
 test.describe("Navigation on static pages", () => {
 
     test.beforeEach(async ({ page, baseURL }) => {
@@ -83,12 +80,10 @@ test.describe("Content verification", () => {
             page.waitForURL(/.*\/submitJob/),
             homePage.startJobButton.click()
         ]);
-        // When the page object will be added we could add:
-        // await pageManager.onSubmitJobPage.shouldBeOpened(); 
     });
 
     test("About Page content check", async ({ page, pageManager, baseURL }) => {
-        const urlToOpen = (baseURL || "http://127.0.0.1:3000/") + "about";
+        const urlToOpen = (baseURL || "http://127.0.0.1:3000/").replace(/\/$/, "") + "/about";
         await page.goto(urlToOpen);
         
         const aboutPage = pageManager.onAboutPage;
@@ -102,7 +97,7 @@ test.describe("Content verification", () => {
     });
 
     test("Cite Us content check", async ({ page, pageManager, baseURL }) => {
-        const urlToOpen = (baseURL || "http://127.0.0.1:3000/") + "cite";
+        const urlToOpen = (baseURL || "http://127.0.0.1:3000/").replace(/\/$/, "") + "/cite";
         await page.goto(urlToOpen);
         
         const citePage = pageManager.onCitePage;
@@ -114,7 +109,7 @@ test.describe("Content verification", () => {
     });
 
     test("Guide content check and anchor links", async ({ page, pageManager, baseURL }) => {
-        const urlToOpen = (baseURL || "http://127.0.0.1:3000/") + "guide";
+        const urlToOpen = (baseURL || "http://127.0.0.1:3000/").replace(/\/$/, "") + "/guide";
         await page.goto(urlToOpen);
         
         const guidePage = pageManager.onGuidePage;
@@ -124,8 +119,6 @@ test.describe("Content verification", () => {
         await expect(guidePage.headerSubmitJob).toHaveText("1. How to submit a job");
         await expect(guidePage.tocList).toContainText("1. How to submit a job.");
 
-        // NOWY TEST: Sprawdzenie scrollowania
-        
         await guidePage.tocLinkViewJob.click();
         await expect(guidePage.headerViewJob).toBeInViewport({ timeout: 2000 });
 
