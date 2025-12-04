@@ -1,12 +1,14 @@
 from locust import HttpUser, task, between, SequentialTaskSet
+from locust.clients import HttpSession
 import json
 import random
 import time
+import os
 
-# Config: how much time to wait for engine response
-POLL_TIMEOUT = 180 
+# Config
+POLL_TIMEOUT = 240 
 POLL_INTERVAL = 2
-
+FRONTEND_HOST = os.environ.get("FRONTEND_HOST", "http://frontend:3000")
 
 VALID_RNA_SAMPLES = [
     {
@@ -33,14 +35,20 @@ class UserFlow(SequentialTaskSet):
         self.current_sample = random.choice(VALID_RNA_SAMPLES)
         self.job_hashed_uid = None
         self.job_uuid = None
+        
+        self.frontend_client = HttpSession(
+            base_url=FRONTEND_HOST, 
+            request_event=self.client.request_event, 
+            user=self.user
+        )
     
-    # @task # Commented since i need to change it for CD pipeline later and does not work in docker compose
-    # def load_pages(self):
-    #     self.client.get("/", name="1. Page: Home")
-    #     self.client.get("/about", name="1. Page: About")
-    #     self.client.get("/cite", name="1. Page: Cite")
-    #     self.client.get("/guide", name="1. Page: Guide")
-    #     self.client.get("/submit", name="1. Page: Submit")
+    @task
+    def load_pages(self):
+        self.frontend_client.get("/", name="1. Frontend: Home")
+        self.frontend_client.get("/about", name="1. Frontend: About")
+        self.frontend_client.get("/cite", name="1. Frontend: Cite")
+        self.frontend_client.get("/guide", name="1. Frontend: Guide")
+        self.frontend_client.get("/submit", name="1. Frontend: Submit")
 
     @task
     def validate_rna(self):
@@ -93,17 +101,20 @@ class UserFlow(SequentialTaskSet):
             url = f"/api/getResults/?uidh={self.job_hashed_uid}"
             
             with self.client.get(url, catch_response=True, name="4. API: Poll Status") as response:
-                data = response.json()
-                status_code = data.get("status")
-                
-                if status_code == "C":
-                    break
-                elif status_code == "E":
-                    response.failure(f"Job failed on server (Status E)")
-                    self.interrupt()
-                    return
+                if response.status_code == 200:
+                    data = response.json()
+                    status_code = data.get("status")
+                    
+                    if status_code == "C":
+                        break
+                    elif status_code == "E":
+                        response.failure(f"Job failed on server (Status E)")
+                        self.do_cleanup()
+                        self.interrupt()
+                        return
             
             if time.time() - start_time > POLL_TIMEOUT:
+                self.client.post("/api/log_timeout", name="Error: Polling Timeout", catch_response=True).failure(f"Timeout for {self.job_hashed_uid}")
                 self.do_cleanup()
                 self.interrupt()
                 return
@@ -119,13 +130,7 @@ class UserFlow(SequentialTaskSet):
 
     @task
     def cleanup(self):
-        if self.job_hashed_uid:
-            payload = {
-                "hashed_uids": [self.job_hashed_uid]
-            }
-            
-            self.client.delete("/api/test/cleanupTestData/", json=payload, name="6. API: Cleanup")
-            
+        self.do_cleanup()
         self.interrupt()
 
     def do_cleanup(self):

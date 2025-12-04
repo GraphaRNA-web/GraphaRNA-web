@@ -450,7 +450,7 @@ def ProcessExampleRequestData(request: Request) -> Response:
         example_uidh = None
 
     if example_uidh:
-        if email:    
+        if email:
             send_email_task.delay(  # if email is provided, send notification
                 receiver_email=email,
                 template_path=settings.TEMPLATE_PATH_JOB_FINISHED,
