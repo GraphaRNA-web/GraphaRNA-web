@@ -15,7 +15,7 @@ app.conf.beat_schedule = {
     "delete-expired-jobs-every-day": {
         "task": "webapp.tasks.delete_expired_jobs_scheduler",
         "schedule": crontab(
-            hour="*/1", minute="*/1"
+            minute=0, hour="*"
         ),  # Run the task every hour eg. 0.00, 1.00, ...
     },
 }

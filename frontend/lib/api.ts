@@ -36,14 +36,23 @@ export async function validateRNA(params: { fasta_raw?: string; fasta_file?: Fil
 
 export type SuggestedData = { seed: number; job_name: string };
 
-export async function getSuggestedData(): Promise<SuggestedData> {
-  const res = await fetchApiProxy("/api/getSuggestedData", {
+export async function getSuggestedData(exampleNumber: number): Promise<SuggestedData> {
+  let url = "/api/getSuggestedData";
+  
+  if (exampleNumber !== 0) {
+    const params = new URLSearchParams({ 
+      example_number: exampleNumber.toString() 
+    });
+    url += `?${params.toString()}`;
+  }
+  const res = await fetchApiProxy(url, {
+
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
   });
-
+  
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.error || "Could not get suggested Job Data");
@@ -83,6 +92,45 @@ export async function submitJobRequest(params: {
   }
 
   const res = await fetchApiProxy("/api/submitRequest", {
+    method: "POST",
+    headers,
+    body,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Could not submit job request");
+  }
+
+  return res.json();
+}
+
+export async function submitExampleJobRequest(params: {
+  fasta_raw?: string;
+  fasta_file?: File;
+  email?: string;
+  example_number: number;
+}) {
+  console.log("[submitExampleJobRequest] sending to /api/submitExampleRequest", params);
+
+  const headers: Record<string, string> = {};
+  let body: BodyInit;
+
+  if (params.fasta_file) {
+    const form = new FormData();
+    form.append("fasta_file", params.fasta_file, params.fasta_file.name);
+    if (params.fasta_raw) form.append("fasta_raw", params.fasta_raw);
+    if (params.email) form.append("email", params.email);
+    if (params.example_number !== 0) form.append("example_number", String(params.example_number));
+    body = form;
+  } else {
+    const json: any = { ...params };
+    delete json.fasta_file;
+    body = JSON.stringify(json);
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetchApiProxy("/api/submitExampleRequest", {
     method: "POST",
     headers,
     body,

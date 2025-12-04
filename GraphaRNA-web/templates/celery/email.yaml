@@ -9,8 +9,6 @@ metadata:
     app.kubernetes.io/component: celery
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    linkerd.io/inject: enabled
 spec:
   replicas: {{ .Values.celery.email.replicas }}
   selector:
@@ -36,24 +34,33 @@ spec:
             - worker
             - -Q
             - email
+            - --pool=solo
             - --loglevel=info
+            
           envFrom:
             - configMapRef:
                 name: backend-config
             - secretRef:
                 name: backend-secret
+            - secretRef:
+                name: rabbitmq-secret
+
           volumeMounts:
             - name: tmp-dir
               mountPath: /tmp
             - name: tmp-dir
               mountPath: /.config
+            - name: tmp-dir
+              mountPath: /.cache
+
           resources:
             requests:
-              cpu: "50m"
-              memory: "64Mi"
+              cpu: {{ .Values.celery.email.resources.requests.cpu }}
+              memory: {{ .Values.celery.email.resources.requests.memory }}
             limits:
-              cpu: "100m"
-              memory: {{ .Values.backend.resources.limit.memory }}
+              cpu: {{ .Values.celery.email.resources.limit.cpu }}
+              memory: {{ .Values.celery.email.resources.limit.memory }}
+
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -64,3 +71,4 @@ spec:
       volumes:
         - name: tmp-dir
           emptyDir: {}
+

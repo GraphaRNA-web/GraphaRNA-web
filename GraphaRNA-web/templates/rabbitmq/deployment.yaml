@@ -9,8 +9,6 @@ metadata:
     app.kubernetes.io/component: rabbitmq
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    linkerd.io/inject: enabled
 spec:
   replicas: {{ .Values.rabbitmq.replicas }}
   selector:

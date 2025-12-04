@@ -2,8 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: frontend-config
-  namespace: grapharna
 data:
-  BACKEND_URL: "http://backend-svc:8000"
-  DOMAIN_URL: "http://150.254.30.175"
-  NODE_ENV: "staging"
+  {{- range $key, $value := .Values.frontend.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

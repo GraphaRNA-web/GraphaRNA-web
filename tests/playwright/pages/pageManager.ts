@@ -5,6 +5,7 @@ import { AboutPage } from "./aboutPage";
 import { CitePage } from "./citeUsPage";
 import { GuidePage } from "./guidePage";
 import { ResultsPage } from "./resultsPage";
+import { JobsPage } from "./jobsPage";
 
 export class PageManager {
     private readonly page: Page;
@@ -15,6 +16,7 @@ export class PageManager {
     private aboutPage: AboutPage;
     private citePage: CitePage;
     private guidePage: GuidePage;
+    private jobsPage: JobsPage;
 
 
     constructor(page: Page) {
@@ -51,6 +53,9 @@ export class PageManager {
     get onGuidePage() {
         return this.guidePage ?? (this.guidePage = new GuidePage(this.page));
     }
+    get onJobsPage() {
+        return this.jobsPage ?? (this.jobsPage = new JobsPage(this.page));
+    }   
 
 
 }

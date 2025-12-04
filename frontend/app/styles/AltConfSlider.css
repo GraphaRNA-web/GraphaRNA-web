@@ -1,0 +1,37 @@
+
+.alt-conf-slider {
+  display: flex;
+  justify-content: center;
+  border: green 1px solid;
+  border-radius: 20px;
+  gap: 20px;
+  padding: 2px;
+  flex-wrap: wrap;
+}
+
+.alt-conf-slider-field {
+  width: 146px;
+  height: 28px;
+  background-color: var(--background-base);
+  cursor: pointer;
+  font-family: Inter;
+  font-weight: 600;
+  color: var(--primary2-base);
+  opacity: 1;
+  border-radius: 20px;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.1s ease;
+
+
+}
+
+.alt-conf-slider-field.active {
+  color: var(--background-base);
+  background-color: var(--primary2-base)
+
+}

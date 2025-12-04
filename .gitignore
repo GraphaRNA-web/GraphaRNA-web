@@ -5,6 +5,7 @@ celerybeat-schedule
 *.crt
 *.key
 /GraphaRNA/
+/downloads/
 
 # Playwright
 node_modules/

@@ -74,11 +74,21 @@
 .cite-para{
     padding-left: 120px;
     padding-right: 120px;
-    padding-top: 50px;
+    padding-top: 30px;
     color: var(--brown-base);
     font-size: 16px;
     font-family: 'Raleway';
     font-weight: 400;
+}
+
+.cite-para a {
+  color: var(--brown-lighten-10);
+  text-decoration: underline;
+}
+
+.cite-para a:hover {
+  text-decoration: none;
+  opacity: 0.8;
 }
 
 @media (max-width: 1200){

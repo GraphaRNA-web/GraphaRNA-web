@@ -9,8 +9,6 @@ metadata:
     app.kubernetes.io/component: celery
     app.kubernetes.io/part-of: grapharna-web
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    linkerd.io/inject: enabled
 spec:
   replicas: {{ .Values.celery.grapharna.replicas }}
   selector:
@@ -37,6 +35,9 @@ spec:
                 name: backend-config
             - secretRef:
                 name: backend-secret
+            - secretRef:
+                name: rabbitmq-secret
+
           volumeMounts:
             - name: shared-volume
               mountPath: /shared
@@ -44,13 +45,17 @@ spec:
               mountPath: /tmp
             - name: tmp-dir
               mountPath: /.config
+            - name: tmp-dir
+              mountPath: /.cache
+
           resources:
             requests:
-              cpu: "50m"
-              memory: "64Mi"
+              cpu: {{ .Values.celery.grapharna.resources.requests.cpu }}
+              memory: {{ .Values.celery.grapharna.resources.requests.memory }}
             limits:
-              cpu: "100m"
-              memory: {{ .Values.backend.resources.limit.memory }}
+              cpu: {{ .Values.celery.grapharna.resources.limit.cpu }}
+              memory: {{ .Values.celery.grapharna.resources.limit.memory }}
+              
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
