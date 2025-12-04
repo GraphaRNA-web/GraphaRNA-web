@@ -79,9 +79,8 @@ def generateRchieDiagram(
         with open(fasta_input, "r") as f_in, open(fasta_output, "r") as f_out:
             fasta_content_input = f_in.read()
             fasta_content_output = f_out.read()
-            # Poprawka: replace zwraca nowy string, nie modyfikuje w miejscu
             fasta_content_input = fasta_content_input.replace(" ", "").replace("-", "")
-            fasta_content_output = fasta_content_output.replace(" ", "").replace("-", "") # Dodano czyszczenie outputu dla pewności
+            fasta_content_output = fasta_content_output.replace(" ", "").replace("-", "")
 
         input_lines = fasta_content_input.split("\n")
         output_lines = fasta_content_output.split("\n")
