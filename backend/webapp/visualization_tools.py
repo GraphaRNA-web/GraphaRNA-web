@@ -68,7 +68,7 @@ def generateRchieDiagram(
     2. The entire .dotseq of a structure that will be represented on the bottom half
     3. Filepath of the output file (preferably .svg)
     4. OPTIONAL: Step of the grey scale markings
-    
+
     Output: String of "OK " + output_img_path or "ERROR*" if any have occured.
     """
     import numpy as np
@@ -107,9 +107,13 @@ def generateRchieDiagram(
     missing_pairs = input_pairs - common_pairs
     added_pairs = output_pairs - common_pairs
 
-    # Obliczanie długości sekwencji (bezpieczniej wziąć len(nucleotites_input))
-    n = len(nucleotites_input)
-    
+    n = max(
+        len(input_lines[1]),
+        len(input_lines[2]),
+        len(output_lines[1]),
+        len(output_lines[2]),
+    )
+
     if n == 0:
         return "ERROR: Input sequences or structures are empty."
 
@@ -137,7 +141,7 @@ def generateRchieDiagram(
         ax.plot(xs, ys, color=color, lw=lw)
 
     # Zwiększamy lekko wysokość wykresu, żeby zmieścić napisy
-    total_plot_height = max_r + text_y_padding * 2 
+    total_plot_height = max_r + text_y_padding * 2
 
     for x in range(1, n + 1, grid_step):
         ax.vlines(x, -total_plot_height, total_plot_height, color="lightgrey", lw=0.5)
@@ -145,18 +149,24 @@ def generateRchieDiagram(
     # Rysowanie nukleotydów i indeksów
     for i in range(n):
         ax.text(
-            i + 1, 0,
+            i + 1,
+            0,
             nucleotites_input[i],
-            ha="center", va="top",
-            fontsize=seq_font_size, fontfamily="monospace",
+            ha="center",
+            va="top",
+            fontsize=seq_font_size,
+            fontfamily="monospace",
         )
 
         if (i + 1) % 10 == 0:
             ax.text(
-                i + 1, 0,
+                i + 1,
+                0,
                 str(i + 1),
-                ha="center", va="bottom",
-                fontsize=index_font_size, color="gray",
+                ha="center",
+                va="bottom",
+                fontsize=index_font_size,
+                color="gray",
             )
 
     # Rysowanie łuków
@@ -169,33 +179,43 @@ def generateRchieDiagram(
         draw_arc(i, j, color="blue", top=False)
     for i, j in common_pairs:
         draw_arc(i, j, color="green", top=False)
-    
+
     # 1. Etykiety tekstowe oznaczające góra/dół
     ax.text(
-        0.5, total_plot_height * 0.95, 
-        "Input Structure", 
-        color='black', fontsize=12, fontweight='bold', ha='left', va='top'
+        0.5,
+        total_plot_height * 0.95,
+        "Input Structure",
+        color="black",
+        fontsize=12,
+        fontweight="bold",
+        ha="left",
+        va="top",
     )
-    
+
     ax.text(
-        0.5, -total_plot_height * 0.95, 
-        "Output Structure", 
-        color='black', fontsize=12, fontweight='bold', ha='left', va='bottom'
+        0.5,
+        -total_plot_height * 0.95,
+        "Output Structure",
+        color="black",
+        fontsize=12,
+        fontweight="bold",
+        ha="left",
+        va="bottom",
     )
 
     legend_elements = [
-        Line2D([0], [0], color='red', lw=2, label='Missing (Input only)'),
-        Line2D([0], [0], color='green', lw=2, label='Common (Match)'),
-        Line2D([0], [0], color='blue', lw=2, label='Added (Output only)')
+        Line2D([0], [0], color="red", lw=2, label="Missing (Input only)"),
+        Line2D([0], [0], color="green", lw=2, label="Common (Match)"),
+        Line2D([0], [0], color="blue", lw=2, label="Added (Output only)"),
     ]
-    
+
     # Dodanie legendy do wykresu
     ax.legend(
-        handles=legend_elements, 
-        loc='upper right', 
-        fontsize='small', 
+        handles=legend_elements,
+        loc="upper right",
+        fontsize="small",
         framealpha=0.9,
-        bbox_to_anchor=(1.0, 1.0)
+        bbox_to_anchor=(1.0, 1.0),
     )
 
     ax.set_xlim(0.5, n + 0.5)
