@@ -10,7 +10,6 @@ type JobRowActive = {
   status: string;
   created: string;
   job_name: string;
-  uidh: string;
 };
 export interface JobRowFinished extends JobRowActive {
   processing_time: string;
@@ -39,9 +38,6 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
 
 
 
-  const handleRowClick = (uidh: string) => {
-  router.push(`/results?uidh=${uidh}`);
-};
 
   return (
     <table>
@@ -58,7 +54,6 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
       <tbody>
         {rows.map((row) => (
           <tr key={row.id}
-              onClick={() => handleRowClick((row as any).uidh)}
               style={{ cursor: "pointer" }}>
             {!isFinishedTable && <td>{row.id}</td>}
             <td>{row.job_name}</td>
