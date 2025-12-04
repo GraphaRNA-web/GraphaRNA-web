@@ -68,7 +68,7 @@ backend:
 
   # Persistent Volume Claim
   pvc: shared-volume
-  storage: 5Gi
+  storage: 15Gi
 
   # --- Full backend config ---
   config:
