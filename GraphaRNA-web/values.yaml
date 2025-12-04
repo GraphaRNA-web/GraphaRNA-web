@@ -69,7 +69,7 @@ backend:
   config:
     DEBUG: "False"
     DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
-    
+   
     # Database
     DATABASE_ENGINE: "django.db.backends.postgresql"
     DATABASE_NAME: "dockerdjango"
@@ -81,7 +81,12 @@ backend:
     MODEL_NAME: "model_800.h5"
     MODEL_EPOCHS: "800"
     UUID_HASH_LENGTH: "5"
-    
+
+    # Example jobs
+    EXAMPLE_JOB_NAME_PREFIX: "example_job_"
+    EXAMPLE_JOB_SEED: 1
+    EXAMPLE_ALTERNATIVE_CONFORMATIONS: 1
+   
     # Email
     EMAIL_HOST: "smtp.gmail.com"
     EMAIL_PORT: "465"
@@ -91,10 +96,12 @@ backend:
     EMAIL_TITLE_JOB_CREATED: "Your job has been created!"
     EMAIL_TITLE_JOB_FINISHED: "Your job is finished!"
     EMAIL_TITLE_JOB_NEAR_EXPIRATION: "Your job is about to expire!"
-
-    # URLs
-    ENGINE_URL: "http://grapharna-engine-svc:8080/run"
     RESULT_BASE_URL: "https://grapharna.cs.put.poznan.pl/api/getResults/"
+
+    # Engine configuration
+    ENGINE_URL: "http://grapharna-engine-svc:8080"
+    ENGINE_TIMEOUT_SECONDS: 60000
+    ENGINE_POLL_INTERVAL_SECONDS: 60
 
 celery:  
   grapharna:
