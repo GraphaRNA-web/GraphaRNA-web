@@ -9,6 +9,7 @@ interface IntegerFieldProps {
   height?: string;
   defaultValue?: number;
   onChange?: (value: number) => void;
+  isActive: boolean;
 }
 
 const IntegerField: React.FC<IntegerFieldProps> = ({

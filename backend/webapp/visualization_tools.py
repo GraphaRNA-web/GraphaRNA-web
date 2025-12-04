@@ -102,7 +102,7 @@ def generateRchieDiagram(
 
     except Exception as e:
         return f"ERROR: RnaValidator or file reading failed. Details: {e}"
-
+    
     common_pairs = input_pairs & output_pairs
     missing_pairs = input_pairs - common_pairs
     added_pairs = output_pairs - common_pairs

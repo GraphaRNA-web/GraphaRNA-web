@@ -54,8 +54,14 @@ export default function SubmitJob() {
   const [approves, setApproves] = useState<string[]>([]);
   const [autoSeed, setAutoSeed] = useState(true);
   const [autoName, setAutoName] = useState(true);
-  const [seed, setSeed] = useState(0);
-  const [jobname, setJobname] = useState("job-155555");
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const randomSeed = Math.floor(Math.random() * 90000) + 10000;
+  const randomJob = Math.floor(Math.random() * 900) + 100;
+  const [seed, setSeed] = useState<number | "">(randomSeed);
+  const [jobname, setJobname] = useState(`job-${day}${month}${year}-${randomJob}`);
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
   const [structures, setStructures] = useState<string[]>([""]);
@@ -272,6 +278,7 @@ const handleValidate = async () => {
 };
 
 const handleNext = async () => {
+  setErrors([]);
   if (currentStep === 0) {
     const res = await validateStructure(true);
     if (res === "warning") {
@@ -283,35 +290,41 @@ const handleNext = async () => {
     goNext();
   }
 };
+const [hasData, setHasData] = useState(false);
+// const [exampleMode, setExampleMode] = useState(false);
 
 const goNextWithGetSuggestedData = async () => {
-  setCurrentStep((prev) => prev + 1);
-
   let effectiveExampleNumber = selectedExampleNumber;
 
-  const isExampleValid = selectedExampleNumber !== 0 && examples.includes(text);
-  
+  const isExampleValid =examples.includes(text);
+
   if  (isExampleValid){
+    effectiveExampleNumber = examples.findIndex(ex => ex === text) + 1;
     setDisplayCheckbox(false);
+    setSelectedExampleNumber(effectiveExampleNumber);
   }
-  else{
+  else {
     setDisplayCheckbox(true);
     setSelectedExampleNumber(0);
-    effectiveExampleNumber = 0;  
-  } 
+    effectiveExampleNumber = 0;
+  }
+
   try {
     const data = await getSuggestedData(effectiveExampleNumber);
     if (typeof data?.seed === "number") setSeed(data.seed);
     if (data?.job_name) setJobname(data.job_name);
+    if (isExampleValid){
+        setAlternativeConformations(1)
+      }
+    
     setAutoSeed(true);
     setAutoName(true);
+    setHasData(true);
   } catch (e) {
-    setSeed(34404);
-    setJobname("job-150625");
-    setAutoSeed(true);
-    setAutoName(true);
+    setHasData(true);
   }
-  };
+  setCurrentStep((prev) => prev + 1);
+};
 
   const goNext = async () => {
     setCurrentStep((prev) => prev + 1);
@@ -323,7 +336,21 @@ const goNextWithGetSuggestedData = async () => {
         setSelectedExampleNumber(0);
       }
     }
-    if (email === "" || emailValidator(email)){
+    setErrors([]);
+
+    if (seed === null || seed === "") {
+      setErrors(["Seed cannot be empty."]);
+      return;
+    }
+    if (Number.isNaN(Number(seed))){
+      setErrors(["Seed need to be a number."]);
+      return
+    }
+    if (email !== "" && !emailValidator(email)) {
+      setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
+      return;
+    }
+    else{
       setCurrentStep(prev => prev + 1)
       if  (selectedExampleNumber === 0){
         try {
@@ -334,6 +361,11 @@ const goNextWithGetSuggestedData = async () => {
             email: email,
             alternative_conformations: alternativeConformations,
           });
+
+      if (response.success === false) {
+        setErrors([response.message || "Server returned an error"]);
+        return;
+    }
 
           console.log("[handleSubmit] job created:", response);
           setApproves([`Job '${response.job_name}' submitted successfully.`]);
@@ -362,29 +394,36 @@ const goNextWithGetSuggestedData = async () => {
         }
       }
     }
-    else{
-        setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
-    }
   }
 
   const handlePrev = () => {
     setCurrentStep(prev => prev - 1);
   }
 
-  const handleExampleClick1 = async () => {
-      setText(examples[0]);
-      setSelectedExampleNumber(1);
-  };
+const handleExampleClick1 = async () => {
+    setText(examples[0]);
+    setSelectedExampleNumber(1);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);
+};
 
-  const handleExampleClick2 = async () => {
-      setText(examples[1]);
-      setSelectedExampleNumber(2);
-  };
+const handleExampleClick2 = async () => {
+    setText(examples[1]);
+    setSelectedExampleNumber(2);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);
+};
 
-  const handleExampleClick3 = async () => {
-      setText(examples[2]);
-      setSelectedExampleNumber(3);
-  };
+const handleExampleClick3 = async () => {
+    setText(examples[2]);
+    setSelectedExampleNumber(3);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);
+};
+
 
   return (
     <div className='submit-jobs-page'>
@@ -617,21 +656,21 @@ const goNextWithGetSuggestedData = async () => {
               <div className='sjp-buttons-section'>
                 <Button
                   color='primary'
-                  variant='filled'
-                  width='160px'
-                  height='40px'
-                  label='Next'
-                  fontSize='16px'
-                  action={handleNext}
-                />
-                <Button
-                  color='primary'
                   variant='outlined'
-                  width='230px'
+                  width='277px'
                   height='40px'
                   label='Validate structure'
                   action={handleValidate}
                   fontSize='16px'
+                />
+                <Button
+                  color='primary'
+                  variant='filled'
+                  width='201px'
+                  height='40px'
+                  label='Next'
+                  fontSize='16px'
+                  action={handleNext}
                 />
               </div>
           </div>
@@ -656,37 +695,49 @@ const goNextWithGetSuggestedData = async () => {
                       <CustomCheckbox
                         label="auto"
                         size={45}
+                        checked={autoSeed}
                         onChange={setAutoSeed}
                         isActive={displayCheckbox}
                       />
                   </div>
-                  {!autoSeed && (
-                    <TextArea
-                      rows={1}
-                      value={seed.toString()}
-                      onChange={(val) => setSeed(Number(val))}
-                      placeholder="Enter custom seed"
-                    />
-                  )}
+                    {!autoSeed && selectedExampleNumber === 0 && (
+                      <TextArea
+                        rows={1}
+                        value={seed === null ? "" : seed.toString()}
+                        onChange={(val) => {
+                          if (val === "") {
+                            setSeed("");
+                            return;
+                          }
+                          if (/^\d+$/.test(val)) {
+                            setSeed(Number(val));
+                          }
+                        }}
+                        placeholder="Enter custom seed"
+                      />
+                    )}
+
 
                   {/* --- JOB NAME --- */}
                   <div className='sjp-seed-name-param'>
-                    <p>Name <span>{autoName ? jobname : "job"}</span></p>
+                    <p>Name <span>{autoName ? jobname : ""}</span></p>
                     <CustomCheckbox
                         label="auto"
                         size={45}
+                        checked={autoName}
                         onChange={setAutoName}
                         isActive={displayCheckbox}
                       />
                   </div>
-                  {!autoName && (
-                    <TextArea
-                      rows={1}
-                      value={jobname}
-                      onChange={setJobname}
-                      placeholder="Enter custom job name"
-                    />
-                  )}
+                    {!autoName && selectedExampleNumber === 0 && (
+                      <TextArea
+                        rows={1}
+                        value={jobname}
+                        onChange={setJobname}
+                        placeholder="Enter custom job name"
+                      />
+                    )}
+
 
 
                 {/* --- INTEGER FIELD --- */}
@@ -701,6 +752,7 @@ const goNextWithGetSuggestedData = async () => {
                     height="50px"
                     defaultValue={alternativeConformations}
                     onChange={(val) => setAlternativeConformations(val)}
+                    isActive={displayCheckbox}
                   />
                   </div>
                   )} 
