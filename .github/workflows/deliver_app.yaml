@@ -143,3 +143,4 @@ jobs:
 
               echo "--- 3. Cleanup ---"
               rm -rf "/home/${{ secrets.SSH_USER }}/deploy-prod"
+              kubectl get namespaces --no-headers=true -o custom-columns=:metadata.name | grep '^staging' | xargs kubectl delete namespace
