@@ -4,4 +4,4 @@ metadata:
   name: rabbitmq-config
 data:
   rabbitmq.conf: |
-    consumer_timeout = 129600000
+    consumer_timeout = {{ .Values.rabbitmq.config.consumer_timeout }}
