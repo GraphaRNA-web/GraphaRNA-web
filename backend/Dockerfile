@@ -34,6 +34,7 @@ COPY --chown=appuser:appgroup . .
 
 RUN SECRET_KEY=build_dummy_secret \
     DATABASE_ENGINE=django.db.backends.sqlite3 \
+    DATABASE_NAME=":memory:" \
     python manage.py collectstatic --noinput
 
 USER 1000
