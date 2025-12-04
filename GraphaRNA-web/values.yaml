@@ -7,7 +7,7 @@ monitoring:
 
 clusterIssuer:
   enabled: true
-  
+ 
 frontend:
   name: frontend
   image: grapharnaweb/grapharna-web:frontend-latest
@@ -38,8 +38,13 @@ frontend:
     BACKEND_URL: "http://backend-svc:8000"
     # Allowed domains (for )
     DOMAIN_URL: "http://150.254.30.175,http://127.0.0.1,http://localhost,http://grapharna-web.cs.put.poznan.pl,https://grapharna-web.cs.put.poznan.pl,https://grapharna.cs.put.poznan.pl,http://grapharna.cs.put.poznan.pl"
-    # production/staging
+    # Production/staging
     NODE_ENV: "production"
+
+    # Example rna structures
+    NEXT_PUBLIC_EXAMPLE_RNA_1: "CCGAGUAGGUA\n((.....)).."
+    NEXT_PUBLIC_EXAMPLE_RNA_2: "GACUUAUAGAU UGAGUCC\n(((((..(... ))))))."
+    NEXT_PUBLIC_EXAMPLE_RNA_3: "UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)"
 
 backend:
   name: backend
@@ -102,6 +107,7 @@ backend:
     ENGINE_URL: "http://grapharna-engine-svc:8080"
     ENGINE_TIMEOUT_SECONDS: 60000
     ENGINE_POLL_INTERVAL_SECONDS: 60
+   
 
 celery:  
   grapharna:
@@ -138,7 +144,7 @@ celery:
       limit:
         cpu: "100m"
         memory: "4096Mi"
-  
+ 
   email:
     name: celery-email
     replicas: 1
