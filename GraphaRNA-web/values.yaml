@@ -146,7 +146,7 @@ celery:
 engine:
   name: grapharna-engine
   image: grapharnaweb/grapharna-web:grapharna-engine
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   port: 8080
   replicas: 1
 
