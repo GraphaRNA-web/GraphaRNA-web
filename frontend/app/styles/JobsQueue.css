@@ -37,7 +37,9 @@ table {
     background-color: var(--background-darken-10);
     padding: 12px 20px;
     text-align: center;
-    font-weight: 600;
+    font-weight: 700;
+    font-family: Inter;
+    font-size: 16px;
 }
 
 .table-header-row th:first-child {
@@ -51,26 +53,28 @@ table {
 }
 
 tbody tr {
-    background-color: transparent;
+    background-color: transparent !important;
+    font-family: Inter;
 }
 
 tbody td {
     background-color: var(--background-darken-5);
     padding: 10px 20px;
     text-align: center;
+    font-family: Inter;
 }
 
 tbody td:first-child {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
 }
 
 tbody td:last-child {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
 }
 
-tbody tr:hover {
+tbody tr:hover td {
     background-color: var(--background-darken-10);
     transition: background-color 0.2s ease;
 }
@@ -111,9 +115,9 @@ tbody td {
 }
 
 .jobsPage-title {
-    margin: 24px;
+    /* margin: 24px; */
     padding: 0.25rem 0;
-    font-weight: 600;
+    font-weight: 400;
     line-height: 1.2;
     display: block;
     font-family: 'Raleway';
@@ -124,7 +128,7 @@ tbody td {
 .Jobs-Pagination {
     display: flex;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 30px;
     margin-top: 1rem;
     flex-wrap: wrap;
     z-index: 5;
@@ -147,7 +151,14 @@ tbody td {
 }
 
 .Jobs-Pagination-Prev-Next {
+    display: flex; 
+    align-items: center; 
+    /* gap: 5px;  teorytycznie tyle na figmie ale tak wygląda bliżej wizualnie wersji z figmy.
+     Problemem jest pewnie z różnicą wielkośći*/
+    gap: 12px;
+    padding: 8px 12px;
     cursor: pointer;
+    font-size: 16px;
 }
 
 .Jobs-Pagination-Prev-Next:disabled {
@@ -156,8 +167,10 @@ tbody td {
 }
 
 .error {
+    position: relative; 
     color: red;
     text-align: center;
+    margin-top: 70px;   
 }
 
 button {
@@ -176,7 +189,7 @@ button {
 
 .router-buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 10px;
 }
 
 @keyframes spin {
