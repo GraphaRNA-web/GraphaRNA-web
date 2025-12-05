@@ -5,7 +5,7 @@ import smtplib
 from django.utils import timezone
 from django.conf import settings
 from .models import ExampleStructures, Job, JobResults
-from time import sleep, time
+from time import sleep
 from uuid import UUID
 import requests
 from celery import shared_task
@@ -14,7 +14,7 @@ import json
 from celery.utils.log import get_task_logger
 from django.db.models.query import QuerySet
 from django.template import Template, Context
-from typing import Any, Optional
+from typing import Any
 
 
 class EngineTimeoutError(Exception):
