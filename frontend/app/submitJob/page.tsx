@@ -770,21 +770,21 @@ const handleExampleClick3 = async () => {
               <div className='sjp-step1-buttons'>
                 <Button
                   color='primary'
-                  variant='filled'
-                  width='160px'
-                  height='40px'
-                  label='Next'
-                  fontSize='16px'
-                  action={handleNext}
-                />
-                <Button
-                  color='primary'
                   variant='outlined'
                   width='230px'
                   height='40px'
                   label='Previous'
                   fontSize='16px'
                   action={handlePrev}
+                />
+                <Button
+                  color='primary'
+                  variant='filled'
+                  width='160px'
+                  height='40px'
+                  label='Next'
+                  fontSize='16px'
+                  action={handleNext}
                 />
               </div>
             </div>
@@ -839,21 +839,21 @@ const handleExampleClick3 = async () => {
               <div className='sjp-step1-buttons'>
                 <Button
                   color='primary'
-                  variant='filled'
-                  width='160px'
-                  height='40px'
-                  label='Submit'
-                  fontSize='16px'
-                  action={handleSubmit}
-                />
-                <Button
-                  color='primary'
                   variant='outlined'
                   width='230px'
                   height='40px'
                   label='Previous'
                   fontSize='16px'
                   action={handlePrev}
+                />
+                <Button
+                  color='primary'
+                  variant='filled'
+                  width='160px'
+                  height='40px'
+                  label='Submit'
+                  fontSize='16px'
+                  action={handleSubmit}
                 />
               </div>
             </div>
