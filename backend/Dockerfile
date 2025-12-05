@@ -1,4 +1,4 @@
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
@@ -18,6 +18,11 @@ RUN groupadd -g 3000 appgroup && \
     useradd -u 1000 -g appgroup -m -s /bin/bash appuser
 
 WORKDIR /home/appuser/app
+
+ENV XDG_CONFIG_HOME=/tmp
+ENV XDG_CACHE_HOME=/tmp
+ENV MPLCONFIGDIR=/tmp
+ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y \
     gcc libpq-dev \
