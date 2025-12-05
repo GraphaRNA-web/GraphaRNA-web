@@ -5,7 +5,7 @@ import smtplib
 from django.utils import timezone
 from django.conf import settings
 from .models import ExampleStructures, Job, JobResults
-from time import sleep
+from time import sleep, time
 from uuid import UUID
 import requests
 from celery import shared_task
@@ -149,7 +149,8 @@ def check_or_submit_engine(
         
         if status_resp.status_code == 200:
             logger.info(f"Engine completed request for {uuid} seed {seed}.")
-            return status_resp.json()
+            result: dict[str, Any] = status_resp.json()
+            return result
         
         elif status_resp.status_code == 202:
             logger.info(f"Engine processing {uuid} seed {seed}...")
@@ -174,7 +175,7 @@ def check_or_submit_engine(
 
 
 @shared_task(queue="grapharna", bind=True, max_retries=None)
-def run_grapharna_task(self, uuid_param: UUID, example_number: int | None = None, conformation_index: int = 0) -> str:
+def run_grapharna_task(self: Any, uuid_param: UUID, example_number: int | None = None, conformation_index: int = 0) -> str:
     from webapp.visualization_tools import (
         drawVARNAgraph,
         generateRchieDiagram,
@@ -394,7 +395,7 @@ def run_grapharna_task(self, uuid_param: UUID, example_number: int | None = None
     return "Chunk OK"
 
 
-def finalize_job(job_data: Job, example_number: int | None):
+def finalize_job(job_data: Job, example_number: int | None) -> None:
     logger = get_task_logger(__name__)
     
     # Post-processing input structure
