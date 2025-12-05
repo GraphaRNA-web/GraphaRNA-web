@@ -167,7 +167,7 @@ const formatDate = (dateString: string) => {
               <p className='error-code'>404</p>
               <p className='add-info'>Oops! Results page not found.</p>
             </div>
-            <p className='not-found-error'>{error || "The result page you are looking for is probably deleted due to the timeout. Start a new job to find out the calculation results."}</p>
+            <p>{"The result page you are looking for is probably deleted due to the timeout. Start a new job to find out the calculation results."}</p>
           </div>
           <div className='right-side'>
             <img src='/photos/notfound.png' width={414} height={414} alt="Not Found" />
