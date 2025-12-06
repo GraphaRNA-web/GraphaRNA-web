@@ -225,6 +225,7 @@ def DownloadZipFile(request: Request) -> HttpResponse:
             name_dotseq = os.path.basename(
                 instance.result_secondary_structure_dotseq.name
             )
+            name_dotseq = name_dotseq.replace(".dotseq", ".dbn")
             name_svg = os.path.basename(instance.result_secondary_structure_svg.name)
             name_ter = os.path.basename(instance.result_tertiary_structure.name)
             name_arc = os.path.basename(instance.result_arc_diagram.name)
