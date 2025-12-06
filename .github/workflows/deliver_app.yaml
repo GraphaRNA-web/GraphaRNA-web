@@ -130,9 +130,10 @@ jobs:
               NAMESPACE=grapharna
               EXCLUDE_ENGINE=grapharna-engine
               EXCLUDE_QUEUE=rabbitmq
+              EXCLUDE_DB=db
 
               kubectl get deployments -n $NAMESPACE --no-headers -o custom-columns=":metadata.name" | while read deploy; do
-                if [ "$deploy" != "$EXCLUDE_ENGINE" ] && [ "$deploy" != "$EXCLUDE_QUEUE" ]; then
+                if [ "$deploy" != "$EXCLUDE_ENGINE" ] && [ "$deploy" != "$EXCLUDE_QUEUE" ] && [ "$deploy" != "$EXCLUDE_DB" ]; then
                   echo "Restarting deployment: $deploy"
                   kubectl rollout restart deployment/$deploy -n $NAMESPACE
                 else
