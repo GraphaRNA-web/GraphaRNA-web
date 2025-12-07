@@ -5,7 +5,7 @@ import smtplib
 from django.utils import timezone
 from django.conf import settings
 from .models import ExampleStructures, Job, JobResults
-from time import sleep
+from time import sleep, time
 from uuid import UUID
 import requests
 from celery import shared_task
@@ -129,53 +129,70 @@ def send_email_task(
         return False
 
 
-def check_or_submit_engine(
+def execute_and_poll_engine(
     uuid: str,
     seed: int,
-) -> dict[str, Any] | None:
-    """
-    Checks engine status. If 200, returns result.
-    If 202, returns None (continue waiting).
-    If 404 or connection error on status check, tries to submit (/run).
-    Returns None if submitted or waiting.
-    """
+    timeout: int = settings.ENGINE_TIMEOUT_SECONDS,
+    check_interval: int = settings.ENGINE_POLL_INTERVAL_SECONDS,
+) -> dict[str, Any]:
+
     logger = get_task_logger(__name__)
     engine_url = settings.ENGINE_URL
-    status_url = f"{engine_url}/status/{uuid}"
     run_url = f"{engine_url}/run"
+    logger.info(f"Sending request to engine at {run_url} for UUID: {uuid}")
 
     try:
-        status_resp = requests.get(f"{status_url}?seed={seed}", timeout=5)
-        
+        response = requests.post(run_url, data={"uuid": uuid, "seed": seed})
+        response.raise_for_status()
+    except requests.RequestException as e:
+        raise Exception(f"Failed to contact engine: {e}")
+
+    logger.info(f"Received response with status code {response.status_code}")
+    start_time = time()
+    status_url = f"{engine_url}/status/{uuid}"
+    cancel_url = f"{engine_url}/cancel/{uuid}"
+
+    while True:
+        logger.info("Polling engine for results...")
+        if time() - start_time > timeout:
+            try:
+                response = requests.post(f"{cancel_url}")
+            except requests.RequestException as e:
+                logger.error(f"Failed to cancel engine request: {e}")
+            error_msg = "Engine operation timed out"
+            logger.error(f"{error_msg}: {response.text}")
+            raise EngineTimeoutError(error_msg, job_uuid=uuid)
+
+        try:
+            status_resp = requests.get(f"{status_url}?seed={seed}")
+        except requests.RequestException:
+            logger.warning("Failed to get status from engine, retrying...")
+            sleep(check_interval)
+            continue
+
         if status_resp.status_code == 200:
-            logger.info(f"Engine completed request for {uuid} seed {seed}.")
+            logger.info("Engine has completed processing the request.")
             result: dict[str, Any] = status_resp.json()
             return result
-        
+
         elif status_resp.status_code == 202:
-            logger.info(f"Engine processing {uuid} seed {seed}...")
-            return None 
-            
+            logger.info("Engine is still processing the request...")
+            sleep(check_interval)
+            continue
+
         elif status_resp.status_code == 500:
             error_detail = status_resp.json()
             raise Exception(f"Engine reported error: {error_detail}")
-            
-    except requests.RequestException as e:
-        logger.warning(f"Status check failed or job not found: {e}. Attempting submission.")
-        pass
 
-    try:
-        logger.info(f"Submitting/Resubmitting request to engine at {run_url} for UUID: {uuid}")
-        response = requests.post(run_url, data={"uuid": uuid, "seed": seed}, timeout=5)
-        response.raise_for_status()
-        logger.info(f"Submission successful/confirmed with status code {response.status_code}")
-        return None # Submitted, now we wait
-    except requests.RequestException as e:
-        raise Exception(f"Failed to contact engine for run: {e}")
+        else:
+            raise Exception(
+                f"Unexpected status code from engine: {status_resp.status_code}"
+            )
 
 
-@shared_task(queue="grapharna", bind=True, max_retries=None)
-def run_grapharna_task(self: Any, uuid_param: UUID, example_number: int | None = None, conformation_index: int = 0) -> str:
+@shared_task(queue="grapharna")
+def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> str:
+
     from webapp.visualization_tools import (
         drawVARNAgraph,
         generateRchieDiagram,
@@ -183,165 +200,182 @@ def run_grapharna_task(self: Any, uuid_param: UUID, example_number: int | None =
     from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 
     logger = get_task_logger(__name__)
-    
-    RETRY_DELAY = 5
-    ENGINE_TIMEOUT = getattr(settings, 'ENGINE_TIMEOUT_SECONDS', 60000)
-    
-    uuid_str = str(uuid_param)
-
-    elapsed_time = self.request.retries * RETRY_DELAY
-    if elapsed_time > ENGINE_TIMEOUT:
-        logger.error(f"Engine operation timed out after {elapsed_time}s for UUID: {uuid_str}")
-        
-        cancel_url = f"{settings.ENGINE_URL}/cancel/{uuid_str}"
-        try:
-            logger.warning(f"Sending cancel request to engine: {cancel_url}")
-            requests.post(cancel_url, timeout=5)
-        except requests.RequestException as e:
-            logger.error(f"Failed to send cancel request to engine: {e}")
-
-        try:
-            job_data = Job.objects.get(uid=uuid_param)
-            job_data.status = "E"
-            job_data.save()
-        except Exception as e:
-            logger.error(f"Failed to update job status during timeout handling: {e}")
-            
-        raise EngineTimeoutError("Engine operation timed out", job_uuid=uuid_param)
 
     try:
         job_data = Job.objects.get(uid=uuid_param)
     except Job.DoesNotExist:
         logger.error(f"Job not found for UUID: {uuid_param}")
         return "Job not found"
-    
-    if job_data.status == "C":
+    except Exception as e:
+        logger.exception(f"Unexpected error fetching job: {str(e)}")
+        raise
+
+    if job_data.status == "C":  # fallback for celery worker restarts
         logger.info(f"Job {uuid_param} is already completed. Exiting task.")
         return "Job already completed"
 
-    if job_data.status != "R":
-        job_data.status = "R"
-        job_data.save()
-
     seed = job_data.seed
-    current_seed = seed + conformation_index
+    uuid_str = str(uuid_param)
+
     output_dir = "/shared/samples/engine_outputs"
+
     os.makedirs(output_dir, exist_ok=True)
 
     try:
-        result_data = check_or_submit_engine(uuid_str, current_seed)
-        
-        if result_data is None:
-            raise self.retry(countdown=RETRY_DELAY) 
-            
-    except requests.RequestException as e:
-        logger.warning(f"Engine connection failed: {e}. Retrying...")
-        raise self.retry(exc=e, countdown=RETRY_DELAY)
-    except Exception as e:
-        # If it is a Retry exception (from self.retry above), let it propagate
-        if isinstance(e, self.Retry):
-            raise e
-        # Critical unexpected error
-        logger.exception(f"Unexpected error in task: {e}")
-        job_data.status = "E"
+        job_data.status = "R"
         job_data.save()
+    except Exception as e:
+        logger.exception(f"Failed to update job status: {str(e)}")
         raise
 
-    output_path_pdb = result_data.get("pdbFilePath")
-    output_path_json = result_data.get("jsonFilePath")
+    max_retries = settings.ENGINE_REQUEST_MAX_RETRIES
+    retry_timeout = settings.ENGINE_REQUEST_RETRY_DELAY
 
-    if not isinstance(output_path_pdb, str) or not isinstance(output_path_json, str):
-        logger.error(f"Invalid file paths from engine: PDB={output_path_pdb}, JSON={output_path_json}")
-        job_data.status = "E"
-        job_data.save()
-        raise Exception("Invalid paths")
+    for i in range(job_data.alternative_conformations):
+        processing_start: datetime = timezone.now()
 
-    if not os.path.exists(output_path_pdb):
-        logger.warning(f"File missing {output_path_pdb}, retrying shortly")
-        raise self.retry(countdown=2)
+        retries: int = 0
 
-    try:
+        result_data: dict[str, Any] = {}
+
+        while retries < max_retries:
+            try:
+                result_data = execute_and_poll_engine(
+                    uuid=uuid_str,
+                    seed=seed + i,
+                )
+
+                break
+            except EngineTimeoutError as e:
+                logger.error(f"Engine timeout error: {e}")
+                job_data.status = "E"
+                job_data.save()
+                raise
+            except Exception as e:
+                logger.warning(
+                    f"Engine request failed (attempt {retries + 1}/{max_retries}). "
+                    f"Retrying in {retry_timeout}s. Error: {e}"
+                )
+                retries += 1
+                sleep(retry_timeout)
+        if retries == max_retries:
+            logger.error("Max retries reached. Failing the job.")
+            job_data.status = "E"
+            job_data.save()
+            raise
+        output_path_pdb = result_data.get("pdbFilePath")
+        output_path_json = result_data.get("jsonFilePath")
+
+        if not isinstance(output_path_pdb, str) or not isinstance(
+            output_path_json, str
+        ):
+            logger.error(
+                f"Invalid file paths returned from engine: PDB={output_path_pdb}, JSON={output_path_json}"
+            )
+            raise Exception("Engine returned invalid file paths (None or non-string)")
+
+        if not os.path.exists(output_path_pdb):
+            logger.error(f"Can't find {output_path_pdb}")
+            raise Exception(f"PDB file missing at {output_path_pdb}")
+
         if not os.path.exists(output_path_json):
-             logger.error(f"JSON File missing {output_path_json}")
-             raise Exception("JSON File missing")
+            logger.error(f"Can't find {output_path_json}")
+            raise Exception(f"JSON file missing at {output_path_json}")
 
-        with open(output_path_json, "r") as f:
-            json_data = json.load(f)
-        
-        dotbracket_from_annotator = json_data.get("dotBracket", "").split("\n")
-        reference_line = job_data.input_structure.read().decode("utf-8").split("\n")[1]
-        job_data.input_structure.seek(0)
+        try:
+            with open(output_path_json, "r") as f:
+                json_data = json.load(f)
+            """"Get dotBracket from annotator and adjust it to match input structure strand breaks"""
+            dotbracket_from_annotator = json_data.get("dotBracket", "").split("\n")
+            reference_line = (
+                job_data.input_structure.read().decode("utf-8").split("\n")[1]
+            )
+            job_data.input_structure.seek(0)
 
-        split_indices = [i for i, char in enumerate(reference_line) if char == " "]
-        if split_indices:
-            new_dotbracket_list = []
-            for line in dotbracket_from_annotator[1:]:
-                for index in sorted(split_indices):
-                    line = line[:index] + job_data.strand_separator + line[index:]
-                new_dotbracket_list.append(line)
-            dotbracket_from_annotator = [
-                dotbracket_from_annotator[0],
-                new_dotbracket_list[0],
-                new_dotbracket_list[1],
-            ]
-        dotbracket_from_annotator = "\n".join(dotbracket_from_annotator)
-        dotbracket_path = os.path.join(output_dir, f"{uuid_str}_{current_seed}.dotseq")
-        
+            split_indices = [i for i, char in enumerate(reference_line) if char == " "]
+            if split_indices:
+                new_dotbracket_list = []
+                for line in dotbracket_from_annotator[1:]:
+                    for index in sorted(split_indices):
+                        line = line[:index] + job_data.strand_separator + line[index:]
+                    new_dotbracket_list.append(line)
+                dotbracket_from_annotator = [
+                    dotbracket_from_annotator[0],
+                    new_dotbracket_list[0],
+                    new_dotbracket_list[1],
+                ]
+            dotbracket_from_annotator = "\n".join(dotbracket_from_annotator)
+            dotbracket_path = os.path.join(output_dir, f"{uuid_str}_{seed}.dotseq")
+            if dotbracket_from_annotator:
+                with open(dotbracket_path, "w") as dbn_file:
+                    dbn_file.write(dotbracket_from_annotator + "\n")
+            else:
+                logger.error("No dotBracket structure found in JSON")
+        except Exception as e:
+            logger.exception(f"Error processing JSON data: {e}")
+            raise
+
+        os.remove(output_path_json)
+
         if dotbracket_from_annotator:
-            with open(dotbracket_path, "w") as dbn_file:
-                dbn_file.write(dotbracket_from_annotator + "\n")
-        else:
-             logger.error("No dotBracket structure found in JSON")
-        
-        if os.path.exists(output_path_json):
-            os.remove(output_path_json)
-
-        if dotbracket_from_annotator:
-            secondary_structure_svg_path = os.path.join(output_dir, f"{uuid_str}_{current_seed}.svg")
+            secondary_structure_svg_path = os.path.join(
+                output_dir, f"{uuid_str}_{seed + i}.svg"
+            )
             try:
                 drawVARNAgraph(dotbracket_path, secondary_structure_svg_path)
             except Exception as e:
                 logger.error(f"Failed to generate secondary structure: {e}")
                 raise
 
-            arc_diagram_path = os.path.join(output_dir, f"{uuid_str}_{current_seed}_arc.svg")
+            arc_diagram_path = os.path.join(
+                output_dir, f"{uuid_str}_{seed + i}_arc.svg"
+            )
+            logger.info(f"{job_data.input_structure}")
             try:
-                generateRchieDiagram(job_data.input_structure.path, dotbracket_path, arc_diagram_path)
-            except Exception as e:
-                logger.error(f"Error generating arc diagram: {e}")
-                raise
-            
-            logger.info("Generated Arc and VARNA diagrams")
+                generateRchieDiagram(
+                    job_data.input_structure.path, dotbracket_path, arc_diagram_path
+                )
 
-            # Metrics
+            except Exception as e:
+                logger.error(f"Error generating arc diagram{e}")
+                raise
+            logger.info("Generated Arc and VARNA diagrams")
             try:
                 target = job_data.input_structure.path
                 model = dotbracket_path
                 with open(target) as f:
-                    target_dict = dotbracketToPairs(f.read().replace(" ", "").replace("-", ""))
+                    target_dict = dotbracketToPairs(
+                        f.read().replace(" ", "").replace("-", "")
+                    )
                 with open(model) as f:
-                    model_dict = dotbracketToPairs(f.read().replace(" ", "").replace("-", ""))
-                values = CalculateF1Inf(target_dict["correctPairs"], model_dict["correctPairs"])
-                logger.info(f"Calculated inf and f1 values {values}")
+                    model_dict = dotbracketToPairs(
+                        f.read().replace(" ", "").replace("-", "")
+                    )
+                values = CalculateF1Inf(
+                    target_dict["correctPairs"], model_dict["correctPairs"]
+                )
             except Exception as e:
                 logger.error(f"Error with generating F1 and INF value {e}")
                 raise
+            logger.info(f"Calculated inf and f1 values {values}")
 
             relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
             relative_path_dotseq = os.path.relpath(dotbracket_path, settings.MEDIA_ROOT)
-            relative_path_svg = os.path.relpath(secondary_structure_svg_path, settings.MEDIA_ROOT)
+            relative_path_svg = os.path.relpath(
+                secondary_structure_svg_path, settings.MEDIA_ROOT
+            )
             relative_path_arc = os.path.relpath(arc_diagram_path, settings.MEDIA_ROOT)
 
-            # Save Result
-            processing_end = timezone.now()
-            chunk_time = timedelta(seconds=0) 
-            
+            processing_end: datetime = timezone.now()
             try:
                 job_result_qs: QuerySet = JobResults.objects.filter(job__exact=job_data)
-                if job_result_qs.count() + 1 == job_data.alternative_conformations:
-                     job_data.sum_processing_time = sum([i.processing_time for i in job_result_qs], timedelta()) + chunk_time
-                     job_data.save()
-
+                if (
+                    job_result_qs.count() + 1 == job_data.alternative_conformations
+                ):  # check if current job result is the last one
+                    job_data.sum_processing_time = sum(
+                        [i.processing_time for i in job_result_qs], timedelta()
+                    ) + (processing_end - processing_start)
+                    job_data.save()
                 JobResults.objects.create(
                     job=job_data,
                     result_tertiary_structure=relative_path_pdb,
@@ -351,72 +385,59 @@ def run_grapharna_task(self: Any, uuid_param: UUID, example_number: int | None =
                     completed_at=processing_end,
                     inf=values["inf"],
                     f1=values["f1"],
-                    processing_time=chunk_time, 
+                    processing_time=(processing_end - processing_start),
                 )
             except Exception as e:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
-
         else:
-            # Handle case with no dotbracket
+            processing_end = timezone.now()
             relative_path_pdb = os.path.relpath(output_path_pdb, settings.MEDIA_ROOT)
+
             try:
                 job_result_qs = JobResults.objects.filter(job__exact=job_data)
-                if job_result_qs.count() + 1 == job_data.alternative_conformations:
-                    job_data.sum_processing_time = sum([i.processing_time for i in job_result_qs], timedelta())
+                if (
+                    job_result_qs.count() + 1 == job_data.alternative_conformations
+                ):  # check if current job result is the last one
+                    job_data.sum_processing_time = sum(
+                        [i.processing_time for i in job_result_qs], timedelta()
+                    ) + (processing_end - processing_start)
                     job_data.save()
-
                 JobResults.objects.create(
                     job=job_data,
                     result_tertiary_structure=relative_path_pdb,
-                    completed_at=timezone.now(),
-                    processing_time=timedelta(0),
+                    completed_at=processing_end,
+                    processing_time=(processing_end - processing_start),
                 )
             except Exception as e:
                 logger.exception(f"Failed to create JobResults: {str(e)}")
                 raise
+    logger.info("Saved to database")
 
-    except Exception as e:
-        logger.exception(f"Error processing results for seed {current_seed}: {e}")
-        job_data.status = "E"
-        job_data.save()
-        raise
-
-    logger.info("Saved chunk to database")
-
-    # --- NEXT CONFORMATION OR FINISH ---
-    next_index = conformation_index + 1
-    if next_index < job_data.alternative_conformations:
-        logger.info(f"Scheduling next conformation {next_index} for job {uuid_str}")
-        run_grapharna_task.delay(uuid_param, example_number, next_index)
-    else:
-        finalize_job(job_data, example_number)
-    
-    return "Chunk OK"
-
-
-def finalize_job(job_data: Job, example_number: int | None) -> None:
-    logger = get_task_logger(__name__)
-    
-    # Post-processing input structure
+    """Post-processing: replace spaces with input strand separator in input structure file"""
     if job_data.strand_separator and job_data.strand_separator != " ":
         try:
             with job_data.input_structure.open("r") as f:
                 input_data = f.read().decode("utf-8")
-            input_data = input_data.replace(" ", job_data.strand_separator)
+                input_data = input_data.replace(" ", job_data.strand_separator)
+
             with job_data.input_structure.open("w") as f:
                 f.write(input_data)
         except Exception as e:
             logger.error(f"Error replacing spaces in input structure: {e}")
-
-    if example_number is None:
-        job_data.expires_at = timezone.now() + timedelta(weeks=settings.JOB_EXPIRATION_WEEKS)
-    
+            raise
+    if example_number is None:  # not an example job
+        job_data.expires_at = timezone.now() + timedelta(
+            weeks=settings.JOB_EXPIRATION_WEEKS
+        )
     job_data.status = "C"
     job_data.save()
 
-    if example_number is not None:
-        ExampleStructures.objects.get_or_create(id=example_number, defaults={'job': job_data})
+    if example_number is not None:  # example job
+        ExampleStructures.objects.create(
+            id=example_number,
+            job=job_data,
+        )
 
     if job_data.email:
         url = f"{settings.RESULT_BASE_URL}?uidh={job_data.hashed_uid}"
@@ -426,10 +447,13 @@ def finalize_job(job_data: Job, example_number: int | None) -> None:
             title=settings.TITLE_JOB_FINISHED,
             url=url,
         )
-    logger.info(f"Job {job_data.uid} finished successfully.")
+    logger.info("GraphaRNA run completed successfully.")
+
+    return "OK"
 
 
 def test_grapharna_run() -> str:
+
     input_path = "/shared/samples/engine_inputs/test.dotseq"
     output_dir = "/shared/samples/engine_outputs"
 
