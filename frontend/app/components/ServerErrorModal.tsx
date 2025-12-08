@@ -21,12 +21,21 @@ export default function ServerErrorModal({ isOpen, onClose }: ServerErrorModalPr
     <div className="sem-overlay">
       <div className="sem-box">
         <div className="sem-header">
+          <div className="sem-header-left">
+            <img
+              src="/icons/error.svg"
+              alt="Server Error"
+              className="sem-icon"
+            />
+            <h2 className="sem-title">A server error occured.</h2>
+          </div>
+
           <img
-            src="/icons/error.svg"
+            src="/icons/close_icon.svg"
             alt="Server Error"
-            className="sem-icon"
+            className="sem-close-icon"
+            onClick={onClose}
           />
-          <h2 className="sem-title">A server error occured.</h2>
         </div>
 
         <p className="sem-subtitle">

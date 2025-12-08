@@ -27,6 +27,15 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.sem-header-left{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   gap: 10px;
 }
 
@@ -144,4 +153,8 @@
 .rna-fix {
   color: #155724; 
   font-weight: bold;
+}
+
+.sem-close-icon{
+  cursor: pointer;
 }

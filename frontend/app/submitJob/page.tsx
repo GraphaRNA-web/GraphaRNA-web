@@ -874,38 +874,6 @@ const goNextWithGetSuggestedData = async () => {
           mismatchingBrackets={mismatchingBrackets}
           incorrectPairs={incorrectPairs}
         />
-        
-
-        <ValidationWarningModal
-          isOpen={showValidation || showValidationNext}
-          onClose={() => {
-            setShowValidation(false);
-            setShowValidationNext(false);
-          }}
-          onConfirm={() => {
-            setText(correctedText);
-
-            if (inputFormat === "Interactive") {
-              const blocks = correctedText
-                .split("\n>")
-                .map((b, i) => (i === 0 ? b : ">" + b))
-                .filter((b) => b.trim() !== "");
-
-              setStructures(blocks);
-            }
-
-            if (showValidationNext) {
-              goNext();
-            }
-
-            setShowValidation(false);
-            setShowValidationNext(false);
-          }}
-          text={text}
-          correctedText={correctedText}
-          mismatchingBrackets={mismatchingBrackets}
-          incorrectPairs={incorrectPairs}
-        />
       </div>
     </div>
   );
