@@ -75,7 +75,6 @@ export default function About(){
                             </div>
                             <p className='graphaRNAweb-text'>Grapha
                                 <span className='rna'>RNA</span>
-                                <span className='web'>-web</span>
                             </p>
                             <div className='authors-rectangle1'>
                                 <div className='authors-row'>

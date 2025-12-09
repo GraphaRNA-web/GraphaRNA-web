@@ -72,8 +72,7 @@ const IntegerField: React.FC<IntegerFieldProps> = ({
             padding: '0 20px',
             cursor: 'pointer',
             userSelect: 'none',
-            fontSize: hovered === 'minus' ? '24px' : '20px',
-            transition: 'font-size 0.2s ease'
+            fontSize: '20px'
           }}
         >
           -
@@ -92,8 +91,7 @@ const IntegerField: React.FC<IntegerFieldProps> = ({
             padding: '0 20px 0 10px',
             cursor: 'pointer',
             userSelect: 'none',
-            fontSize: hovered === 'plus' ? '24px' : '20px',
-            transition: 'font-size 0.2s ease'
+            fontSize: '20px',
           }}
         >
           +

@@ -18,7 +18,7 @@ const StepsIndicator: React.FC<StepsIndicatorProps> = ({ totalSteps, currentStep
       {steps.map((step, index) => (
         <React.Fragment key={step}>
           <div className={`step-circle ${step <= currentStep + 1 ? 'active' : ''}`}>
-            {step}
+            <span>{step}</span>
           </div>
 
           {index !== steps.length - 1 && (

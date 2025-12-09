@@ -31,10 +31,6 @@
   font-weight: 400;
 }
 
-.name--web {
-  color: var(--brown-lighten-20)
-}
-
 .navbar__right {
   display: flex;
   gap: 50px;

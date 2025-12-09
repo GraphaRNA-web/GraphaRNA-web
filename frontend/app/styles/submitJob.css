@@ -374,6 +374,10 @@
     margin-left: auto;
 }
 
+.sjp-step-arrow:hover{
+    cursor: pointer;
+}
+
 @media (max-width: 1160px){
     .submit-jobs-page{
         padding-left: 10px;
