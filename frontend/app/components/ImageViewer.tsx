@@ -76,15 +76,11 @@ export default function ImageViewer({
       e.preventDefault();
 
       let delta = e.deltaY;
-
-      // 🔧 Detekcja pinch-to-zoom z touchpada (ctrlKey = true)
-      // W tym przypadku deltaY ma odwrotny znak, więc odwracamy go:
       if (e.ctrlKey) {
         delta = -delta;
       }
 
-      // Scroll w dół (delta > 0) = przybliżenie (tak jak w PdbViewer)
-      const zoomFactor = delta > 0 ? 1.1 : 0.9;
+      const zoomFactor = delta < 0 ? 1.1 : 0.9;
 
       setScale((s) => Math.min(Math.max(s * zoomFactor, 0.2), 5));
     };

@@ -64,8 +64,8 @@ export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, [pdbData]);
 
-  const zoomIn = () => { viewerRef.current?.zoom(1.2); viewerRef.current?.render(); };
-  const zoomOut = () => { viewerRef.current?.zoom(0.8); viewerRef.current?.render(); };
+  const zoomOut = () => { viewerRef.current?.zoom(1.1); viewerRef.current?.render(); };
+  const zoomIn = () => { viewerRef.current?.zoom(0.9); viewerRef.current?.render(); };
 
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
