@@ -8,6 +8,7 @@ import PdbViewer from "../components/PdbViewer";
 import ImageViewer from '../components/ImageViewer';
 import JobStatus from '../components/JobStatus';
 import AltConfSlider from '../components/AltConfSlider';
+import ServerErrorModal from '../components/ServerErrorModal';
 
 interface JobResult {
   completed_at: string;
@@ -74,6 +75,7 @@ export default function Results() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
   const [is2DExpanded, setIs2DExpanded] = useState(false);
+  const [server500, setServer500] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,7 +87,13 @@ export default function Results() {
 
       try {
         setIsLoading(true);
-        const data = await getResultDetails({ uidh });
+        const {data, status} = await getResultDetails({ uidh });
+
+        if(status >= 500){
+          setServer500(true);
+          return "error";
+        }
+
         if (data.success) {
           setJobData(data);
         } else {
@@ -134,7 +142,11 @@ const handleDownload = async () => {
 
     setIsDownloading(true);
     try {
-      await downloadZip({ uidh });
+      const {status} = await downloadZip({ uidh });
+      if(status >= 500){
+        setServer500(true);
+        return "error";
+      }
     } catch (error) {
       console.error("Download failed:", error);
       alert("Failed to download ZIP file. Please try again."); 
@@ -183,6 +195,10 @@ const formatDate = (dateString: string) => {
     <div className='whole-page'>
       <div className='found'>
         <div className='content'>
+          <ServerErrorModal
+            isOpen={server500}
+            onClose={() => setServer500(false)}
+          />
           <p className='title'>Job details</p>
           <div className='top-section'>
             <div className='top-left'>

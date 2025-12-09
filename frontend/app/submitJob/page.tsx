@@ -325,7 +325,11 @@ const goNextWithGetSuggestedData = async () => {
     effectiveExampleNumber = 0;  
   } 
   try {
-    const data = await getSuggestedData(effectiveExampleNumber);
+    const {data, status} = await getSuggestedData(effectiveExampleNumber);
+    if(status >= 500){
+      setServer500(true);
+      return "error";
+    }
     if (typeof data?.seed === "number") setSeed(data.seed);
     if (data?.job_name) setJobname(data.job_name);
     setAutoSeed(true);
@@ -352,13 +356,18 @@ const goNextWithGetSuggestedData = async () => {
       setCurrentStep(prev => prev + 1)
       if  (selectedExampleNumber === 0){
         try {
-          const response = await submitJobRequest({
+          const {data: response, status} = await submitJobRequest({
             fasta_raw: text,
             seed: seed,
             job_name: jobname,
             email: email,
             alternative_conformations: alternativeConformations,
           });
+
+          if(status >= 500){
+            setServer500(true);
+            return "error";
+          }
 
           console.log("[handleSubmit] job created:", response);
           setApproves([`Job '${response.job_name}' submitted successfully.`]);
@@ -371,11 +380,16 @@ const goNextWithGetSuggestedData = async () => {
       }
       else{
         try {
-          const response = await submitExampleJobRequest({
+          const {data: response, status} = await submitExampleJobRequest({
             fasta_raw: text,
             email: email,
             example_number: selectedExampleNumber,
           });
+
+          if(status >= 500){
+            setServer500(true);
+            return "error";
+          }
 
           console.log("[handleSubmit] job created:", response);
           setApproves([`Job '${response.job_name}' submitted successfully.`]);

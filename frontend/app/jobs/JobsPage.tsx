@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { getActiveJobs, getFinishedJobs } from "@/lib/api";
 import Button from "../components/Button";
 import { useRouter } from "next/navigation";
+import ServerErrorModal from '../components/ServerErrorModal';
 
 
 interface JobResult {
@@ -44,6 +45,7 @@ export default function JobsQueue() {
   const [finishedPage, setFinishedPage] = useState<number>(1);
   const [pageSizeActive, setPageSizeActive] = useState<number>(10);
   const [pageSizeFinished, setPageSizeFinished] = useState<number>(10);
+  const [server500, setServer500] = useState(false);
   // const pageSize = Number(process.env.NEXT_PUBLIC_PAGE_SIZE ?? 10);
   
   // ACTIVE JOBS
@@ -52,7 +54,13 @@ export default function JobsQueue() {
       setError(null);
       setIsLoadingActive(true);
       try {
-        const activeResp = await getActiveJobs({ page: String(activePage) });
+        const {data: activeResp, status} = await getActiveJobs({ page: String(activePage) });
+
+        if(status >= 500){
+          setServer500(true);
+          return "error";
+        }
+
         if (activeResp && Array.isArray(activeResp.results)) {
           setJobDataActive(activeResp as PaginatedJobs);
           setPageSizeActive(activeResp.page_size ?? 10);
@@ -75,7 +83,13 @@ export default function JobsQueue() {
       setError(null);
       setIsLoadingFinished(true);
       try {
-        const finishedResp = await getFinishedJobs({ page: String(finishedPage) });
+        const {data: finishedResp, status} = await getFinishedJobs({ page: String(finishedPage) });
+
+        if(status >= 500){
+          setServer500(true);
+          return "error";
+        }
+        
         if (finishedResp && Array.isArray(finishedResp.results)) {
           setJobDataFinished(finishedResp as PaginatedJobs);
           setPageSizeFinished(finishedResp.page_size ?? 10);
@@ -139,6 +153,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
       </div>
     );
 
+
   return (
     <div className="jobsPageContent">
       <div className="jobsPage-main">
@@ -149,6 +164,11 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
             <Button label="Guide" variant="outlined" width="150px" height="36px" action={() => router.push("/guide")} />
           </div>
         </div>
+
+        <ServerErrorModal
+          isOpen={server500}
+          onClose={() => setServer500(false)}
+        />
 
         {isLoadingActive ? spinner : <JobsTable rows={activeRows} />}
 
