@@ -125,11 +125,14 @@ tbody td {
 }
 
 .jobsPageContent {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
     box-sizing: border-box;
     padding: 1rem;
     min-height: 100vh;
+    margin-top: 90px;
 }
 
 .jobsPage-main {

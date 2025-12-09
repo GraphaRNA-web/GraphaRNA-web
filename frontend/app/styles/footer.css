@@ -30,9 +30,19 @@
   gap: 40px;
 }
 
-.footer_right .footer_logo {
+.footer_logo_pp {
+  width: 35px;
   height: 35px;
-  width: auto;
+}
+
+.footer_logo_rna{
+  width: 120px;
+  height: 25px;
+}
+
+.footer_logo_ibch{
+  width: 35px;
+  height: 35px;
 }
 
 @media (max-width: 900px){
