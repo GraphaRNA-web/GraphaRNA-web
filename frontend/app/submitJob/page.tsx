@@ -545,8 +545,8 @@ const handleExampleClick3 = async () => {
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-title'>Format hint</p>
-                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. You can add multiple sequences (max. 5) by separating them with dashes or spaces (-).
-In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures (max. 5) separated by dashes or spaces (-).</p>
+                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. You can add multiple sequences by separating them with dashes or spaces (-).
+In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures separated by dashes or spaces (-).</p>
                 </div>
 
                 <div className='sjp-text-input-title'>
