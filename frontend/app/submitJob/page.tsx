@@ -545,9 +545,8 @@ const handleExampleClick3 = async () => {
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-title'>Format hint</p>
-                  <p className='sjp-hint-text'>Interactive form is based on... Lorem ipsum dolor sit amet, 
-                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque 
-                    penatibus et magnis dis partquat massa</p>
+                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. You can add multiple sequences (max. 5) by separating them with dashes or spaces (-).
+In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures (max. 5) separated by dashes or spaces (-).</p>
                 </div>
 
                 <div className='sjp-text-input-title'>
@@ -683,9 +682,10 @@ const handleExampleClick3 = async () => {
                 <p className='sjp-opt-params-1'>
                   Optional parameters
                 </p>
-                <p className='sjp-opt-params-2'>
-                  You can provide some optional parameters for the calculation process
-                </p>
+                <div className='sjp-opt-params-2'>
+                  <p>You can provide some optional parameters for the calculation process.</p>
+                  <p>Seed: An integer value to initialize the random number generator for reproducibility. Default is auto, meaning a random seed will be automatically generated.</p>
+                </div>
               </div>
               
               <div className='sjp-params-fields'>
@@ -796,10 +796,10 @@ const handleExampleClick3 = async () => {
             <div className='sjp-params-section'>
               <div className='sjp-opt-params'>
                 <p className='sjp-opt-params-1'>
-                  Optional parameters
+                  Email
                 </p>
                 <p className='sjp-opt-params-2'>
-                  You can provide some optional parameters for the calculation process
+                  Provide your email to receive a notification when the structure generation is complete (optional). Otherwise, you need to save the job ID and check back later.
                 </p>
               </div>
 
