@@ -873,7 +873,10 @@ const handleExampleClick3 = async () => {
           }}
           onConfirm={() => {
             setText(correctedText);
-
+              if (!examples.includes(correctedText)) {
+                setSelectedExampleNumber(0);
+                setDisplayCheckbox(true);
+              }
             if (inputFormat === "Interactive") {
               const blocks = correctedText
                 .split("\n>")

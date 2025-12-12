@@ -92,7 +92,7 @@ EMAIL_PORT=587
 EMAIL_HOST_USER=rnapolis@cs.put.poznan.pl
 EMAIL_HOST_PASSWORD=secret_password
 
-RESULT_BASE_URL=http://localhost:8000/api/getResults/
+RESULT_BASE_URL=http://127.0.0.1:3000/results
 
 TEMPLATE_PATH_JOB_CREATED=email_templates/template_job_created.html
 TEMPLATE_PATH_JOB_FINISHED=email_templates/template_job_finished.html
