@@ -649,8 +649,14 @@ def getActiveJobs(request: Request) -> Response:
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
+#     fields = [
+#     f.name for f in Job._meta.get_fields()
+#     if f.concrete and f.name != "hashed_uid"
+# ]   
+    # print(fields)
     data = Job.objects.filter(
         status__in=["C", "E"]).order_by("-created_at","uid")
+
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:
