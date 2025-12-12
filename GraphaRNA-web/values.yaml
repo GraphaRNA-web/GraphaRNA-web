@@ -89,7 +89,7 @@ backend:
 
     # Example jobs
     EXAMPLE_JOB_NAME_PREFIX: "example_job_"
-    EXAMPLE_JOB_SEED: 1
+    EXAMPLE_JOB_SEED: "13767549"
     EXAMPLE_ALTERNATIVE_CONFORMATIONS: 1
    
     # Email
