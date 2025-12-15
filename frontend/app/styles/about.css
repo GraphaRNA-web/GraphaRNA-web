@@ -50,7 +50,7 @@
     color: var(--brown-base);
 }
 
-.about-p1, .about-p2, .about-p3{
+.about-p1, .about-p2, .about-p3 , .about-p4 {
     width: 100%;
     font-family: Inter;
     font-weight: 400;
@@ -208,6 +208,11 @@
     width: 100%;
     height: 31px;
     text-align: center;
+}
+
+.about-link{
+    color: var(--primary2-base);
+    text-decoration: underline;
 }
 
 .rna{
