@@ -46,8 +46,17 @@ export default defineConfig<TestOptions>({
             testMatch: /.*\.setup\.ts/,
         },
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'firefox-incognito',
+      use: {
+        browserName: 'firefox',
+        headless: false,
+        // launchOptions: {
+        // slowMo: 500},
+        contextOptions: {
+          viewport: { width: 1280, height: 720 },
+          ignoreHTTPSErrors: true,
+        },
+      },
       dependencies: ['setup'],
     },
 
