@@ -10,27 +10,19 @@ export default function About(){
                     <img className='triangle-top' src='photos/ap_triangle_top.png'></img>
                     <div className='about-text'>
                         <p className='about-p1'>
-                            Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
-                            Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-                            Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.
-                            Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut,
-                            imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt.
-                            Cras dapibus. Vivamus elementum semper nisi. 
+                            GraphaRNA is an interactive platform for RNA 3D structure exploration powered by generative graph neural networks. 
+                            Our method represents RNA molecules as graphs, capturing both nucleotide sequence information and complex 2D structural interactions. Instead of predicting full atomic models directly, GraphaRNA focuses on RNA 3D descriptors—local structural motifs that reflect how small groups of nucleotides arrange in space.
                         </p>
                         <p className='about-p2'>
-                            Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim.
-                            Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus 
-                            varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur 
-                            ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum 
-                            rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel,
-                            luctus pulvinar, hendrerit id, lorem. 
+                            By learning a distribution of these descriptors from experimentally determined RNA structures, the model composes them into coherent 3D conformations that respect user-defined secondary-structure constraints. 
+                            The result is a fast, intuitive tool that helps users visualize, compare, and analyze possible RNA folds. 
                         </p>
                         <p className='about-p3'>
-                            Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. 
-                            Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus 
-                            et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu.
-                            Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris.
-                            Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. 
+                            Designed for flexibility and exploration, GraphaRNA allows users to model small RNA motifs, test structural hypotheses, and examine alternative base-pairing scenarios -- all through a fast and intuitive interface, without installing any software.
+                        </p>
+                        <p className='about-p4'>
+                            The source code of the GraphaRNA computational engine is available on <a className="about-link" href="https://github.com/mjustynaPhD/GraphaRNA">GitHub</a>, and the training/test datasets together with pre-trained model weights are provided on on 
+                            <a className="about-link" href="https://zenodo.org/records/13750967">Zenodo</a>.
                         </p>
                     </div>
                 </div>

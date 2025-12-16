@@ -286,6 +286,10 @@
     padding-left: 10px;
 }
 
+.sjp-bold{
+    font-weight: 700;
+}
+
 .sjp-alt-param{
     display: flex;
     flex-direction: column;

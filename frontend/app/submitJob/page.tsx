@@ -514,9 +514,7 @@ const handleExampleClick3 = async () => {
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-title'>Interactive form hint</p>
-                  <p className='sjp-hint-text'>Interactive form is based on... Lorem ipsum dolor sit amet, 
-                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque 
-                    penatibus et magnis dis partquat massa</p>
+                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. In the second line, provide the secondary structure in dot-bracket notation. You can add multiple sequences by using the plus (+) button or separating them with dashes (-) or spaces.</p>
                 </div>
 
                 <div className='sjp-int-input-title'>
@@ -579,9 +577,8 @@ const handleExampleClick3 = async () => {
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-title'>Format hint</p>
-                  <p className='sjp-hint-text'>Interactive form is based on... Lorem ipsum dolor sit amet, 
-                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque 
-                    penatibus et magnis dis partquat massa</p>
+                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. You can add multiple sequences by separating them with dashes or spaces (-).
+In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures separated by dashes or spaces (-).</p>
                 </div>
 
                 <div className='sjp-text-input-title'>
@@ -717,9 +714,12 @@ const handleExampleClick3 = async () => {
                 <p className='sjp-opt-params-1'>
                   Optional parameters
                 </p>
-                <p className='sjp-opt-params-2'>
-                  You can provide some optional parameters for the calculation process
-                </p>
+                <div className='sjp-opt-params-2'>
+
+                  <p><b className="sjp-bold">Seed:</b> An integer value to initialize the random number generator for reproducibility. Default is auto, meaning a random seed will be automatically generated.</p>
+                  <p><b className="sjp-bold">Name:</b> A custom name for your job to help you identify it later. Default is auto, meaning a name will be generated based on the current date and a random number.</p>
+                  <p><b className="sjp-bold">#Alternative conformations:</b> Number of alternative conformations to generate for the given RNA structure. Number bigger than 1 will cause the calcuation of the input sequence with incremented seed values.</p>
+                </div>
               </div>
               
               <div className='sjp-params-fields'>
@@ -830,10 +830,10 @@ const handleExampleClick3 = async () => {
             <div className='sjp-params-section'>
               <div className='sjp-opt-params'>
                 <p className='sjp-opt-params-1'>
-                  Optional parameters
+                  Email
                 </p>
                 <p className='sjp-opt-params-2'>
-                  You can provide some optional parameters for the calculation process
+                  Provide your email to receive a notification when the structure generation is complete (optional). Otherwise, you need to <b className="sjp-bold">save the URL</b> you will be redirected to later, as it will be the only way to access your results.
                 </p>
               </div>
 
