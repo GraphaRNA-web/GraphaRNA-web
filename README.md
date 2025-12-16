@@ -18,6 +18,9 @@ There is a necessery .env file in the root folder of the project, the structure 
 DATABASE_NAME=dockerdjango 
 DATABASE_USERNAME=dbuser
 DATABASE_PASSWORD=dbpassword
+NEXT_PUBLIC_EXAMPLE_RNA_1=CCGAGUAGGUA\n((.....))..
+NEXT_PUBLIC_EXAMPLE_RNA_2=GACUUAUAGAU UGAGUCC\n(((((..(... )))))).
+NEXT_PUBLIC_EXAMPLE_RNA_3=UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)
 ```
 
 
@@ -69,7 +72,9 @@ VALID_NUCLEOTIDES=AUGCT
 VALID_PAIRS = "GCCGAUUAGUUG"
 
 ENGINE_TEST_URL = http://grapharna-engine:8080/test
-ENGINE_URL = http://grapharna-engine:8080/test
+ENGINE_URL = http://grapharna-engine:8080
+ENGINE_TIMEOUT_SECONDS=60000
+ENGINE_POLL_INTERVAL_SECONDS=60
 
 JOB_EXPIRATION_WEEKS=2
 
@@ -78,12 +83,16 @@ UUID_HASH_LENGTH=5
 MODEL_NAME=model_800.h5
 MODEL_EPOCHS=800
 
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=465
-EMAIL_HOST_USER=grapharnaput@gmail.com
-EMAIL_HOST_PASSWORD=luqmkuabzqhfpyib
+EXAMPLE_JOB_NAME_PREFIX=example_job_
+EXAMPLE_JOB_SEED=1
+EXAMPLE_ALTERNATIVE_CONFORMATIONS=1
 
-RESULT_BASE_URL=http://localhost:8000/api/getResults/
+EMAIL_HOST=libra.cs.put.poznan.pl
+EMAIL_PORT=587
+EMAIL_HOST_USER=rnapolis@cs.put.poznan.pl
+EMAIL_HOST_PASSWORD=secret_password
+
+RESULT_BASE_URL=http://127.0.0.1:3000/results
 
 TEMPLATE_PATH_JOB_CREATED=email_templates/template_job_created.html
 TEMPLATE_PATH_JOB_FINISHED=email_templates/template_job_finished.html

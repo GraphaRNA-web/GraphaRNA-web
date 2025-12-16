@@ -19,51 +19,6 @@
     box-shadow: 0 2px 20px 0 #DFDEDAE5;
 }
 
-.para {
-    padding-left: 120px;
-    padding-right: 120px;
-    padding-top: 50px;
-    color: var(--brown-base);
-    font-size: 16px;
-    font-family: 'Raleway';
-    font-weight: 400;
-}
-
-@media (max-width: 1200px) {
-    .jobsPageContent {
-        padding-left: 40px;
-    }
-
-    .cite-content {
-        width: 550px;
-    }
-
-    .cite {
-        width: 550px;
-    }
-
-    .text {
-        width: 450px;
-        height: 250px;
-    }
-
-    .circle {
-        left: calc(700px - (1450px - 100vw)*0.75);
-    }
-
-    .triangle {
-        left: calc(200px - (1450px - 100vw)*0.25);
-    }
-
-    .cite-subtitle {
-        width: 550px;
-    }
-
-    .jobsPage-title {
-        width: 550px;
-    }
-}
-
 .ActiveJob-Buttons {
     display: flex;
     gap: 10px;
@@ -74,7 +29,7 @@ table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0 12px;
-    table-layout: auto;
+    table-layout: fixed;
     background-color: transparent;
 }
 
@@ -82,7 +37,9 @@ table {
     background-color: var(--background-darken-10);
     padding: 12px 20px;
     text-align: center;
-    font-weight: 600;
+    font-weight: 700;
+    font-family: Inter;
+    font-size: 16px;
 }
 
 .table-header-row th:first-child {
@@ -96,26 +53,28 @@ table {
 }
 
 tbody tr {
-    background-color: transparent;
+    background-color: transparent !important;
+    font-family: Inter;
 }
 
 tbody td {
     background-color: var(--background-darken-5);
     padding: 10px 20px;
     text-align: center;
+    font-family: Inter;
 }
 
 tbody td:first-child {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
 }
 
 tbody td:last-child {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
 }
 
-tbody tr:hover {
+tbody tr:hover td {
     background-color: var(--background-darken-10);
     transition: background-color 0.2s ease;
 }
@@ -125,24 +84,21 @@ tbody td {
 }
 
 .jobsPageContent {
+    margin-top: 100px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 1rem;
-    min-height: 100vh;
-    margin-top: 90px;
+    gap: 70px;
+    width: 1120px;
+    margin-left: calc((100% - 1120px) / 2);
+    margin-right: calc((100% - 1120px) / 2);
+    margin-bottom: 40px;
 }
 
 .jobsPage-main {
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 30px;
-    margin-top: 100px;
 }
 
 .jobsPage-maintable {
@@ -159,9 +115,9 @@ tbody td {
 }
 
 .jobsPage-title {
-    margin: 24px;
+    /* margin: 24px; */
     padding: 0.25rem 0;
-    font-weight: 600;
+    font-weight: 400;
     line-height: 1.2;
     display: block;
     font-family: 'Raleway';
@@ -172,7 +128,7 @@ tbody td {
 .Jobs-Pagination {
     display: flex;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 30px;
     margin-top: 1rem;
     flex-wrap: wrap;
     z-index: 5;
@@ -195,7 +151,14 @@ tbody td {
 }
 
 .Jobs-Pagination-Prev-Next {
+    display: flex; 
+    align-items: center; 
+    /* gap: 5px;  teorytycznie tyle na figmie ale tak wygląda bliżej wizualnie wersji z figmy.
+     Problemem jest pewnie z różnicą wielkośći*/
+    gap: 12px;
+    padding: 8px 12px;
     cursor: pointer;
+    font-size: 16px;
 }
 
 .Jobs-Pagination-Prev-Next:disabled {
@@ -204,8 +167,10 @@ tbody td {
 }
 
 .error {
+    position: relative; 
     color: red;
     text-align: center;
+    margin-top: 70px;   
 }
 
 button {
@@ -224,7 +189,7 @@ button {
 
 .router-buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 10px;
 }
 
 @keyframes spin {
@@ -244,4 +209,51 @@ td:last-child>* {
     justify-content: center;
     align-items: center;
     height: 100%;
+}
+
+@media (max-width: 1160px){
+    .jobsPageContent{
+        margin-left: 20px;
+        margin-right: 20px;
+        width: calc(100vw - 40px);
+    }
+}
+
+@media (max-width: 760px){
+    .router-buttons{
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-end;
+    }
+}
+
+@media (max-width: 510px) {
+
+    .table-header-row th {
+        background-color: var(--background-darken-10);
+        padding: 0px 10px;
+        text-align: center;
+        font-weight: 400;
+    }
+
+    tbody td {
+        background-color: var(--background-darken-5);
+        padding: 5px 5px;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .jobsPage-header{
+        flex-direction: column;
+    }
+
+    .router-buttons{
+        align-items: center;
+    }
+
+    .jobsPageContent{
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
 }

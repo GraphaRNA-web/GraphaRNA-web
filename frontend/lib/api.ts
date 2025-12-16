@@ -31,25 +31,36 @@ export async function validateRNA(params: { fasta_raw?: string; fasta_file?: Fil
   console.log("[validateRNA] response status", res.status);
   const data = await res.json();
   console.log("[validateRNA] parsed data", data);
-  return data;
+  return { result: data, status: res.status };
 }
 
 export type SuggestedData = { seed: number; job_name: string };
 
-export async function getSuggestedData(): Promise<SuggestedData> {
-  const res = await fetchApiProxy("/api/getSuggestedData", {
+export async function getSuggestedData(exampleNumber: number): Promise<{data: SuggestedData, status: number}> {
+  let url = "/api/getSuggestedData";
+  
+  if (exampleNumber !== 0) {
+    const params = new URLSearchParams({ 
+      example_number: exampleNumber.toString() 
+    });
+    url += `?${params.toString()}`;
+  }
+  const res = await fetchApiProxy(url, {
+
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
   });
-
+  
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.error || "Could not get suggested Job Data");
   }
 
-  return res.json();
+  const data = await res.json();
+
+  return {data: data, status: res.status};
 }
 
 export async function submitJobRequest(params: {
@@ -59,7 +70,7 @@ export async function submitJobRequest(params: {
   job_name: string;
   email?: string;
   alternative_conformations?: number;
-}) {
+}): Promise<{ data: any; status: number }> {
   console.log("[submitJobRequest] sending to /api/submitRequest", params);
 
   const headers: Record<string, string> = {};
@@ -88,12 +99,55 @@ export async function submitJobRequest(params: {
     body,
   });
 
+  const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || "Could not submit job request");
   }
 
-  return res.json();
+  return { data, status: res.status };
+}
+
+export async function submitExampleJobRequest(params: {
+  fasta_raw?: string;
+  fasta_file?: File;
+  email?: string;
+  example_number: number;
+}): Promise<{ data: any; status: number }> {
+  console.log("[submitExampleJobRequest] sending to /api/submitExampleRequest", params);
+
+  const headers: Record<string, string> = {};
+  let body: BodyInit;
+
+  if (params.fasta_file) {
+    const form = new FormData();
+    form.append("fasta_file", params.fasta_file, params.fasta_file.name);
+    if (params.fasta_raw) form.append("fasta_raw", params.fasta_raw);
+    if (params.email) form.append("email", params.email);
+    if (params.example_number !== 0) form.append("example_number", String(params.example_number));
+    body = form;
+  } else {
+    const json: any = { ...params };
+    delete json.fasta_file;
+    body = JSON.stringify(json);
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetchApiProxy("/api/submitExampleRequest", {
+    method: "POST",
+    headers,
+    body,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Could not submit job request");
+  }
+
+  const data = await res.json().catch(() => ({}));
+
+  return {data: data, status: res.status}
 }
 
 export async function getResultDetails(params: { uidh: string }) {
@@ -113,10 +167,10 @@ export async function getResultDetails(params: { uidh: string }) {
   const data = await res.json();
   console.log("[getResultDetails] parsed data", data);
 
-  return data;
+  return {data: data, status: res.status};
 }
 
-export async function downloadZip(params: { uidh: string }) {
+export async function downloadZip(params: { uidh: string }): Promise<{ status: number }> {
   console.log("[downloadZip] sending request to proxy", params);
 
   const res = await fetchApiProxy(`/api/downloadZip?uidh=${encodeURIComponent(params.uidh)}`, {
@@ -138,9 +192,11 @@ export async function downloadZip(params: { uidh: string }) {
   a.click();
   a.remove();
   window.URL.revokeObjectURL(url);
+
+  return {status: res.status};
 }
 
-export async function getActiveJobs(params: { page: string }): Promise<any> {
+export async function getActiveJobs(params: { page: string }): Promise<{ data: any; status: number }> {
   console.log("[getActiveJobs] sending request to proxy");
 
   const res = await fetchApiProxy(`/api/getActiveJobs?page=${encodeURIComponent(params.page)}`, { 
@@ -152,10 +208,12 @@ export async function getActiveJobs(params: { page: string }): Promise<any> {
     throw new Error(errorData.error || "Could not fetch active jobs");
   }
 
-  return res.json();
+  const data = await res.json().catch(() => ({}));
+
+  return {data: data, status: res.status}
 }
 
-export async function getFinishedJobs(params: { page: string }): Promise<any> {
+export async function getFinishedJobs(params: { page: string }): Promise<{ data: any; status: number }> {
   console.log("[getFinishedJobs] sending request to proxy");
 
   const res = await fetchApiProxy(`/api/getFinishedJobs?page=${encodeURIComponent(params.page)}`, {
@@ -167,5 +225,7 @@ export async function getFinishedJobs(params: { page: string }): Promise<any> {
     throw new Error(errorData.error || "Could not fetch finished jobs");
   }
 
-  return res.json();
+  const data = await res.json().catch(() => ({}));
+
+  return {data: data, status: res.status}
 }

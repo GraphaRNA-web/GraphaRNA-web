@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { validateRNA, getSuggestedData, submitJobRequest } from "@/lib/api";
+import { useState, useEffect } from 'react';
+import { validateRNA, getSuggestedData, submitJobRequest, submitExampleJobRequest } from "@/lib/api";
 import { useRouter } from "next/navigation";  
 import Modal from '../components/Modal';
 import Slider from '../components/Slider';
@@ -12,10 +12,36 @@ import TextArea from '../components/TextArea';
 import CustomCheckbox from '../components/CustomCheckbox';
 import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
+import ServerErrorModal from '../components/ServerErrorModal';
 import ValidationWarningModal from "../components/ValidationWarningModal";
-
+import FileDisplay from '../components/FileDisplay';
+const getEnvExample = (val: string | undefined) => {
+  if (!val) return "";
+  return val.replace(/\\n/g, "\n");
+};
 
 export default function SubmitJob() {
+  const [examples, setExamples] = useState<string[]>(["", "", ""]);
+  
+  useEffect(() => {
+    fetch('/api/config')
+      .then((res) => {
+        if (!res.ok) throw new Error("Config fetch failed");
+        return res.json();
+      })
+      .then((data) => {
+        const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
+        
+        setExamples([
+          fixNewlines(data.rnaExample1),
+          fixNewlines(data.rnaExample2),
+          fixNewlines(data.rnaExample3)
+        ]);
+      })
+      .catch((err) => console.error("Failed to load runtime config:", err));
+  }, []);
+
+
   const router = useRouter();
   const [inputFormat, setInputFormat] = useState("Text");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -29,13 +55,25 @@ export default function SubmitJob() {
   const [approves, setApproves] = useState<string[]>([]);
   const [autoSeed, setAutoSeed] = useState(true);
   const [autoName, setAutoName] = useState(true);
-  const [seed, setSeed] = useState(0);
-  const [jobname, setJobname] = useState("job-155555");
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const randomSeed = Math.floor(Math.random() * 90000) + 10000;
+  const randomJob = Math.floor(Math.random() * 900) + 100;
+  const [seed, setSeed] = useState<number | "">(randomSeed);
+  const [jobname, setJobname] = useState(`job-${day}${month}${year}-${randomJob}`);
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
   const [structures, setStructures] = useState<string[]>([""]);
   const [mismatchingBrackets, setMismatchingBrackets] = useState<number[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<[number, number][]>([]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+  const [selectedExampleNumber, setSelectedExampleNumber] = useState<number>(0);
+  const [displayCheckbox, setDisplayCheckbox] = useState(true);
+  const [server500, setServer500] = useState(false);
+
 
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
@@ -55,6 +93,37 @@ export default function SubmitJob() {
   return newErrors.length === 0;
 };
 
+const handleFormatChange = (newFormat: string) => {
+    setInputFormat(newFormat);
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
+    setMismatchingBrackets([]);
+    setIncorrectPairs([]);
+    
+    if (newFormat !== "File") {
+      setUploadedFile(null);
+      setText("");
+    }
+  };
+
+const handleFileUploaded = async (file: File) => {
+    setUploadedFile(file);
+    setIsFileModalOpen(false);
+
+    try {
+      const fileContent = await file.text();
+      setText(fileContent);
+    } catch (e) {
+      setErrors(["Error reading file content."]);
+      setText("");
+    }
+    
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
+  };
+
 
 const handleStructureChange = (index: number, newValue: string) => {
   const updated = [...structures];
@@ -73,7 +142,7 @@ const removeStructure = (index: number) => {
 type ValidationResult = "error" | "warning" | "ok";
 
 const validateStructure = async (fromNext = false) : Promise<ValidationResult> => {
-  if (inputFormat === "Text") {
+  if (inputFormat === "Text" || inputFormat === "File") {
     const trimmedText = text;
     console.log("[validateStructure] start", { inputFormat, text });
 
@@ -89,7 +158,17 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
     try {
       console.log("[validateStructure] calling validateRNA...");
-      const result = await validateRNA({fasta_raw: trimmedText});
+      const { result, status} = await validateRNA({fasta_raw: trimmedText});
+      console.log(result, status);
+
+      if(status >= 400 && status < 500){
+        setErrors([result.error]);
+        return "error";
+      }
+      else if(status >= 500){
+        setServer500(true);
+        return "error";
+      }
 
       setMismatchingBrackets(result["Mismatching Brackets"] || []);
       setIncorrectPairs(result["Incorrect Pairs"] || []);
@@ -121,11 +200,12 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       // jeśli brak błędów i brak warningów → approve
       if (!result["Fix Suggested"]) {
         setText(result["Validated RNA"])
-        setApproves(["Validation passed successfully. Input was parsed to the engine's format."]);
+        setApproves(["The structure is valid. You can now proceed with the job."]);
       }
 
       return "ok";
     } catch (err: any) {
+      console.error("Validation failed:", err);
       setErrors([err.message || "Server validation error"]);
       return "error";
     }
@@ -160,10 +240,19 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
       try {
         console.log("[validateStructure] calling validateRNA...");
-        const result = await validateRNA({fasta_raw: normalized});
+        const { result, status} = await validateRNA({fasta_raw: normalized});
 
         setMismatchingBrackets(result["Mismatching Brackets"] || []);
         setIncorrectPairs(result["Incorrect Pairs"] || []);
+
+        if(status >= 400 && status < 500){
+          setErrors([result.error]);
+          return "error";
+        }
+        else if(status >= 500){
+          setServer500(true);
+          return "error";
+        }
 
         if (!result["Validation Result"]) {
           const errorList: string[] = [];
@@ -187,12 +276,13 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
         if (!result["Fix Suggested"]) {
           setText(result["Validated RNA"])
           setApproves([
-            "Validation passed successfully. Input was parsed to the engine's format.",
+            "The structure is valid. You can now proceed with the job.",
           ]);
         }
 
         return "ok";
       } catch (err: any) {
+        console.error("Validation failed:", err);
         setErrors([err.message || "Server validation error"]);
         return "error";
       }
@@ -201,8 +291,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       return "error";
     }
   }
-
-  return "ok"; // dla File brak walidacji
+  return "error" // that should be unreachable in normal circumstances
 };
 
 const handleValidate = async () => {
@@ -213,58 +302,131 @@ const handleValidate = async () => {
 };
 
 const handleNext = async () => {
+  setErrors([]);
   if (currentStep === 0) {
     const res = await validateStructure(true);
+    console.log(res);
     if (res === "warning") {
       setShowValidationNext(true)
     } else if (res === "ok") {
-      goNext();
+      goNextWithGetSuggestedData();
     }
   } else {
     goNext();
   }
 };
+const [hasData, setHasData] = useState(false);
+// const [exampleMode, setExampleMode] = useState(false);
 
-const goNext = async () => {
-  setCurrentStep((prev) => prev + 1);
+const goNextWithGetSuggestedData = async () => {
+  let effectiveExampleNumber = selectedExampleNumber;
+
+  const isExampleValid =examples.includes(text);
+
+  if  (isExampleValid){
+    effectiveExampleNumber = examples.findIndex(ex => ex === text) + 1;
+    setDisplayCheckbox(false);
+    setSelectedExampleNumber(effectiveExampleNumber);
+  }
+  else {
+    setDisplayCheckbox(true);
+    setSelectedExampleNumber(0);
+    effectiveExampleNumber = 0;
+  }
+
   try {
-    const data = await getSuggestedData();
+    const {data, status} = await getSuggestedData(effectiveExampleNumber);
+    if(status >= 500){
+      setServer500(true);
+      return "error";
+    }
     if (typeof data?.seed === "number") setSeed(data.seed);
     if (data?.job_name) setJobname(data.job_name);
+    if (isExampleValid){
+        setAlternativeConformations(1)
+      }
+    
     setAutoSeed(true);
     setAutoName(true);
+    setHasData(true);
   } catch (e) {
-    setSeed(34404);
-    setJobname("job-150625");
-    setAutoSeed(true);
-    setAutoName(true);
+    setHasData(true);
   }
+  setCurrentStep((prev) => prev + 1);
+};
+
+  const goNext = async () => {
+    setCurrentStep((prev) => prev + 1);
   };
 
-
   const handleSubmit = async () => {
-    if (email === "" || emailValidator(email)){
-      setCurrentStep(prev => prev + 1)
-      try {
-        const response = await submitJobRequest({
-          fasta_raw: text,
-          seed: seed,
-          job_name: jobname,
-          email: email,
-          alternative_conformations: alternativeConformations,
-        });
-
-        console.log("[handleSubmit] job created:", response);
-        setApproves([`Job '${response.job_name}' submitted successfully.`]);
-        setCurrentStep(prev => prev + 1);
-        router.push(`/results?uidh=${response.job_hash}`);
-      } catch (err: any) {
-        console.error("[handleSubmit] error", err);
-        setErrors([err.message]);
+    if (uploadedFile === null && selectedExampleNumber !== 0){
+      if ((!examples.includes(text))){
+        setSelectedExampleNumber(0);
       }
     }
+    setErrors([]);
+
+    if (seed === null || seed === "") {
+      setErrors(["Seed cannot be empty."]);
+      return;
+    }
+    if (Number.isNaN(Number(seed))){
+      setErrors(["Seed need to be a number."]);
+      return
+    }
+    if (email !== "" && !emailValidator(email)) {
+      setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
+      return;
+    }
     else{
-        setErrors(["Invalid email address. Valid e-mail can contain only latin letters, numbers, '@' and '.'"])
+      setCurrentStep(prev => prev + 1)
+      if  (selectedExampleNumber === 0){
+        try {
+          const {data: response, status} = await submitJobRequest({
+            fasta_raw: text,
+            seed: seed,
+            job_name: jobname,
+            email: email,
+            alternative_conformations: alternativeConformations,
+          });
+
+          if(status >= 500){
+            setServer500(true);
+            return "error";
+          }
+
+          console.log("[handleSubmit] job created:", response);
+          setApproves([`Job '${response.job_name}' submitted successfully.`]);
+          setCurrentStep(prev => prev + 1);
+          router.push(`/results?uidh=${response.uidh}`);
+        } catch (err: any) {
+          console.error("[handleSubmit] error", err);
+          setErrors([err.message]);
+        }
+      }
+      else{
+        try {
+          const {data: response, status} = await submitExampleJobRequest({
+            fasta_raw: text,
+            email: email,
+            example_number: selectedExampleNumber,
+          });
+
+          if(status >= 500){
+            setServer500(true);
+            return "error";
+          }
+
+          console.log("[handleSubmit] job created:", response);
+          setApproves([`Job '${response.job_name}' submitted successfully.`]);
+          setCurrentStep(prev => prev + 1);
+          router.push(`/results?uidh=${response.uidh}`);
+        } catch (err: any) {
+          console.error("[handleSubmit] error", err);
+          setErrors([err.message]);
+        }
+      }
     }
   }
 
@@ -272,17 +434,30 @@ const goNext = async () => {
     setCurrentStep(prev => prev - 1);
   }
 
-  const handleExampleClick1 = async () => {
-      setText("CCGAGUAGGUA\n((.....))..");
-  };
+const handleExampleClick1 = async () => {
+    setText(examples[0]);
+    setSelectedExampleNumber(1);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);
+};
 
-  const handleExampleClick2 = async () => {
-      setText("GACUUAUAGAU UGAGUCC\n(((((..(... )))))).");
-  };
+const handleExampleClick2 = async () => {
+    setText(examples[1]);
+    setSelectedExampleNumber(2);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);
+};
 
-  const handleExampleClick3 = async () => {
-      setText("UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)");
-  };
+const handleExampleClick3 = async () => {
+    setText(examples[2]);
+    setSelectedExampleNumber(3);
+    setAutoSeed(true);
+    setAutoName(true);
+    setDisplayCheckbox(false);
+};
+
 
   return (
     <div className='submit-jobs-page'>
@@ -330,7 +505,7 @@ const goNext = async () => {
                 <Slider 
                   options={["Interactive", "Text", "File"]}
                   selectedOption={inputFormat}
-                  onChange={setInputFormat}
+                  onChange={handleFormatChange}
                 />
             </div>
             
@@ -380,19 +555,19 @@ const goNext = async () => {
                   <p>+</p>
                 </div>
                 {errors.length > 0 && (
-                    <div className="sjp-errors" style={{marginTop: '20px'}} >
+                    <div className="sjp-errors" >
                       <MessageBox type="error" messages={errors} />
                     </div>
                 )}
 
                 {warnings.length > 0 && (
-                    <div className="sjp-warnings" style={{marginTop: '20px'}}>
+                    <div className="sjp-warnings">
                       <MessageBox type="warning" messages={warnings} />
                     </div>
                 )}
 
                 {approves.length > 0 && (
-                    <div className="sjp-approves" style={{marginTop: '20px'}}>
+                    <div className="sjp-approves">
                       <MessageBox type="approve" messages={approves} />
                     </div>
                 )}
@@ -446,19 +621,19 @@ const goNext = async () => {
                 />
 
                 {errors.length > 0 && (
-                  <div className="sjp-errors" style={{marginTop: '20px'}} >
+                  <div className="sjp-errors" >
                     <MessageBox type="error" messages={errors} />
                   </div>
                 )}
 
                 {warnings.length > 0 && (
-                  <div className="sjp-warnings" style={{marginTop: '20px'}}>
+                  <div className="sjp-warnings">
                     <MessageBox type="warning" messages={warnings} />
                   </div>
                 )}
 
                 {approves.length > 0 && (
-                  <div className="sjp-approves" style={{marginTop: '20px'}}>
+                  <div className="sjp-approves">
                     <MessageBox type="approve" messages={approves} />
                   </div>
                 )}
@@ -466,39 +641,72 @@ const goNext = async () => {
             )}
 
             {inputFormat === "File" && (
-              <div className='sjp-int-gray-box'>
-                <div className='sjp-hint-upload'>
-                  <div className='sjp-file-hint'>
-                    <p className='sjp-hint-title'>Format hint</p>
-                    <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
-                  </div>
-                  <Modal/>
+            <div className='sjp-int-gray-box'>
+              <div className='sjp-hint-upload'>
+                <div className='sjp-file-hint'>
+                  <p className='sjp-hint-title'>Format hint</p>
+                  <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
                 </div>
+                
+                {!uploadedFile ? (
+                  <Button
+                    color="primary"
+                    variant="filled"
+                    fontSize="16px"
+                    width="200px"
+                    height="40px"
+                    action={() => setIsFileModalOpen(true)}
+                    icon={<img src="icons/white_upload.svg" alt="Upload Icon" style={{ height: 24, width: 24 }} />}
+                    label="Upload File"
+                  />
+                ) : (
+                  <FileDisplay 
+                    fileName={uploadedFile.name}
+                    onEdit={() => setIsFileModalOpen(true)}
+                  />
+                )}
               </div>
-            )}
 
-            {(inputFormat === "Text" || inputFormat === "Interactive") && (
+              <Modal 
+                isOpen={isFileModalOpen}
+                onClose={() => setIsFileModalOpen(false)}
+                onFileUploaded={handleFileUploaded}
+                setSelectedExampleNumber={setSelectedExampleNumber}
+                />
+
+              {errors.length > 0 && (
+                <div className="sjp-errors" >
+                  <MessageBox type="error" messages={errors} />
+                </div>
+              )}
+
+              {approves.length > 0 && (
+                <div className="sjp-approves">
+                  <MessageBox type="approve" messages={approves} />
+                </div>
+              )}
+            </div>
+          )}
               <div className='sjp-buttons-section'>
                 <Button
                   color='primary'
-                  variant='filled'
-                  width='160px'
-                  height='40px'
-                  label='Next'
-                  fontSize='16px'
-                  action={handleNext}
-                />
-                <Button
-                  color='primary'
                   variant='outlined'
-                  width='230px'
+                  width='277px'
                   height='40px'
                   label='Validate structure'
                   action={handleValidate}
                   fontSize='16px'
                 />
+                <Button
+                  color='primary'
+                  variant='filled'
+                  width='201px'
+                  height='40px'
+                  label='Next'
+                  fontSize='16px'
+                  action={handleNext}
+                />
               </div>
-            )}
           </div>
         )}
 
@@ -513,47 +721,63 @@ const goNext = async () => {
                   You can provide some optional parameters for the calculation process
                 </p>
               </div>
-
+              
               <div className='sjp-params-fields'>
                 {/* --- SEED --- */}
                   <div className='sjp-seed-name-param'>
                     <p>Seed <span>{autoSeed ? seed : ""}</span></p>
-                    <CustomCheckbox
-                      label="auto"
-                      size={45}
-                      onChange={setAutoSeed}
-                    />
+                      <CustomCheckbox
+                        label="auto"
+                        size={45}
+                        checked={autoSeed}
+                        onChange={setAutoSeed}
+                        isActive={displayCheckbox}
+                      />
                   </div>
-                  {!autoSeed && (
-                    <TextArea
-                      rows={1}
-                      value={seed.toString()}
-                      onChange={(val) => setSeed(Number(val))}
-                      placeholder="Enter custom seed"
-                    />
-                  )}
+                    {!autoSeed && selectedExampleNumber === 0 && (
+                      <TextArea
+                        rows={1}
+                        value={seed === null ? "" : seed.toString()}
+                        onChange={(val) => {
+                          if (val === "") {
+                            setSeed("");
+                            return;
+                          }
+                          if (/^\d+$/.test(val)) {
+                            setSeed(Number(val));
+                          }
+                        }}
+                        placeholder="Enter custom seed"
+                      />
+                    )}
+
 
                   {/* --- JOB NAME --- */}
                   <div className='sjp-seed-name-param'>
-                    <p>Name <span>{autoName ? jobname : "job"}</span></p>
+                    <p>Name <span>{autoName ? jobname : ""}</span></p>
                     <CustomCheckbox
-                      label="auto"
-                      size={45}
-                      onChange={setAutoName}
-                    />
+                        label="auto"
+                        size={45}
+                        checked={autoName}
+                        onChange={setAutoName}
+                        isActive={displayCheckbox}
+                      />
                   </div>
-                  {!autoName && (
-                    <TextArea
-                      rows={1}
-                      value={jobname}
-                      onChange={setJobname}
-                      placeholder="Enter custom job name"
-                    />
-                  )}
+                    {!autoName && selectedExampleNumber === 0 && (
+                      <TextArea
+                        rows={1}
+                        value={jobname}
+                        onChange={setJobname}
+                        placeholder="Enter custom job name"
+                      />
+                    )}
+
 
 
                 {/* --- INTEGER FIELD --- */}
                 <div className='sjp-alt-param'>
+                 {displayCheckbox && (
+                  <div>
                   <p>#Alternative conformations</p>
                   <IntegerField
                     min={1}
@@ -562,20 +786,22 @@ const goNext = async () => {
                     height="50px"
                     defaultValue={alternativeConformations}
                     onChange={(val) => setAlternativeConformations(val)}
+                    isActive={displayCheckbox}
                   />
+                  </div>
+                  )} 
+
+                  {!displayCheckbox && (
+                  <div>
+                    <p>#Alternative conformations <span>{alternativeConformations}</span></p>
+                  </div>
+                  )}
+
                 </div>
               </div>
+              
 
               <div className='sjp-step1-buttons'>
-                <Button
-                  color='primary'
-                  variant='filled'
-                  width='160px'
-                  height='40px'
-                  label='Next'
-                  fontSize='16px'
-                  action={handleNext}
-                />
                 <Button
                   color='primary'
                   variant='outlined'
@@ -584,6 +810,15 @@ const goNext = async () => {
                   label='Previous'
                   fontSize='16px'
                   action={handlePrev}
+                />
+                <Button
+                  color='primary'
+                  variant='filled'
+                  width='160px'
+                  height='40px'
+                  label='Next'
+                  fontSize='16px'
+                  action={handleNext}
                 />
               </div>
             </div>
@@ -638,21 +873,21 @@ const goNext = async () => {
               <div className='sjp-step1-buttons'>
                 <Button
                   color='primary'
-                  variant='filled'
-                  width='160px'
-                  height='40px'
-                  label='Submit'
-                  fontSize='16px'
-                  action={handleSubmit}
-                />
-                <Button
-                  color='primary'
                   variant='outlined'
                   width='230px'
                   height='40px'
                   label='Previous'
                   fontSize='16px'
                   action={handlePrev}
+                />
+                <Button
+                  color='primary'
+                  variant='filled'
+                  width='160px'
+                  height='40px'
+                  label='Submit'
+                  fontSize='16px'
+                  action={handleSubmit}
                 />
               </div>
             </div>
@@ -664,6 +899,12 @@ const goNext = async () => {
             <p>{email} {text} {seed} {jobname} {structures}</p>
           </div>
         )}
+
+        <ServerErrorModal
+          isOpen={server500}
+          onClose={() => setServer500(false)}
+        />
+
         <ValidationWarningModal
           isOpen={showValidation || showValidationNext}
           onClose={() => {
@@ -672,7 +913,10 @@ const goNext = async () => {
           }}
           onConfirm={() => {
             setText(correctedText);
-
+              if (!examples.includes(correctedText)) {
+                setSelectedExampleNumber(0);
+                setDisplayCheckbox(true);
+              }
             if (inputFormat === "Interactive") {
               const blocks = correctedText
                 .split("\n>")

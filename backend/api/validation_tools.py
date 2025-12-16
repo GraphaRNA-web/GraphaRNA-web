@@ -1,5 +1,6 @@
 from collections import deque
 from django.conf import settings
+from webapp.models import SeparatorChoices
 
 
 class RnaValidator:
@@ -13,12 +14,8 @@ class RnaValidator:
         ]
         self.parsingResult: bool = True
         self.errorList: list[str] = []
+        self.strandSeparator: str | None = None
 
-        """# for debugging purpose
-        self.validBrackets: str = "()<>[]{}AaBbCcDd." + " "
-        self.validNucleotides: str = "AUGC" + " "
-        self.validPairs: list[str] = ["GC", "CG", "AU", "UA", "GU", "UG"]
-"""
         self.FastaFileParse()
 
     def FastaFileParse(self) -> None:
@@ -27,11 +24,10 @@ class RnaValidator:
         """
         nucleotides: str = ""
         dotBracket: str = ""
-
         inputStructureSplit: list[str] = [
-            item
+            item.strip()
             for item in self.fasta_raw.split("\n")
-            if (item != "" and item[0] != "#")
+            if (item.strip() != "" and item[0] != "#")
         ]  # remove empty lines and comments
 
         potentialNameLines: list[str] = inputStructureSplit[::3]
@@ -46,47 +42,89 @@ class RnaValidator:
             containsStrandNames = False
 
         if containsStrandNames:
-            for i in range(0, len(inputStructureSplit), 3):
-                currentStrand: list[str] = inputStructureSplit[i : i + 3]
-                if len(currentStrand) < 3:
-                    self.parsingResult = False
-                    self.errorList.append("Parsing error: Missing Lines")
-                    break
-                if not any(i in self.validBrackets for i in currentStrand[2]) and all(
-                    i in self.validNucleotides for i in currentStrand[2].upper()
-                ):  # verify order of lines in a strand by checking checking characters in dotbracket line (doesn't contain any valid brackets and contains only valid nucleotides)
-                    self.parsingResult = False
-                    self.errorList.append("Parsing error: Wrong line order")
-                    break
-                else:
-                    nucleotides += currentStrand[1]
-                    nucleotides += " "
+            step = 3
+            rna_index = 1
+            dot_index = 2
+        else:
+            step = 2
+            rna_index = 0
+            dot_index = 1
 
-                    dotBracket += currentStrand[2]
-                    dotBracket += " "
-        else:  # no strand names
-            for i in range(0, len(inputStructureSplit), 2):
-                currentStrand = inputStructureSplit[i : i + 2]
-                if len(currentStrand) < 2:
-                    self.parsingResult = False
-                    self.errorList.append("Parsing error: Missing Lines")
-                    break
-                if not any(
-                    i in self.validBrackets for i in currentStrand[1]
-                ):  # verify order of lines in a strand by checking checking characters in dotbracket line
-                    self.parsingResult = False
-                    self.errorList.append("Parsing error: Wrong line order")
-                    break
-                else:
-                    nucleotides += currentStrand[0]
-                    nucleotides += " "
+        for i in range(0, len(inputStructureSplit), step):
+            currentStrand: list[str] = inputStructureSplit[i : i + step]
+            if len(currentStrand) < step:
+                self.parsingResult = False
+                self.errorList.append("Parsing error: Missing Lines")
+                return None
+            if not any(
+                i in self.validBrackets for i in currentStrand[dot_index]
+            ) and all(
+                i in self.validNucleotides for i in currentStrand[dot_index].upper()
+            ):  # verify order of lines in a strand by checking checking characters in dotbracket line (doesn't contain any valid brackets and contains only valid nucleotides)
+                self.parsingResult = False
+                self.errorList.append("Parsing error: Wrong line order")
+                return None
+            if self.strandSeparator is None:
+                for separator in SeparatorChoices:
+                    if (
+                        currentStrand[rna_index].find(separator.value) != -1
+                        and self.strandSeparator is None
+                    ):
+                        self.strandSeparator = separator.value
+                    elif (
+                        currentStrand[rna_index].find(separator.value) != -1
+                        and self.strandSeparator is not None
+                    ):  # different separators found in one strand
+                        self.parsingResult = False
+                        self.errorList.append(
+                            "Parsing error: Mismatching strand separators"
+                        )
+            if self.strandSeparator is None:
+                self.strandSeparator = "N"  # No separator found
 
-                    dotBracket += currentStrand[1]
-                    dotBracket += " "
+            if currentStrand[rna_index].count(
+                self.strandSeparator
+            ) != currentStrand[  # diffrend separator in rna and dotbracket lines
+                dot_index
+            ].count(
+                self.strandSeparator
+            ):
+                self.errorList.append("Parsing error: Mismatching strand separators")
+                self.parsingResult = False
+                return None
+            if any(
+                [
+                    len(pair[0]) != len(pair[1])
+                    for pair in zip(
+                        currentStrand[rna_index].split(self.strandSeparator),
+                        currentStrand[dot_index].split(self.strandSeparator),
+                    )
+                ]
+            ):  # check if all strands are of equal length
+                self.parsingResult = False
+                self.errorList.append("Parsing error: Mismatching strand lengths")
+                return None
 
-        self.parsedStructure: str = (
-            nucleotides.strip().upper().replace("T", "U") + "\n" + dotBracket.strip()
-        )
+            # space as separator (for engine)
+            nucleotides += currentStrand[rna_index]
+            nucleotides += " "
+
+            dotBracket += currentStrand[dot_index]
+            dotBracket += " "
+
+        if self.strandSeparator is not None and self.strandSeparator != "N":
+            sep = self.strandSeparator
+            self.parsedStructure: str = (
+                nucleotides.strip().upper().replace("T", "U").replace(sep, " ")
+                + "\n"
+                + dotBracket.strip().replace(sep, " ")
+            )
+        else:
+            self.parsedStructure = (
+                nucleotides.strip().upper().replace("T", "U")
+                + "\n"
+                + dotBracket.strip()
+            )
 
     def ValidateRna(
         self,
@@ -129,6 +167,23 @@ class RnaValidator:
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
                 "allPairs": [],
+                "strandSeparator": self.strandSeparator,
+            }
+
+        if len(rna.replace(" ", "")) > settings.MAX_RNA_LENGTH:
+            self.errorList.append(
+                f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides"
+            )
+            validationResult = False
+            return {
+                "Validation Result": validationResult,
+                "Error List": self.errorList,
+                "Validated RNA": validatedRna,
+                "Mismatching Brackets": mismatchingBrackets,
+                "Incorrect Pairs": incorrectPairs,
+                "Fix Suggested": fixSuggested,
+                "allPairs": [],
+                "strandSeparator": self.strandSeparator,
             }
         if len(rna) != len(dotBracket):
             self.errorList.append("RNA and DotBracket not of equal lengths")
@@ -166,6 +221,7 @@ class RnaValidator:
                 "Incorrect Pairs": incorrectPairs,
                 "Fix Suggested": fixSuggested,
                 "allPairs": [],
+                "strandSeparator": self.strandSeparator,
             }
 
         (
@@ -199,6 +255,7 @@ class RnaValidator:
             "Incorrect Pairs": incorrectPairs,
             "Fix Suggested": fixSuggested,
             "allPairs": allPairs,
+            "strandSeparator": self.strandSeparator,
         }
 
         # stack check

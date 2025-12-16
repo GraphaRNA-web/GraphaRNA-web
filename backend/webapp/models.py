@@ -20,6 +20,12 @@ class Status(models.TextChoices):
     Error = "E", "Error"
 
 
+class SeparatorChoices(models.TextChoices):
+    SPACE = " ", "Space"
+    HYPHEN = "-", "Hyphen"
+    NONE = "N", "None"
+
+
 class Job(models.Model):
     uid: models.UUIDField = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -28,6 +34,9 @@ class Job(models.Model):
         max_length=settings.UUID_HASH_LENGTH, unique=True, editable=False, null=True
     )
     input_structure: models.FileField = models.FileField()
+    strand_separator: models.CharField = models.CharField(
+        max_length=1, choices=SeparatorChoices
+    )
     seed: models.IntegerField = models.IntegerField()
     job_name: models.CharField = models.CharField(max_length=255)
     email: models.CharField = models.CharField(max_length=255, null=True, blank=True)
@@ -54,6 +63,11 @@ class Job(models.Model):
         if self.input_structure and os.path.isfile(self.input_structure.path):
             self.input_structure.delete(save=False)
         return super().delete(*args, **kwargs)
+
+
+class ExampleStructures(models.Model):
+    id: models.IntegerField = models.IntegerField(primary_key=True)
+    job: models.ForeignKey = models.ForeignKey(Job, on_delete=models.CASCADE)
 
 
 class JobResults(models.Model):

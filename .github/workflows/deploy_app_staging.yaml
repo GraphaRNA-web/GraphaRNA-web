@@ -1,14 +1,19 @@
 name: Deployment
 on:
-    push:
-        branches:
-          - 'Deploy'
-    
+  pull_request:
+    branches:
+      - 'Deploy'
+
+env:
+  REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
+  STAGING_NS: staging-${{ github.sha }}
 
 jobs:
     build-scan-push:
         name: Build scan and push images
         runs-on: ubuntu-latest
+        outputs:
+          image_tag: ${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
         permissions:
             contents: read
             packages: write
@@ -18,112 +23,230 @@ jobs:
             pull-requests: write
 
         steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+          - name: Free Disk Space (Ubuntu)
+            uses: jlumbroso/free-disk-space@main
+            with:
+              tool-cache: false
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+              android: true
+              dotnet: true
+              haskell: true
+              large-packages: true
+              docker-images: false
+              swap-storage: true
 
-            - name: Log in to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                username: ${{ secrets.DOCKERHUB_USERNAME }}
-                password: ${{ secrets.DOCKERHUB_TOKEN }}
+          - name: Checkout repository
+            uses: actions/checkout@v4
 
-            - name: Determine Docker Image Tag (SHA)
-              id: determine_tag
-              run: |
-                TAG_VALUE="${GITHUB_SHA::7}"
-                echo "Using commit SHA for image tag: $TAG_VALUE"
-                echo "IMAGE_TAG_SHA=$TAG_VALUE" >> $GITHUB_OUTPUT
+          - name: Set up Docker Buildx
+            uses: docker/setup-buildx-action@v3
 
-            - name: TruffleHog OSS 
-              id: trufflehog 
-              uses: trufflesecurity/trufflehog@main
-              continue-on-error: true 
-              with: 
-                path: ./ 
-                base: ${{ github.event.before }}
-                head: ${{ github.sha }}
-                extra_args: --debug --only-verified
+          - name: Log in to Docker Hub
+            uses: docker/login-action@v3
+            with:
+              username: ${{ secrets.DOCKERHUB_USERNAME }}
+              password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+          - name: Determine Docker Image Tag (SHA)
+            id: determine_tag
+            run: |
+              TAG_VALUE="${GITHUB_SHA::7}"
+              echo "Using commit SHA for image tag: $TAG_VALUE"
+              echo "IMAGE_TAG_SHA=$TAG_VALUE" >> $GITHUB_OUTPUT
+
+          - name: TruffleHog OSS 
+            id: trufflehog 
+            uses: trufflesecurity/trufflehog@main
+            continue-on-error: true 
+            with: 
+              path: ./ 
+              base: ${{ github.event.before }}
+              head: ${{ github.sha }}
+              extra_args: --debug --only-verified
+          
+          - name: Scan Backend Dependencies (pip-audit)
+            run: |
+              pip install pip-audit
+              pip-audit -r backend/requirements.txt
+
+          - name: Scan Frontend Dependencies (npm audit)
+            run: |
+              cd frontend
+              npm install --package-lock-only
+              npm audit --audit-level=high
+              cd ..
+
+          - name: Build backend image
+            run: |
+              docker build \
+                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
+                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest \
+                --file backend/Dockerfile \
+                ./backend
+
+          - name: Build frontend image
+            run: |
+              docker build \
+                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
+                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest \
+                --file frontend/Dockerfile \
+                ./frontend
+          
+          - name: Build Test Image
+            uses: docker/build-push-action@v5
+            with:
+              context: .
+              file: tests/Dockerfile
+              push: false
+              tags: ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-tests:${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+              cache-from: type=gha
+              cache-to: type=gha,mode=max
+              load: true
+
+          - name: Scan backend image
+            uses: aquasecurity/trivy-action@master
+            with:
+              image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}'
+              scan-type: image
+              format: table
+              severity: HIGH,CRITICAL
+
+          - name: Scan frontend image
+            uses: aquasecurity/trivy-action@master
+            with:
+              image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}'
+              scan-type: image
+              format: table
+              severity: HIGH,CRITICAL
+
+          - name: Push Backend Image
+            run: |
+              docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+              docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest
+
+          - name: Push Frontend Image
+            run: |
+                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest
+
+          - name: Push Test Image
+            run: |
+              docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-tests:${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
             
-            - name: Scan Backend Dependencies (pip-audit)
-              run: |
-                pip install pip-audit
-                pip-audit -r backend/requirements.txt
 
-            - name: Scan Frontend Dependencies (npm audit)
-              run: |
-                cd frontend
-                npm install --package-lock-only
-                npm audit --audit-level=high
-                cd ..
+    staging-and-test:
+      name: Deploy to staging server and run tests
+      needs: build-scan-push
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repo files
+          uses: actions/checkout@v4
 
-            - name: Build backend image
-              run: |
-                docker build \
-                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
-                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest \
-                  --file backend/Dockerfile \
-                  ./backend
+        - name: Copy Helm charts to the server
+          uses: appleboy/scp-action@master
+          with:
+            host: ${{ secrets.SSH_IP }}
+            username: ${{ secrets.SSH_USER }}
+            password: ${{ secrets.SSH_PASSWD }}
+            port: ${{ secrets.SERVER_PORT || 22 }}
+            source: "GraphaRNA-web"
+            target: "/tmp/deploy-${{ github.sha }}"
 
-            - name: Build frontend image
-              run: |
-                docker build \
-                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
-                  --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest \
-                  --file frontend/Dockerfile \
-                  ./frontend
+        - name: Deploy & Test using SSH
+          uses: appleboy/ssh-action@master
+          env:
+            TAG: ${{ needs.build-scan-push.outputs.image_tag }}
+          with:
+            host: ${{ secrets.SSH_IP }}
+            username: ${{ secrets.SSH_USER }}
+            password: ${{ secrets.SSH_PASSWD }}
+            port: ${{ secrets.SERVER_PORT || 22 }}
+            envs: STAGING_NS, REGISTRY, TAG
+            script: |
+              set -e
 
-            - name: Scan backend image
-              uses: aquasecurity/trivy-action@master
-              with:
-                image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}'
-                scan-type: image
-                format: table
-                severity: HIGH,CRITICAL
+              TAG="${{ needs.build-scan-push.outputs.image_tag }}"
+              if [ -z "$TAG" ]; then
+                echo "ERROR: TAG variable is empty!"
+                exit 1
+              fi
 
-            - name: Scan frontend image
-              uses: aquasecurity/trivy-action@master
-              with:
-                image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}'
-                scan-type: image
-                format: table
-                severity: HIGH,CRITICAL
+              CHART_PATH="/tmp/deploy-${{ github.sha }}/GraphaRNA-web"
+              
+              echo "--- 1. Clean up potential leftovers ---"
+              kubectl delete ns $STAGING_NS --ignore-not-found
 
-            - name: Push Backend Image
-              run: |
-                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
-                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest
+              echo "--- 2. Create Staging Namespace ---"
+              kubectl create ns $STAGING_NS
 
-            - name: Push Frontend Image
-              run: |
-                 docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
-                 docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest
-            
+              echo "--- 3. Create generic secrets ---"
+              kubectl create secret generic backend-secret -n $STAGING_NS \
+                --from-literal=DJANGO_SECRET_KEY=django_secret_key \
+                --from-literal=EMAIL_HOST_PASSWORD=nothing \
+                --from-literal=EMAIL_HOST_USER=nothing \
+                --from-literal=DATABASE_PASSWORD=admin \
+                --from-literal=DATABASE_USERNAME=admin
+              kubectl create secret generic postgres-secret -n $STAGING_NS \
+                --from-literal=POSTGRES_DB=dockerdjango \
+                --from-literal=POSTGRES_PASSWORD=admin \
+                --from-literal=POSTGRES_USER=admin
+              kubectl create secret generic rabbitmq-secret -n $STAGING_NS \
+                --from-literal=CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672// \
+                --from-literal=PASSWORD=guest \
+                --from-literal=USER=guest
 
-    #deploy to host server (Only possible after we have a server to deploy to :))
-    # deploy-to-server:
-    #   name: Deploy to staging server
-    #   runs-on: ubuntu-latest
+              echo "--- 4. Install Helm Deployment"
+              helm upgrade --install grapharna-staging $CHART_PATH \
+                --namespace $STAGING_NS \
+                --set backend.image=$REGISTRY/grapharna-web:backend-$TAG \
+                --set frontend.image=$REGISTRY/grapharna-web:frontend-$TAG \
+                --values $CHART_PATH/values_staging.yaml \
+                --wait --timeout 5m
 
-    #   steps:
-    #     - name: Deploy using SSH
-    #       uses: appleboy/ssh-action@master
-    #       with:
-    #         host: ${{ secrets.SERVER_HOST }}
-    #         username: ${{ secrets.SERVER_USERNAME }}
-    #         key: ${{ secrets.SERVER_SSH_KEY }}
-    #         port: ${{ secrets.SERVER_PORT || 22 }}
-    #         script: |
-    #           cd /GraphaRNA-web
-    #           echo "Pulling images"
-    #           docker compose pull backend frontend grapharna-engine
-    #           echo "Restarting containers"
-    #           docker compose up -d --remove-orphans
-    #           echo "Cleaning up old images..."
-    #           docker image prune -f
-    #           echo "Done!"
+              echo "--- 5. Run Tests (K8s Job) ---"
+              cat <<EOF | kubectl apply -f -
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                name: test-runner
+                namespace: $STAGING_NS
+              spec:
+                backoffLimit: 0
+                template:
+                  spec:
+                    containers:
+                    - name: runner
+                      image: $REGISTRY/grapharna-tests:$TAG
+                      env:
+                      - name: FRONTEND_URL
+                        value: "http://frontend-svc:80"
+                      - name: BACKEND_URL
+                        value: "http://backend-svc:8000"
+                      - name: FRONTEND_HOST
+                        value: "http://frontend-svc:80"
+                      command: ["/bin/bash", "-c"]
+                      args:
+                        - |
+                          echo "Running E2E..."
+                          cd /tests/playwright
+
+                          export BASE_URL="http://frontend-svc:80"
+                          npx playwright test
+                          
+                          echo "Running Load Tests..."
+                          cd /tests
+                          export FRONTEND_HOST="http://frontend-svc:80"
+                          python3 -m locust -f load_tests/locustfile.py --headless -u 10 -r 2 -t 2m --host http://backend-svc:8000 --exit-code-on-error 1
+                    restartPolicy: Never
+              EOF
+              
+              echo "Waiting for tests..."
+              kubectl wait --for=condition=complete job/test-runner -n $STAGING_NS --timeout=10m
+
+              echo "--- 6. Cleanup Staging ---"
+              helm uninstall grapharna-staging -n $STAGING_NS
+              kubectl delete ns $STAGING_NS
+              rm -rf "/tmp/deploy-${{ github.sha }}"
 
 
 

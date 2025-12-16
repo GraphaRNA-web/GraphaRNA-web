@@ -7,19 +7,26 @@ interface CustomCheckboxProps {
   checked?: boolean;
   onChange?: (checked: boolean) => void;
   size?: number;
+  /**
+   * If false, the checkbox is locked in the 'checked' state and cannot be toggled.
+   * Defaults to true.
+   */
+  isActive?: boolean; 
 }
 
 const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
   label,
   checked,
   onChange,
-  size = 24
+  size = 24,
+  isActive = true // Default to true 
 }) => {
   const [internalChecked, setInternalChecked] = useState(true);
   const isControlled = typeof checked === 'boolean';
-  const currentChecked = isControlled ? checked : internalChecked;
+  const currentChecked = !isActive ? true : (isControlled ? checked : internalChecked);
 
   const handleClick = () => {
+    if (!isActive) return;
     const newChecked = !currentChecked;
     if (!isControlled) {
       setInternalChecked(newChecked);
@@ -36,6 +43,8 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
+        opacity: isActive ? 1 : 0.6, 
+        cursor: isActive ? 'pointer' : 'not-allowed'
       }}
     >
       {label && (
@@ -44,7 +53,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
             color: textColor,
             fontSize: '20px',
             fontWeight: 600,
-            transition: 'color 0.3s ease', // animacja koloru tekstu
+            transition: 'color 0.3s ease'
           }}
         >
           {label}
@@ -55,7 +64,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
         alt={currentChecked ? 'Checked' : 'Unchecked'}
         width={size}
         height={size}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: 'inherit' }}
         onClick={handleClick}
       />
     </div>

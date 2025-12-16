@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from unittest.mock import MagicMock, mock_open, patch
 from django.test import TestCase
+from django.conf import settings
 from rest_framework.test import APIClient
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,6 +17,163 @@ import zipfile
 import io
 import math
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
+
+
+class ProcessExampleRequestDataTests(TestCase):
+    def setUp(self) -> None:
+        self.client: APIClient = APIClient()
+        self.url: str = reverse("processExampleRequestData")
+
+        self.valid_payload: Dict[str, Any] = {
+            "fasta_raw": ">example_req\nAGC UUU\n(.. ..)",
+            "email": "test@example.com",
+            "example_number": 1,
+        }
+
+        self.patcher_example_structs = patch("api.views.ExampleStructures.objects")
+        self.patcher_job = patch("api.views.Job.objects")
+
+        self.patcher_open = patch("builtins.open", mock_open())
+        self.patcher_makedirs = patch("os.makedirs")
+        self.patcher_relpath = patch(
+            "os.path.relpath", return_value="mocked/path/file.dotseq"
+        )
+
+        self.patcher_task_engine = patch("webapp.tasks.run_grapharna_task.delay")
+        self.patcher_task_email = patch("webapp.tasks.send_email_task.delay")
+        self.patcher_validator = patch("api.views.RnaValidator", autospec=True)
+
+        self.mock_example_objects = self.patcher_example_structs.start()
+        self.mock_job_objects = self.patcher_job.start()
+        self.mock_open = self.patcher_open.start()
+        self.mock_makedirs = self.patcher_makedirs.start()
+        self.mock_relpath = self.patcher_relpath.start()
+        self.mock_task_engine = self.patcher_task_engine.start()
+        self.mock_task_email = self.patcher_task_email.start()
+
+        self.mock_validator_class = self.patcher_validator.start()
+        self.mock_validator_instance = self.mock_validator_class.return_value
+
+    def tearDown(self) -> None:
+        self.patcher_example_structs.stop()
+        self.patcher_job.stop()
+        self.patcher_open.stop()
+        self.patcher_makedirs.stop()
+        self.patcher_relpath.stop()
+        self.patcher_task_engine.stop()
+        self.patcher_task_email.stop()
+        self.patcher_validator.stop()
+
+    def test_existing_example_returns_uid(self) -> None:
+        mock_job_instance = MagicMock(spec=Job)
+        mock_job_instance.hashed_uid = "mock_hash_123"
+
+        mock_example_instance = MagicMock()
+        mock_example_instance.job = mock_job_instance
+
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = mock_example_instance
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        response: Response = self.client.post(
+            self.url, self.valid_payload, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["uidh"], "mock_hash_123")
+        self.assertTrue(response.data["success"])
+
+        self.mock_example_objects.filter.assert_called_with(id=1)
+        self.mock_job_objects.create.assert_not_called()
+
+        self.mock_task_engine.assert_not_called()
+        self.mock_task_email.assert_called_once()
+
+    def test_create_new_example_success(self) -> None:
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = None
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        self.mock_validator_instance.ValidateRna.return_value = {
+            "Validation Result": True,
+            "Validated RNA": "AGCUUU\n(.. ..)",
+            "strandSeparator": None,
+        }
+
+        mock_new_job = MagicMock()
+        mock_new_job.uid = uuid.uuid4()
+        mock_new_job.hashed_uid = "new_job_hash"
+        mock_new_job.job_name = "example_job_1"
+        self.mock_job_objects.create.return_value = mock_new_job
+
+        response: Response = self.client.post(
+            self.url, self.valid_payload, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.mock_job_objects.create.assert_called_once()
+        self.mock_example_objects.create.assert_called_with(id=1, job=mock_new_job)
+
+        self.mock_task_engine.assert_called_once()
+        call_kwargs = self.mock_task_engine.call_args[1]
+        self.assertEqual(call_kwargs.get("example_number"), 1)
+
+    def test_file_upload_handling(self) -> None:
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = None
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        self.mock_validator_instance.ValidateRna.return_value = {
+            "Validation Result": True,
+            "Validated RNA": "AGC\n...",
+            "strandSeparator": None,
+        }
+
+        mock_new_job = MagicMock()
+        mock_new_job.uid = uuid.uuid4()
+        mock_new_job.hashed_uid = "new_job_hash"
+        mock_new_job.job_name = "example_job_1"
+        self.mock_job_objects.create.return_value = mock_new_job
+
+        self.mock_job_objects.create.return_value = mock_new_job
+
+        fasta_file = SimpleUploadedFile("rna.fasta", b">example1\nAGC UUU\n(.. ..)")
+
+        payload = {
+            "fasta_file": fasta_file,
+            "email": "test@example.com",
+            "example_number": 2,
+        }
+
+        response: Response = self.client.post(self.url, payload, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["uidh"], "new_job_hash")
+        self.mock_job_objects.create.assert_called_once()
+        self.mock_task_engine.assert_called_once()
+
+    def test_invalid_rna_prevents_db_creation(self) -> None:
+        mock_qs = MagicMock()
+        mock_qs.first.return_value = None
+        self.mock_example_objects.filter.return_value = mock_qs
+
+        self.mock_validator_instance.ValidateRna.return_value = {
+            "Validation Result": False,
+            "error": "Mocked validation error",
+        }
+
+        payload = self.valid_payload.copy()
+        payload["fasta_raw"] = ">bad\nZZZ\n..."
+
+        response: Response = self.client.post(self.url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        self.mock_job_objects.create.assert_not_called()
+        self.mock_example_objects.create.assert_not_called()
+
+        self.mock_task_engine.assert_not_called()
 
 
 class PostRnaDataTests(TestCase):
@@ -193,12 +351,16 @@ class GetResultsTests(TestCase):
         self.assertEqual(data["result_list"], [])
 
     def test_valid_get_with_results(self) -> None:
+
         mock_full_qs = MagicMock()
         mock_full_qs.__iter__.return_value = iter(self.job_results)
         mock_full_qs.count.return_value = len(self.job_results)
+
+        mock_filtered_qs = MagicMock()
+        mock_filtered_qs.order_by.return_value = mock_full_qs
         with (
             patch("api.views.Job.objects.get", return_value=self.job),
-            patch("api.views.JobResults.objects.filter", return_value=mock_full_qs),
+            patch("api.views.JobResults.objects.filter", return_value=mock_filtered_qs),
         ):
 
             response: Response = self.client.get(
@@ -216,7 +378,6 @@ class GetResultsTests(TestCase):
         self.assertEqual(
             data["input_structure"], self.job.input_structure.read().decode("UTF-8")
         )
-
         self.assertEqual(len(data["result_list"]), len(self.job_results))
         for i, jr in enumerate(self.job_results):
             result_item = data["result_list"][i]
@@ -444,7 +605,31 @@ class PostRnaValidationTests(TestCase):
         self.assertEqual(response.data["Incorrect Pairs"], [])
         self.assertEqual(response.data["Validated RNA"], "")
         self.assertIn(
-            "RNA and DotBracket not of equal lengths", response.data["Error List"]
+            "Parsing error: Mismatching strand lengths", response.data["Error List"]
+        )
+
+    def test_diffrent_strand_separators(self):
+        rna_input = ">example1\nAGC-UUU\n(.. ..)"
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertFalse(response.data["Fix Suggested"])
+        self.assertEqual(response.data["Mismatching Brackets"], [])
+        self.assertEqual(response.data["Incorrect Pairs"], [])
+        self.assertIn(
+            "Parsing error: Mismatching strand separators", response.data["Error List"]
+        )
+
+    def test_diffrent_strand_separators_same_line(self):
+        rna_input = ">example1\nAGC-U UU\n(..-. .)"
+        response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertFalse(response.data["Fix Suggested"])
+        self.assertEqual(response.data["Mismatching Brackets"], [])
+        self.assertEqual(response.data["Incorrect Pairs"], [])
+        self.assertIn(
+            "Parsing error: Mismatching strand separators", response.data["Error List"]
         )
 
     def test_rna_with_extra_spaces(self):
@@ -478,8 +663,12 @@ class PostRnaValidationTests(TestCase):
         dotbracket = "." * 10000
         rna_input = f">long\n{rna_seq}\n{dotbracket}"
         response = self.client.post(self.url, {"fasta_raw": rna_input}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data["Validation Result"])
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertFalse(response.data["Validation Result"])
+        self.assertIn(
+            f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides",
+            response.data["Error List"],
+        )
 
     def test_long_valid_structure(self):
         rna_input = "gCGGAUUUAgCUCAGuuGGGAGAGCgCCAGAcUgAAgAucUGGAGgUCcUGUGuuCGaUCCACAGAAUUCGCACCA\n(((((((..((((.....[..)))).((((.........)))).....(((((..]....))))))))))))...."

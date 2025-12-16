@@ -31,7 +31,9 @@ VALID_PAIRS = os.getenv("VALID_PAIRS", "GCCGAUUAGUUG")
 
 ENGINE_TEST_URL = os.getenv("ENGINE_TEST_URL", "http://grapharna-engine:8080/test")
 
-ENGINE_URL = os.getenv("ENGINE_URL", "http://grapharna-engine:8080/run")
+ENGINE_URL = os.getenv("ENGINE_URL", "http://grapharna-engine:8080")
+ENGINE_TIMEOUT_SECONDS = int(os.getenv("ENGINE_TIMEOUT_SECONDS", 6000))
+ENGINE_POLL_INTERVAL_SECONDS = int(os.getenv("ENGINE_POLL_INTERVAL_SECONDS", 60))
 
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = os.getenv("EMAIL_PORT")
@@ -49,6 +51,14 @@ TITLE_JOB_FINISHED = os.getenv("EMAIL_TITLE_JOB_FINISHED")
 TITLE_JOB_NEAR_EXPIRATION = os.getenv("EMAIL_TITLE_JOB_NEAR_EXPIRATION")
 
 UUID_HASH_LENGTH = int(os.getenv("UUID_HASH_LENGTH", 5))
+
+MAX_RNA_LENGTH = int(os.getenv("MAX_RNA_LENGTH", 500))
+
+EXAMPLE_JOB_NAME_PREFIX = os.getenv("EXAMPLE_JOB_NAME_PREFIX", "example_job_")
+EXAMPLE_JOB_SEED = int(os.getenv("EXAMPLE_JOB_SEED", 1))
+EXAMPLE_ALTERNATIVE_CONFORMATIONS = int(
+    os.getenv("EXAMPLE_ALTERNATIVE_CONFORMATIONS", 1)
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -79,6 +89,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -162,6 +173,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -195,7 +208,7 @@ CELERY_TASK_PREFETCH_MULTIPLIER = 1
 
 # Safeguard against long jobs
 
-CELERY_BROKER_HEARTBEAT = 0
+CELERY_BROKER_HEARTBEAT = 60
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 86400}
 
