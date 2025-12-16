@@ -17,6 +17,17 @@ from django.template import Template, Context
 from typing import Any
 
 
+class EngineTimeoutError(Exception):
+    """Exception raised when the engine task exceeds the allowed time."""
+
+    def __init__(
+        self, message: str = "The engine operation timed out", job_uuid: Any = None
+    ) -> None:
+        self.message = message
+        self.job_uuid = job_uuid
+        super().__init__(self.message)
+
+
 def log_to_file(message: str) -> None:
     ts = datetime.now().isoformat()
     with open("/shared/celery_debug.log", "a") as f:
@@ -119,8 +130,10 @@ def send_email_task(
 
 
 def execute_and_poll_engine(
-    uuid: str, seed: int, timeout: int = settings.ENGINE_TIMEOUT_SECONDS,
-                    check_interval: int = settings.ENGINE_POLL_INTERVAL_SECONDS
+    uuid: str,
+    seed: int,
+    timeout: int = settings.ENGINE_TIMEOUT_SECONDS,
+    check_interval: int = settings.ENGINE_POLL_INTERVAL_SECONDS,
 ) -> dict[str, Any]:
 
     logger = get_task_logger(__name__)
@@ -137,12 +150,18 @@ def execute_and_poll_engine(
     logger.info(f"Received response with status code {response.status_code}")
     start_time = time()
     status_url = f"{engine_url}/status/{uuid}"
+    cancel_url = f"{engine_url}/cancel/{uuid}"
 
     while True:
         logger.info("Polling engine for results...")
         if time() - start_time > timeout:
-            logger.error("Engine timed out while processing request")
-            raise Exception("Engine timed out while processing request")
+            try:
+                response = requests.post(f"{cancel_url}")
+            except requests.RequestException as e:
+                logger.error(f"Failed to cancel engine request: {e}")
+            error_msg = "Engine operation timed out"
+            logger.error(f"{error_msg}: {response.text}")
+            raise EngineTimeoutError(error_msg, job_uuid=uuid)
 
         try:
             status_resp = requests.get(f"{status_url}?seed={seed}")
@@ -190,12 +209,11 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
     except Exception as e:
         logger.exception(f"Unexpected error fetching job: {str(e)}")
         raise
-    
-    if job_data.status == "C": # fallback for celery worker restarts
+
+    if job_data.status == "C":  # fallback for celery worker restarts
         logger.info(f"Job {uuid_param} is already completed. Exiting task.")
         return "Job already completed"
-    
-        
+
     seed = job_data.seed
     uuid_str = str(uuid_param)
 
@@ -225,10 +243,14 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 result_data = execute_and_poll_engine(
                     uuid=uuid_str,
                     seed=seed + i,
-                    
                 )
 
                 break
+            except EngineTimeoutError as e:
+                logger.error(f"Engine timeout error: {e}")
+                job_data.status = "E"
+                job_data.save()
+                raise
             except Exception as e:
                 logger.warning(
                     f"Engine request failed (attempt {retries + 1}/{max_retries}). "

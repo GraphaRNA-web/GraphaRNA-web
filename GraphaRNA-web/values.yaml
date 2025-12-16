@@ -1,14 +1,18 @@
+global:
+  networkPolicy:
+    enabled: true
+
 monitoring:
   enabled: false
 
-networkpolicy: true
-  
+clusterIssuer:
+  enabled: true
+ 
 frontend:
   name: frontend
   image: grapharnaweb/grapharna-web:frontend-latest
   pullPolicy: Always
   port: 3000
-
   replicas: 1
 
   # Probes
@@ -28,12 +32,25 @@ frontend:
   ingressEnabled: true
   ingressHost: frontend.local
 
+  # --- Full frontend config ---
+  config:
+    # Backend adress in the cluster
+    BACKEND_URL: "http://backend-svc:8000"
+    # Allowed domains (for )
+    DOMAIN_URL: "http://150.254.30.175,http://127.0.0.1,http://localhost,http://grapharna-web.cs.put.poznan.pl,https://grapharna-web.cs.put.poznan.pl,https://grapharna.cs.put.poznan.pl,http://grapharna.cs.put.poznan.pl"
+    # Production/staging
+    NODE_ENV: "production"
+
+    # Example rna structures
+    NEXT_PUBLIC_EXAMPLE_RNA_1: "CCGAGUAGGUA\n((.....)).."
+    NEXT_PUBLIC_EXAMPLE_RNA_2: "GACUUAUAGAU UGAGUCC\n(((((..(... ))))))."
+    NEXT_PUBLIC_EXAMPLE_RNA_3: "UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)"
+
 backend:
   name: backend
   image: grapharnaweb/grapharna-web:backend-latest
   pullPolicy: Always
   port: 8000
-
   replicas: 1
 
   # Probes
@@ -51,7 +68,48 @@ backend:
 
   # Persistent Volume Claim
   pvc: shared-volume
-  storage: 10Gi
+  storage: 15Gi
+
+  # --- Full backend config ---
+  config:
+    DEBUG: "False"
+    DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
+   
+    # Database
+    DATABASE_ENGINE: "django.db.backends.postgresql"
+    DATABASE_NAME: "dockerdjango"
+    DATABASE_HOST: "db-svc"
+    DATABASE_PORT: "5432"
+
+    # Models parameters
+    JOB_EXPIRATION_WEEKS: "2"
+    MODEL_NAME: "model_800.h5"
+    MODEL_EPOCHS: "800"
+    UUID_HASH_LENGTH: "5"
+
+    # Example jobs
+    EXAMPLE_JOB_NAME_PREFIX: "example_job_"
+    EXAMPLE_JOB_SEED: "13767549"
+    EXAMPLE_ALTERNATIVE_CONFORMATIONS: 1
+   
+    # Email
+    EMAIL_HOST: "libra.cs.put.poznan.pl"
+    EMAIL_PORT: "587"
+    EMAIL_HOST_USER: "rnapolis@cs.put.poznan.pl"
+    
+    TEMPLATE_PATH_JOB_CREATED: "email_templates/template_job_created.html"
+    TEMPLATE_PATH_JOB_FINISHED: "email_templates/template_job_finished.html"
+    TEMPLATE_PATH_JOB_NEAR_EXPIRATION: "email_templates/template_job_near_expiration.html"
+    EMAIL_TITLE_JOB_CREATED: "Your job has been created!"
+    EMAIL_TITLE_JOB_FINISHED: "Your job is finished!"
+    EMAIL_TITLE_JOB_NEAR_EXPIRATION: "Your job is about to expire!"
+    RESULT_BASE_URL: "https://grapharna.cs.put.poznan.pl/results/"
+
+    # Engine configuration
+    ENGINE_URL: "http://grapharna-engine-svc:8080"
+    ENGINE_TIMEOUT_SECONDS: 60000
+    ENGINE_POLL_INTERVAL_SECONDS: 60
+   
 
 celery:  
   grapharna:
@@ -88,7 +146,7 @@ celery:
       limit:
         cpu: "100m"
         memory: "4096Mi"
-  
+ 
   email:
     name: celery-email
     replicas: 1
@@ -103,7 +161,7 @@ celery:
 engine:
   name: grapharna-engine
   image: grapharnaweb/grapharna-web:grapharna-engine
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   port: 8080
   replicas: 1
 
@@ -117,10 +175,6 @@ engine:
     limit:
       cpu: "12000m"
       memory: "12Gi"
-
-  # Persistent Volume Claim
-  pvc: shared-volume
-  storage: 10Gi
 
 
 postgres:
@@ -153,7 +207,6 @@ rabbitmq:
   pullPolicy: IfNotPresent
   port: 5672
   uiPort: 15672
-
   replicas: 1
 
   resources:
@@ -166,3 +219,7 @@ rabbitmq:
 
   pvc: rabbitmq-volume
   storage: 10Gi
+
+  # --- RabbitMQ config ---
+  config:
+    consumer_timeout: "129600000"

@@ -7,10 +7,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 10px;
-  padding-right: 25px;
-  padding-left: 25px;
-  padding-bottom: 10px;
+  padding-top: 20px;
+  padding-right: 50px;
+  padding-left: 50px;
+  padding-bottom: 20px;
   backdrop-filter: blur(20px);
   box-shadow: 0 2px 20px 0 rgba(223, 222, 218, 1);
   z-index: 100;
@@ -44,7 +44,7 @@
 .navbar__link {
   color: var(--brown-base);
   font-weight: 400;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .navbar__link:hover {
@@ -92,7 +92,7 @@
   }
 
   .navbar__link {
-    font-size: 20px;
+    font-size: 16px;
   }
 }
 

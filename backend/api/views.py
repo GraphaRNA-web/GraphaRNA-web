@@ -37,7 +37,6 @@ import io
 from django.http import HttpResponse
 from api.INF_F1 import CalculateF1Inf, dotbracketToPairs
 from django.core.files import File
-from django.utils import timezone
 from api.misc_tools import CreateNewJob
 
 
@@ -226,6 +225,7 @@ def DownloadZipFile(request: Request) -> HttpResponse:
             name_dotseq = os.path.basename(
                 instance.result_secondary_structure_dotseq.name
             )
+            name_dotseq = name_dotseq.replace(".dotseq", ".dbn")
             name_svg = os.path.basename(instance.result_secondary_structure_svg.name)
             name_ter = os.path.basename(instance.result_tertiary_structure.name)
             name_arc = os.path.basename(instance.result_arc_diagram.name)
@@ -451,7 +451,7 @@ def ProcessExampleRequestData(request: Request) -> Response:
         example_uidh = None
 
     if example_uidh:
-        if email:    
+        if email:
             send_email_task.delay(  # if email is provided, send notification
                 receiver_email=email,
                 template_path=settings.TEMPLATE_PATH_JOB_FINISHED,
@@ -650,17 +650,8 @@ def getActiveJobs(request: Request) -> Response:
 @job_pagination_schema
 @api_view(["GET"])
 def getFinishedJobs(request: Request) -> Response:
-    now = timezone.now()
-    one_day_ago = now - timedelta(hours=24)
-
     data = Job.objects.filter(
-        status__in=["C", "E"], created_at__gte=one_day_ago
-    ).order_by("created_at")
-    if not data.exists():
-        five_days_ago = now - timedelta(days=5)
-        data = Job.objects.filter(
-            status__in=["C", "E"], created_at__gte=five_days_ago
-        ).order_by("created_at")
+        status__in=["C", "E"]).order_by("-created_at","uid")
     paginator = JobPageNumberPagination()
     page = paginator.paginate_queryset(data, request)
     if page is not None:

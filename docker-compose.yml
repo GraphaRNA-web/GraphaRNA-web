@@ -35,7 +35,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: grapha_django
     command: python manage.py runserver 0.0.0.0:8000
     volumes:

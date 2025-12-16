@@ -1,0 +1,146 @@
+name: Delivery
+on:
+    push:
+        branches:
+          - 'Deploy'
+env:
+  REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
+
+jobs:
+    build-push:
+        name: Build push images
+        runs-on: ubuntu-latest
+        outputs:
+          image_tag: ${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+        permissions:
+            contents: read
+            packages: write
+            security-events: write
+            id-token: write 
+            issues: write 
+            pull-requests: write
+
+        steps:
+          - name: Free Disk Space (Ubuntu)
+            uses: jlumbroso/free-disk-space@main
+            with:
+              tool-cache: false
+
+              android: true
+              dotnet: true
+              haskell: true
+              large-packages: true
+              docker-images: false
+              swap-storage: true
+
+          - name: Checkout repository
+            uses: actions/checkout@v4
+
+          - name: Set up Docker Buildx
+            uses: docker/setup-buildx-action@v3
+
+          - name: Log in to Docker Hub
+            uses: docker/login-action@v3
+            with:
+              username: ${{ secrets.DOCKERHUB_USERNAME }}
+              password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+          - name: Determine Docker Image Tag (SHA)
+            id: determine_tag
+            run: |
+              TAG_VALUE="${GITHUB_SHA::7}"
+              echo "Using commit SHA for image tag: $TAG_VALUE"
+              echo "IMAGE_TAG_SHA=$TAG_VALUE" >> $GITHUB_OUTPUT
+
+          - name: Build backend image
+            run: |
+              docker build \
+                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
+                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest \
+                --file backend/Dockerfile \
+                ./backend
+
+          - name: Build frontend image
+            run: |
+              docker build \
+                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
+                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest \
+                --file frontend/Dockerfile \
+                ./frontend
+
+          - name: Push Backend Image
+            run: |
+              docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+              docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest
+
+          - name: Push Frontend Image
+            run: |
+                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
+                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest
+            
+
+    deliver-to-prod:
+      name: Deliver to Production
+      needs: build-push
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repo files
+          uses: actions/checkout@v4
+
+        - name: Copy Helm charts to the server
+          uses: appleboy/scp-action@master
+          with:
+            host: ${{ secrets.SSH_IP }}
+            username: ${{ secrets.SSH_USER }}
+            password: ${{ secrets.SSH_PASSWD }}
+            port: ${{ secrets.SERVER_PORT || 22 }}
+            source: "GraphaRNA-web"
+            target: "/home/${{ secrets.SSH_USER }}/deploy-prod"
+
+        - name: Deliver to production namespace
+          uses: appleboy/ssh-action@master
+          env:
+            TAG: ${{ needs.build-push.outputs.image_tag }}
+          with:
+            host: ${{ secrets.SSH_IP }}
+            username: ${{ secrets.SSH_USER }}
+            password: ${{ secrets.SSH_PASSWD }}
+            port: ${{ secrets.SERVER_PORT || 22 }}
+            envs: REGISTRY, TAG
+            script: |
+              set -e
+
+              TAG="${{ needs.build-push.outputs.image_tag }}"
+              if [ -z "$TAG" ]; then
+                echo "ERROR: TAG variable is empty!"
+                exit 1
+              fi
+
+              CHART_PATH="/home/${{ secrets.SSH_USER }}/deploy-prod/GraphaRNA-web"
+            
+              echo "--- 1. Install Helm Deployment"
+              helm upgrade --install grapharna-web $CHART_PATH \
+                --namespace grapharna \
+                --set backend.image=$REGISTRY/grapharna-web:backend-$TAG \
+                --set frontend.image=$REGISTRY/grapharna-web:frontend-$TAG \
+                --values $CHART_PATH/values.yaml \
+                --wait --timeout 5m
+
+              echo "--- 2. Restart Rollout (Optional check) ---"
+              NAMESPACE=grapharna
+              EXCLUDE_ENGINE=grapharna-engine
+              EXCLUDE_QUEUE=rabbitmq
+              EXCLUDE_DB=db
+
+              kubectl get deployments -n $NAMESPACE --no-headers -o custom-columns=":metadata.name" | while read deploy; do
+                if [ "$deploy" != "$EXCLUDE_ENGINE" ] && [ "$deploy" != "$EXCLUDE_QUEUE" ] && [ "$deploy" != "$EXCLUDE_DB" ]; then
+                  echo "Restarting deployment: $deploy"
+                  kubectl rollout restart deployment/$deploy -n $NAMESPACE
+                else
+                  echo "Skipping restart for: $deploy"
+                fi
+              done
+
+
+              echo "--- 3. Cleanup ---"
+              rm -rf "/home/${{ secrets.SSH_USER }}/deploy-prod"

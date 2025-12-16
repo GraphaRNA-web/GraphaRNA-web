@@ -27,15 +27,7 @@ spec:
         - name: celery-email
           image: {{ .Values.backend.image }}
           imagePullPolicy: {{ .Values.backend.pullPolicy }}
-          command:
-            - celery
-            - -A
-            - GraphaRNA
-            - worker
-            - -Q
-            - email
-            - --pool=solo
-            - --loglevel=info
+          command: ["celery", "-A", "GraphaRNA", "worker", "-Q", "email", "--concurrency=4", "--loglevel=info"]
             
           envFrom:
             - configMapRef:
