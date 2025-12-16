@@ -10,8 +10,8 @@ export default function About(){
                     <img className='triangle-top' src='photos/ap_triangle_top.png'></img>
                     <div className='about-text'>
                         <p className='about-p1'>
-                            GraphARNA-Web is an interactive platform for RNA 3D structure exploration powered by generative graph neural networks. 
-                            Our method represents RNA molecules as graphs, capturing both nucleotide sequence information and complex 2D structural interactions. Instead of predicting full atomic models directly, GraphARNA-Web focuses on RNA 3D descriptors—local structural motifs that reflect how small groups of nucleotides arrange in space.
+                            GraphaRNA is an interactive platform for RNA 3D structure exploration powered by generative graph neural networks. 
+                            Our method represents RNA molecules as graphs, capturing both nucleotide sequence information and complex 2D structural interactions. Instead of predicting full atomic models directly, GraphaRNA focuses on RNA 3D descriptors—local structural motifs that reflect how small groups of nucleotides arrange in space.
                         </p>
                         <p className='about-p2'>
                             By learning a distribution of these descriptors from experimentally determined RNA structures, the model composes them into coherent 3D conformations that respect user-defined secondary-structure constraints. 
