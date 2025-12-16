@@ -51,7 +51,7 @@
     color: var(--brown-base);
 }
 
-.about-p{
+.about-p1, .about-p2, .about-p3{
     width: 100%;
     font-weight: 400;
     font-size: 18px;
