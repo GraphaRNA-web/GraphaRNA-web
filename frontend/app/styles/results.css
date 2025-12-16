@@ -114,7 +114,7 @@
     flex-direction: column;
     width: 605px;
     height: 270px;
-    background-color: #F9F8F4;
+    background-color: var(--background-darken-3);
     border-radius: 15px;
     padding-top: 50px;
     padding-right: 40px;
@@ -147,13 +147,13 @@
 }
 
 .download-zip:hover{
-    background-color: #F9F8F4;
+    background-color: var(--background-darken-3);
 }
 
 .download-zip.downloading {
   cursor: not-allowed;
-  pointer-events: none;
   opacity: 0.6;
+  background-color: var(--background-darken-3);
 }
 
 .download-text{
@@ -166,7 +166,7 @@
 .name-and-seed{
     height: 175px;
     width: 495px;
-    background-color: #F9F8F4;
+    background-color: var(--background-darken-3);
     border-radius: 15px;
     flex-direction: column;
     display: flex;
@@ -296,7 +296,7 @@
     padding-right: 40px;
     padding-left: 40px;
     margin-top: 40px;
-    background-color: #F9F8F4;
+    background-color: var(--background-darken-3);
     display: flex;
     flex-direction: column;
     align-items: flex-start;

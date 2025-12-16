@@ -115,7 +115,9 @@ export default function About(){
                 <div className='funds-content'>
                     <p className='funds-title'>Acknowledgements and Funding</p>
                     <p className='funds-text'>
-                        This research was supported by grants 2020/39/O/ST6/01488, 2023/51/D/ST6/01207 from the National Science Centre, Poland.
+                        This project was supported by the National Science Centre, Poland 
+                        (grants 2020/39/O/ST6/01488 and 2023/51/D/ST6/01207), and by the statutory funds 
+                        of Poznan University of Technology.
                     </p>
                     <img className='triangle-bottom' src='photos/ap_triangle_bot.png'></img>
                 </div>
