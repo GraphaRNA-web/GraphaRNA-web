@@ -12,6 +12,7 @@ import TextArea from '../components/TextArea';
 import CustomCheckbox from '../components/CustomCheckbox';
 import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
+import ServerErrorModal from '../components/ServerErrorModal';
 import ValidationWarningModal from "../components/ValidationWarningModal";
 import FileDisplay from '../components/FileDisplay';
 const getEnvExample = (val: string | undefined) => {
@@ -71,6 +72,8 @@ export default function SubmitJob() {
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [selectedExampleNumber, setSelectedExampleNumber] = useState<number>(0);
   const [displayCheckbox, setDisplayCheckbox] = useState(true);
+  const [server500, setServer500] = useState(false);
+
 
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
@@ -155,7 +158,17 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
     try {
       console.log("[validateStructure] calling validateRNA...");
-      const result = await validateRNA({fasta_raw: trimmedText});
+      const { result, status} = await validateRNA({fasta_raw: trimmedText});
+      console.log(result, status);
+
+      if(status >= 400 && status < 500){
+        setErrors([result.error]);
+        return "error";
+      }
+      else if(status >= 500){
+        setServer500(true);
+        return "error";
+      }
 
       setMismatchingBrackets(result["Mismatching Brackets"] || []);
       setIncorrectPairs(result["Incorrect Pairs"] || []);
@@ -192,6 +205,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
       return "ok";
     } catch (err: any) {
+      console.error("Validation failed:", err);
       setErrors([err.message || "Server validation error"]);
       return "error";
     }
@@ -226,10 +240,19 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
       try {
         console.log("[validateStructure] calling validateRNA...");
-        const result = await validateRNA({fasta_raw: normalized});
+        const { result, status} = await validateRNA({fasta_raw: normalized});
 
         setMismatchingBrackets(result["Mismatching Brackets"] || []);
         setIncorrectPairs(result["Incorrect Pairs"] || []);
+
+        if(status >= 400 && status < 500){
+          setErrors([result.error]);
+          return "error";
+        }
+        else if(status >= 500){
+          setServer500(true);
+          return "error";
+        }
 
         if (!result["Validation Result"]) {
           const errorList: string[] = [];
@@ -259,6 +282,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
         return "ok";
       } catch (err: any) {
+        console.error("Validation failed:", err);
         setErrors([err.message || "Server validation error"]);
         return "error";
       }
@@ -281,6 +305,7 @@ const handleNext = async () => {
   setErrors([]);
   if (currentStep === 0) {
     const res = await validateStructure(true);
+    console.log(res);
     if (res === "warning") {
       setShowValidationNext(true)
     } else if (res === "ok") {
@@ -310,7 +335,11 @@ const goNextWithGetSuggestedData = async () => {
   }
 
   try {
-    const data = await getSuggestedData(effectiveExampleNumber);
+    const {data, status} = await getSuggestedData(effectiveExampleNumber);
+    if(status >= 500){
+      setServer500(true);
+      return "error";
+    }
     if (typeof data?.seed === "number") setSeed(data.seed);
     if (data?.job_name) setJobname(data.job_name);
     if (isExampleValid){
@@ -354,7 +383,7 @@ const goNextWithGetSuggestedData = async () => {
       setCurrentStep(prev => prev + 1)
       if  (selectedExampleNumber === 0){
         try {
-          const response = await submitJobRequest({
+          const {data: response, status} = await submitJobRequest({
             fasta_raw: text,
             seed: seed,
             job_name: jobname,
@@ -362,10 +391,10 @@ const goNextWithGetSuggestedData = async () => {
             alternative_conformations: alternativeConformations,
           });
 
-      if (response.success === false) {
-        setErrors([response.message || "Server returned an error"]);
-        return;
-    }
+          if(status >= 500){
+            setServer500(true);
+            return "error";
+          }
 
           console.log("[handleSubmit] job created:", response);
           setApproves([`Job '${response.job_name}' submitted successfully.`]);
@@ -378,11 +407,16 @@ const goNextWithGetSuggestedData = async () => {
       }
       else{
         try {
-          const response = await submitExampleJobRequest({
+          const {data: response, status} = await submitExampleJobRequest({
             fasta_raw: text,
             email: email,
             example_number: selectedExampleNumber,
           });
+
+          if(status >= 500){
+            setServer500(true);
+            return "error";
+          }
 
           console.log("[handleSubmit] job created:", response);
           setApproves([`Job '${response.job_name}' submitted successfully.`]);
@@ -865,6 +899,12 @@ const handleExampleClick3 = async () => {
             <p>{email} {text} {seed} {jobname} {structures}</p>
           </div>
         )}
+
+        <ServerErrorModal
+          isOpen={server500}
+          onClose={() => setServer500(false)}
+        />
+
         <ValidationWarningModal
           isOpen={showValidation || showValidationNext}
           onClose={() => {
