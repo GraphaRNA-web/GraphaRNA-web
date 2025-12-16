@@ -211,6 +211,11 @@ td:last-child>* {
     height: 100%;
 }
 
+
+*{
+ outline: 1px solid red;
+}
+
 @media (max-width: 1160px){
     .jobsPageContent{
         margin-left: 20px;

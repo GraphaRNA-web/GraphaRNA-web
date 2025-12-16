@@ -70,6 +70,7 @@
     display: block;
     position: absolute;
     right: 25px;
+    align-items: center;
   }
 
   .navbar__right {
@@ -91,6 +92,7 @@
 
   .navbar__right.open {
     right: 0;
+    align-items: center;
   }
 
   .navbar__link {
@@ -102,6 +104,7 @@
 
   .navbar{
     padding-left: 40px;
+    align-items: center;
   }
 }
 
@@ -109,5 +112,6 @@
 
   .navbar{
     padding-left: 30px;
+    align-items: center;
   }
 }
