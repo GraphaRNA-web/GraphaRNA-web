@@ -15,9 +15,29 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  const [examples, setExamples] = useState<string[]>(["", "", ""]);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const allowedExtensions = ['txt', 'fasta'];
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then((res) => {
+        if (!res.ok) throw new Error("Config fetch failed");
+        return res.json();
+      })
+      .then((data) => {
+        const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
+        
+        setExamples([
+          fixNewlines(data.rnaExample1),
+          fixNewlines(data.rnaExample2),
+          fixNewlines(data.rnaExample3)
+        ]);
+      })
+      .catch((err) => console.error("Failed to load runtime config in Modal:", err));
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -69,20 +89,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
     setUploadedFiles([]);
   };
 
-  const getEnvExample = (val: string | undefined) => {
-  if (!val) return "";
-  return val.replace(/\\n/g, "\n");
-};
-
-
   const exampleFiles = {
-    example1: getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_1),
-    example2: getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_2),
-    example3: getEnvExample(process.env.NEXT_PUBLIC_EXAMPLE_RNA_3)
+    example1: examples[0],
+    example2: examples[1],
+    example3: examples[2]
   };
 
   const handleDownloadExample = (exampleKey: keyof typeof exampleFiles) => {
     const content = exampleFiles[exampleKey];
+    if (!content) return; 
+
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
 
@@ -95,6 +111,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
 
   const handleExampleClick = (exampleKey: keyof typeof exampleFiles) => {
     const content = exampleFiles[exampleKey];
+    if (!content) return;
+
     const file = new File([content], `${exampleKey}.fasta`, { type: 'text/plain' });
     setSelectedExampleNumber(parseInt(exampleKey.replace('example', '')));
     setUploadedFiles([file]);
