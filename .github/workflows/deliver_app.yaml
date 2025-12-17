@@ -21,18 +21,6 @@ jobs:
             pull-requests: write
 
         steps:
-          - name: Free Disk Space (Ubuntu)
-            uses: jlumbroso/free-disk-space@main
-            with:
-              tool-cache: false
-
-              android: true
-              dotnet: true
-              haskell: true
-              large-packages: true
-              docker-images: false
-              swap-storage: true
-
           - name: Checkout repository
             uses: actions/checkout@v4
 
@@ -144,3 +132,4 @@ jobs:
 
               echo "--- 3. Cleanup ---"
               rm -rf "/home/${{ secrets.SSH_USER }}/deploy-prod"
+
