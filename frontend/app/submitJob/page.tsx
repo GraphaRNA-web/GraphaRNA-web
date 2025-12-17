@@ -12,6 +12,7 @@ import TextArea from '../components/TextArea';
 import CustomCheckbox from '../components/CustomCheckbox';
 import IntegerField from '../components/IntegerField';
 import MessageBox from '../components/MessageBox';
+import ServerErrorModal from '../components/ServerErrorModal';
 import ValidationWarningModal from "../components/ValidationWarningModal";
 import FileDisplay from '../components/FileDisplay';
 const getEnvExample = (val: string | undefined) => {
@@ -71,6 +72,8 @@ export default function SubmitJob() {
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [selectedExampleNumber, setSelectedExampleNumber] = useState<number>(0);
   const [displayCheckbox, setDisplayCheckbox] = useState(true);
+  const [server500, setServer500] = useState(false);
+
 
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
 
@@ -155,7 +158,17 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
     try {
       console.log("[validateStructure] calling validateRNA...");
-      const result = await validateRNA({fasta_raw: trimmedText});
+      const { result, status} = await validateRNA({fasta_raw: trimmedText});
+      console.log(result, status);
+
+      if(status >= 400 && status < 500){
+        setErrors([result.error]);
+        return "error";
+      }
+      else if(status >= 500){
+        setServer500(true);
+        return "error";
+      }
 
       setMismatchingBrackets(result["Mismatching Brackets"] || []);
       setIncorrectPairs(result["Incorrect Pairs"] || []);
@@ -192,6 +205,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
       return "ok";
     } catch (err: any) {
+      console.error("Validation failed:", err);
       setErrors([err.message || "Server validation error"]);
       return "error";
     }
@@ -226,10 +240,19 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
       try {
         console.log("[validateStructure] calling validateRNA...");
-        const result = await validateRNA({fasta_raw: normalized});
+        const { result, status} = await validateRNA({fasta_raw: normalized});
 
         setMismatchingBrackets(result["Mismatching Brackets"] || []);
         setIncorrectPairs(result["Incorrect Pairs"] || []);
+
+        if(status >= 400 && status < 500){
+          setErrors([result.error]);
+          return "error";
+        }
+        else if(status >= 500){
+          setServer500(true);
+          return "error";
+        }
 
         if (!result["Validation Result"]) {
           const errorList: string[] = [];
@@ -259,6 +282,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
 
         return "ok";
       } catch (err: any) {
+        console.error("Validation failed:", err);
         setErrors([err.message || "Server validation error"]);
         return "error";
       }
@@ -281,6 +305,7 @@ const handleNext = async () => {
   setErrors([]);
   if (currentStep === 0) {
     const res = await validateStructure(true);
+    console.log(res);
     if (res === "warning") {
       setShowValidationNext(true)
     } else if (res === "ok") {
@@ -310,7 +335,11 @@ const goNextWithGetSuggestedData = async () => {
   }
 
   try {
-    const data = await getSuggestedData(effectiveExampleNumber);
+    const {data, status} = await getSuggestedData(effectiveExampleNumber);
+    if(status >= 500){
+      setServer500(true);
+      return "error";
+    }
     if (typeof data?.seed === "number") setSeed(data.seed);
     if (data?.job_name) setJobname(data.job_name);
     if (isExampleValid){
@@ -354,7 +383,7 @@ const goNextWithGetSuggestedData = async () => {
       setCurrentStep(prev => prev + 1)
       if  (selectedExampleNumber === 0){
         try {
-          const response = await submitJobRequest({
+          const {data: response, status} = await submitJobRequest({
             fasta_raw: text,
             seed: seed,
             job_name: jobname,
@@ -362,10 +391,10 @@ const goNextWithGetSuggestedData = async () => {
             alternative_conformations: alternativeConformations,
           });
 
-      if (response.success === false) {
-        setErrors([response.message || "Server returned an error"]);
-        return;
-    }
+          if(status >= 500){
+            setServer500(true);
+            return "error";
+          }
 
           console.log("[handleSubmit] job created:", response);
           setApproves([`Job '${response.job_name}' submitted successfully.`]);
@@ -378,11 +407,16 @@ const goNextWithGetSuggestedData = async () => {
       }
       else{
         try {
-          const response = await submitExampleJobRequest({
+          const {data: response, status} = await submitExampleJobRequest({
             fasta_raw: text,
             email: email,
             example_number: selectedExampleNumber,
           });
+
+          if(status >= 500){
+            setServer500(true);
+            return "error";
+          }
 
           console.log("[handleSubmit] job created:", response);
           setApproves([`Job '${response.job_name}' submitted successfully.`]);
@@ -480,9 +514,7 @@ const handleExampleClick3 = async () => {
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-title'>Interactive form hint</p>
-                  <p className='sjp-hint-text'>Interactive form is based on... Lorem ipsum dolor sit amet, 
-                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque 
-                    penatibus et magnis dis partquat massa</p>
+                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. In the second line, provide the secondary structure in dot-bracket notation. You can add multiple sequences by using the plus (+) button or separating them with dashes (-) or spaces.</p>
                 </div>
 
                 <div className='sjp-int-input-title'>
@@ -545,9 +577,8 @@ const handleExampleClick3 = async () => {
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-title'>Format hint</p>
-                  <p className='sjp-hint-text'>Interactive form is based on... Lorem ipsum dolor sit amet, 
-                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque 
-                    penatibus et magnis dis partquat massa</p>
+                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. You can add multiple sequences by separating them with dashes or spaces (-).
+In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures separated by dashes or spaces (-).</p>
                 </div>
 
                 <div className='sjp-text-input-title'>
@@ -683,9 +714,12 @@ const handleExampleClick3 = async () => {
                 <p className='sjp-opt-params-1'>
                   Optional parameters
                 </p>
-                <p className='sjp-opt-params-2'>
-                  You can provide some optional parameters for the calculation process
-                </p>
+                <div className='sjp-opt-params-2'>
+
+                  <p><b className="sjp-bold">Seed:</b> An integer value to initialize the random number generator for reproducibility. Default is auto, meaning a random seed will be automatically generated.</p>
+                  <p><b className="sjp-bold">Name:</b> A custom name for your job to help you identify it later. Default is auto, meaning a name will be generated based on the current date and a random number.</p>
+                  <p><b className="sjp-bold">#Alternative conformations:</b> Number of alternative conformations to generate for the given RNA structure. Number bigger than 1 will cause the calcuation of the input sequence with incremented seed values.</p>
+                </div>
               </div>
               
               <div className='sjp-params-fields'>
@@ -796,10 +830,10 @@ const handleExampleClick3 = async () => {
             <div className='sjp-params-section'>
               <div className='sjp-opt-params'>
                 <p className='sjp-opt-params-1'>
-                  Optional parameters
+                  Email
                 </p>
                 <p className='sjp-opt-params-2'>
-                  You can provide some optional parameters for the calculation process
+                  Provide your email to receive a notification when the structure generation is complete (optional). Otherwise, you need to <b className="sjp-bold">save the URL</b> you will be redirected to later, as it will be the only way to access your results.
                 </p>
               </div>
 
@@ -865,6 +899,12 @@ const handleExampleClick3 = async () => {
             <p>{email} {text} {seed} {jobname} {structures}</p>
           </div>
         )}
+
+        <ServerErrorModal
+          isOpen={server500}
+          onClose={() => setServer500(false)}
+        />
+
         <ValidationWarningModal
           isOpen={showValidation || showValidationNext}
           onClose={() => {

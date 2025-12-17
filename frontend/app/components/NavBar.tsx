@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import '../styles/navbar.css';
-
+import Button from './Button';
 const Navbar: React.FC = () => {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,7 +25,16 @@ const Navbar: React.FC = () => {
       </div>
 
       <div className={`navbar__right ${isMenuOpen ? 'open' : ''}`}>
-        <Link href="/" className={`navbar__link ${pathname === '/' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>Home</Link>
+        <Link href="/submitJob" onClick={() => setIsMenuOpen(false)}>
+          <Button
+            color="primary"
+            variant="filled"
+            label="Start a job"
+            width="190px"
+            height="32px"
+            fontSize="14px"
+          />
+        </Link>
         <Link href="/jobs" className={`navbar__link ${pathname === '/jobs' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>Jobs</Link>
         <Link href="/guide" className={`navbar__link ${pathname === '/guide' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>Guide</Link>
         <Link href="/about" className={`navbar__link ${pathname === '/about' ? 'active' : ''}`} onClick={() => setIsMenuOpen(false)}>About</Link>
