@@ -487,11 +487,9 @@ const handleExampleClick3 = async () => {
           </div>
           {isExpanded && (
             <p className='sjp-header-bottom'>
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
-              Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, 
-              nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa 
-              quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, 
-              imperdiet a, venenatis vitae, justo.
+              Please input your RNA sequence 
+              and secondary structure using the Interactive, Text, or File upload options below. 
+              The input must follow a specific format: line 1 should contain the RNA sequence (A, C, G, U), and line 2 must provide the corresponding secondary structure in dot-bracket notation. Ensure that the length of the structure string matches the sequence length.
             </p>
           )}
         </div>
