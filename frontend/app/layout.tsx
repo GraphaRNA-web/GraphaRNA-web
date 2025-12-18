@@ -4,8 +4,8 @@ import Footer from './components/Footer';
 import NavBar from './components/NavBar';
 
 export const metadata = {
-  title: "GraphaRNA-web",
-  description: "Explore the world of RNA with GraphaRNA-web",
+  title: "GraphaRNA",
+  description: "Explore the world of RNA with GraphaRNA",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
