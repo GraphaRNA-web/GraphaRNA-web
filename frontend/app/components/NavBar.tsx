@@ -15,7 +15,6 @@ const Navbar: React.FC = () => {
         <Link href="/">
           <span className="name--grapha">Grapha</span>
           <span className="name--rna">RNA</span>
-          <span className="name--web">-web</span>
         </Link>
       </div>
 

@@ -58,7 +58,8 @@
   font-family: 'Raleway';
   font-weight: 700;
   font-size: 28px;
-  color: var(--brown-base)
+  color: var(--brown-base);
+  scroll-margin-top: 100px;
 }
 
 .gp-step-content{
@@ -117,7 +118,6 @@
 
 .guide-toc-list a {
   color: inherit; 
-  text-decoration: underline;
 }
 
 .guide-toc-list a:hover {
