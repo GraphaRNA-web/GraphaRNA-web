@@ -268,13 +268,13 @@ const formatDate = (dateString: string) => {
                   )}
                   {currentResult.inf !== null && (
                     <div className='inf-val'>
-                      <p className='input-field-name3'>INF</p>
+                      <p className='input-field-name3'>INF (result vs input):</p>
                       <p className='input-value2'>{currentResult.inf.toFixed(3)}</p>
                     </div>
                   )}
                   {currentResult.f1 !== null && (
                     <div className='f1-val'>
-                      <p className='input-field-name3'>F1</p>
+                      <p className='input-field-name3'>F1 (result vs input):</p>
                       <p className='input-value2'>{currentResult.f1.toFixed(3)}</p>
                     </div>
                   )}
