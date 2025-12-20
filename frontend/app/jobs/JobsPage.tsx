@@ -17,6 +17,7 @@ interface JobResult {
   email?: string;
   created_at?: string;
   expires_at?: string;
+  finished_at?: string;
   sum_processing_time?: string;
   status?: string;
   alternative_conformations?: number;
@@ -124,7 +125,9 @@ export default function JobsQueue() {
       status: job.status ?? "F",
       created: job.created_at ?? "-",
       job_name: job.job_name ?? "-",
+      finished_at: job.finished_at ?? "-",
       processing_time: job.sum_processing_time ?? "-",
+      
     })) ?? [];
 
 const getPageRange = (current: number, total: number, delta = 2): (number | string)[] => {

@@ -261,6 +261,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
         if retries == max_retries:
             logger.error("Max retries reached. Failing the job.")
             job_data.status = "E"
+            job_data.finished_at = timezone.now()
             job_data.save()
             raise
         output_path_pdb = result_data.get("pdbFilePath")
@@ -430,6 +431,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
         job_data.expires_at = timezone.now() + timedelta(
             weeks=settings.JOB_EXPIRATION_WEEKS
         )
+    job_data.finished_at = timezone.now()
     job_data.status = "C"
     job_data.save()
 

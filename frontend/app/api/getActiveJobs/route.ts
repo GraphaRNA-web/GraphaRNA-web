@@ -54,7 +54,6 @@ export async function GET(req: Request) {
       status: backendRes.status,
       headers: responseHeaders,
     });
-
     return response;
 
   } catch (err: any) {
