@@ -9,11 +9,11 @@ type JobRowActive = {
   id: number;
   status: string;
   created: string;
-  finished_at: string;
   job_name: string;
 };
 export interface JobRowFinished extends JobRowActive {
   processing_time: string;
+  finished_at: string;
 }
 type JobRow = JobRowActive | JobRowFinished;
 interface JobsTableProps {
@@ -60,8 +60,14 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
             <td>{row.job_name}</td>
             <td>
               {(() => {
-                  if (!row.finished_at) return "-";
-                  const dateObj = new Date(row.finished_at);
+                  let dateStr: string;
+                  if (isFinishedTable) {
+                    dateStr = (row as JobRowFinished).finished_at;
+                  } else {
+                    dateStr = row.created;
+                  }
+                  if (!dateStr) return "-";
+                  const dateObj = new Date(dateStr);
                   if (isNaN(dateObj.getTime())) return "-";
                   const formattedDate = dateObj
                     .toLocaleString("pl-PL", {
