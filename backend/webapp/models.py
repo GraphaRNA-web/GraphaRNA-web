@@ -41,6 +41,7 @@ class Job(models.Model):
     job_name: models.CharField = models.CharField(max_length=255)
     email: models.CharField = models.CharField(max_length=255, null=True, blank=True)
     created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
+    finished_at: models.DateTimeField = models.DateTimeField(null=True)
     expires_at: models.DateTimeField = models.DateTimeField(null=True)
     sum_processing_time: models.DurationField = models.DurationField(null=True)
     status: models.TextField = models.TextField(choices=Status)

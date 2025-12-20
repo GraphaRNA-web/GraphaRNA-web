@@ -9,6 +9,7 @@ type JobRowActive = {
   id: number;
   status: string;
   created: string;
+  finished_at: string;
   job_name: string;
 };
 export interface JobRowFinished extends JobRowActive {
@@ -59,32 +60,37 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
             <td>{row.job_name}</td>
             <td>
               {(() => {
-                const formattedDate = new Date(row.created)
-                  .toLocaleString("pl-PL", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                  .replace(/\./g, "-")
-                  .replace(",", "");
+                  if (!row.finished_at) return "-";
+                  const dateObj = new Date(row.finished_at);
+                  if (isNaN(dateObj.getTime())) return "-";
+                  const formattedDate = dateObj
+                    .toLocaleString("pl-PL", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                    .replace(/\./g, "-")
+                    .replace(",", "");
 
-                const [datePart, timePart] = formattedDate.split(" ");
 
-                if (isFinishedTable) {
-                  return (
-                    <>
-                      {datePart}{" "}
-                      <span style={{ color: "var(--brown-lighten-20)" }}>{timePart}</span></>
-                  );
-                } else {
-                  return (
-                    <>
-                      <span style={{ color: "var(--brown-lighten-20)" }}>
-                        {datePart}</span>{" "}{timePart}</>
-                  );
-                }
+                  const [datePart, timePart] = formattedDate.split(" ");
+
+                  if (isFinishedTable) {
+                    return (
+                      <>
+                        {datePart}{" "}
+                        <span style={{ color: "var(--brown-lighten-20)" }}>{timePart}</span></>
+                    );
+                  } else {
+                    return (
+                      <>
+                        <span style={{ color: "var(--brown-lighten-20)" }}>
+                          {datePart}</span>{" "}{timePart}</>
+                    );
+                  }
+                
               })()}
             </td >
             {isFinishedTable && <td style={{color: "var(--brown-lighten-20)"}}>{(row as JobRowFinished).processing_time}</td>}
