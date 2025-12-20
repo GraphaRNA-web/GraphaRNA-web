@@ -152,6 +152,7 @@ def execute_and_poll_engine(
     status_url = f"{engine_url}/status/{uuid}"
     cancel_url = f"{engine_url}/cancel/{uuid}"
 
+    retries = 0
     while True:
         logger.info("Polling engine for results...")
         if time() - start_time > timeout:
@@ -167,7 +168,10 @@ def execute_and_poll_engine(
             status_resp = requests.get(f"{status_url}?seed={seed}")
         except requests.RequestException:
             logger.warning("Failed to get status from engine, retrying...")
+            retries += 1
             sleep(check_interval)
+            if retries >= settings.ENGINE_REQUEST_MAX_RETRIES:
+                raise Exception("Max retries reached while polling engine status")
             continue
 
         if status_resp.status_code == 200:
@@ -261,6 +265,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
         if retries == max_retries:
             logger.error("Max retries reached. Failing the job.")
             job_data.status = "E"
+            job_data.finished_at = timezone.now()
             job_data.save()
             raise
         output_path_pdb = result_data.get("pdbFilePath")
@@ -430,6 +435,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
         job_data.expires_at = timezone.now() + timedelta(
             weeks=settings.JOB_EXPIRATION_WEEKS
         )
+    job_data.finished_at = timezone.now()
     job_data.status = "C"
     job_data.save()
 
