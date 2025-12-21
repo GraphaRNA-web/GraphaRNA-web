@@ -101,7 +101,7 @@ EMAIL_TITLE_JOB_CREATED=Your job has been created!
 EMAIL_TITLE_JOB_FINISHED=Your job is finished!
 EMAIL_TITLE_JOB_NEAR_EXPIRATION=Your job is about to expire!
 
-SETUP_BASE_DIR=/app/
+SETUP_BASE_DIR=/app
  ```
 
 
