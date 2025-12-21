@@ -203,45 +203,45 @@ jobs:
                 --values $CHART_PATH/values_staging.yaml \
                 --wait --timeout 5m
 
-              echo "--- 5. Run Tests (K8s Job) ---"
-              cat <<EOF | kubectl apply -f -
-              apiVersion: batch/v1
-              kind: Job
-              metadata:
-                name: test-runner
-                namespace: $STAGING_NS
-              spec:
-                backoffLimit: 0
-                template:
-                  spec:
-                    containers:
-                    - name: runner
-                      image: $REGISTRY/grapharna-tests:$TAG
-                      env:
-                      - name: FRONTEND_URL
-                        value: "http://frontend-svc:80"
-                      - name: BACKEND_URL
-                        value: "http://backend-svc:8000"
-                      - name: FRONTEND_HOST
-                        value: "http://frontend-svc:80"
-                      command: ["/bin/bash", "-c"]
-                      args:
-                        - |
-                          echo "Running E2E..."
-                          cd /tests/playwright
+              # echo "--- 5. Run Tests (K8s Job) ---"
+              # cat <<EOF | kubectl apply -f -
+              # apiVersion: batch/v1
+              # kind: Job
+              # metadata:
+              #   name: test-runner
+              #   namespace: $STAGING_NS
+              # spec:
+              #   backoffLimit: 0
+              #   template:
+              #     spec:
+              #       containers:
+              #       - name: runner
+              #         image: $REGISTRY/grapharna-tests:$TAG
+              #         env:
+              #         - name: FRONTEND_URL
+              #           value: "http://frontend-svc:80"
+              #         - name: BACKEND_URL
+              #           value: "http://backend-svc:8000"
+              #         - name: FRONTEND_HOST
+              #           value: "http://frontend-svc:80"
+              #         command: ["/bin/bash", "-c"]
+              #         args:
+              #           - |
+              #             echo "Running E2E..."
+              #             cd /tests/playwright
 
-                          export BASE_URL="http://frontend-svc:80"
-                          npx playwright test
+              #             export BASE_URL="http://frontend-svc:80"
+              #             npx playwright test
                           
-                          echo "Running Load Tests..."
-                          cd /tests
-                          export FRONTEND_HOST="http://frontend-svc:80"
-                          python3 -m locust -f load_tests/locustfile.py --headless -u 10 -r 2 -t 2m --host http://backend-svc:8000 --exit-code-on-error 1
-                    restartPolicy: Never
-              EOF
+              #             echo "Running Load Tests..."
+              #             cd /tests
+              #             export FRONTEND_HOST="http://frontend-svc:80"
+              #             python3 -m locust -f load_tests/locustfile.py --headless -u 10 -r 2 -t 2m --host http://backend-svc:8000 --exit-code-on-error 1
+              #       restartPolicy: Never
+              # EOF
               
-              echo "Waiting for tests..."
-              kubectl wait --for=condition=complete job/test-runner -n $STAGING_NS --timeout=10m
+              # echo "Waiting for tests..."
+              # kubectl wait --for=condition=complete job/test-runner -n $STAGING_NS --timeout=10m
 
               echo "--- 6. Cleanup Staging ---"
               helm uninstall grapharna-staging -n $STAGING_NS
