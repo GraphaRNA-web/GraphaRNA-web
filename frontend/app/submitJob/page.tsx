@@ -526,7 +526,10 @@ const handleExampleClick3 = async () => {
                       rows={4}
                       value={s}
                       onChange={(val) => handleStructureChange(idx, val)}
-                      placeholder={`CGCGGAACG CGGGACGCG\n((((...(( ))...))))`}
+                      placeholder={idx % 2 === 0 
+                          ? `>strand ${idx + 1}\nCGCGGAACG\n((((...((` 
+                          : `>strand ${idx + 1}\nCGGGACGCG\n))...))))`
+                        }
                     />
 
                     {structures.length > 1 && (
