@@ -170,8 +170,8 @@ engine:
 
   resources:
     requests:
-      cpu: "8000m"
-      memory: "6Gi"
+      cpu: "4000m"
+      memory: "4Gi"
     limit:
       cpu: "12000m"
       memory: "12Gi"
@@ -189,7 +189,7 @@ postgres:
   resources:
     requests:
       cpu: "500m"
-      memory: "2048Mi"
+      memory: "1536Mi"
     limit:
       cpu: "1000m"
       memory: "4096Mi"
@@ -212,7 +212,7 @@ rabbitmq:
   resources:
     requests:
       cpu: "100m"
-      memory: "2048Mi"
+      memory: "1536Mi"
     limits:
       cpu: "500m"
       memory: "4096Mi"
