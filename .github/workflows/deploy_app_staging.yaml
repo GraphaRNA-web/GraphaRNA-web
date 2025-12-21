@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - 'Deploy'
+      - 'main'
 
 env:
   REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
