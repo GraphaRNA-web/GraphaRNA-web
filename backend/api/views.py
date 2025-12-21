@@ -52,7 +52,7 @@ def SetupTestJob(request: Request) -> Response:
     # settings.TEMPLATE_PATH_JOB_FINISHED
     if settings.SETUP_BASE_DIR == "error":
         print("ERROR: SETUP_BASE_DIR not found!")
-    file_path= Path(f"{settings.SETUP_BASE_DIR}{fasta_file_name}")
+    file_path= Path(f"{settings.SETUP_BASE_DIR}/test_files/{fasta_file_name}")
     sum_processing_time = request.data.get("sum_processing_time")
     try:
         with open(file_path, "rb") as f:
@@ -125,7 +125,7 @@ def SetupTestJobResults(request: Request) -> Response:
 
         for field, filename in result_files.items():
             if filename:
-                file_path = Path(f"{settings.SETUP_BASE_DIR}{filename}")
+                file_path = Path(f"{settings.SETUP_BASE_DIR}/test_files/{filename}")
                 with open(file_path, "rb") as f:
                     django_file = File(f, name=filename)
                     getattr(job_results, field).save(filename, django_file, save=False)
