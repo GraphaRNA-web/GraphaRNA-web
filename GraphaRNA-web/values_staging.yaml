@@ -71,6 +71,7 @@ backend:
   config:
     DEBUG: "True"
     DJANGO_ALLOWED_HOSTS: "*"
+    SETUP_BASE_DIR: "/home/appuser/app"
     
     # Database
     DATABASE_ENGINE: "django.db.backends.postgresql"
@@ -213,4 +214,5 @@ rabbitmq:
 
   # --- RabbitMQ config ---
   config:
+
     consumer_timeout: "129600000"
