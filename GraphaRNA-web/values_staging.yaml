@@ -71,7 +71,7 @@ backend:
   config:
     DEBUG: "True"
     DJANGO_ALLOWED_HOSTS: "*"
-    SETUP_BASE_DIR: "/home/appuser/app"
+    SETUP_BASE_DIR: "/app"
     
     # Database
     DATABASE_ENGINE: "django.db.backends.postgresql"
@@ -84,6 +84,7 @@ backend:
     MODEL_NAME: "model_800.h5"
     MODEL_EPOCHS: "800"
     UUID_HASH_LENGTH: "5"
+    MAX_RNA_LENGTH: "100"
     
     # Email
     EMAIL_HOST: "smtp.gmail.com"
@@ -216,3 +217,4 @@ rabbitmq:
   config:
 
     consumer_timeout: "129600000"
+
