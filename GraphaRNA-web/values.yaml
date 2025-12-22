@@ -108,7 +108,7 @@ backend:
 
     # Engine configuration
     ENGINE_URL: "http://grapharna-engine-svc:8080"
-    ENGINE_TIMEOUT_SECONDS: 60000
+    ENGINE_TIMEOUT_SECONDS: "600000"
     ENGINE_POLL_INTERVAL_SECONDS: 60
    
 
