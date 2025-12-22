@@ -74,6 +74,7 @@ backend:
   config:
     DEBUG: "False"
     DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
+    SETUP_BASE_DIR: "/home/appuser/app"
    
     # Database
     DATABASE_ENGINE: "django.db.backends.postgresql"
