@@ -74,6 +74,7 @@ backend:
   config:
     DEBUG: "False"
     DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-svc,150.254.30.175,grapharna-web.cs.put.poznan.pl,grapharna.cs.put.poznan.pl"
+    SETUP_BASE_DIR: "/home/appuser/app"
    
     # Database
     DATABASE_ENGINE: "django.db.backends.postgresql"
@@ -107,7 +108,7 @@ backend:
 
     # Engine configuration
     ENGINE_URL: "http://grapharna-engine-svc:8080"
-    ENGINE_TIMEOUT_SECONDS: 60000
+    ENGINE_TIMEOUT_SECONDS: "600000"
     ENGINE_POLL_INTERVAL_SECONDS: 60
    
 
@@ -170,8 +171,8 @@ engine:
 
   resources:
     requests:
-      cpu: "8000m"
-      memory: "6Gi"
+      cpu: "4000m"
+      memory: "4Gi"
     limit:
       cpu: "12000m"
       memory: "12Gi"
@@ -189,7 +190,7 @@ postgres:
   resources:
     requests:
       cpu: "500m"
-      memory: "2048Mi"
+      memory: "1536Mi"
     limit:
       cpu: "1000m"
       memory: "4096Mi"
@@ -212,7 +213,7 @@ rabbitmq:
   resources:
     requests:
       cpu: "100m"
-      memory: "2048Mi"
+      memory: "1536Mi"
     limits:
       cpu: "500m"
       memory: "4096Mi"
