@@ -100,6 +100,8 @@ TEMPLATE_PATH_JOB_NEAR_EXPIRATION=email_templates/template_job_near_expiration.h
 EMAIL_TITLE_JOB_CREATED=Your job has been created!
 EMAIL_TITLE_JOB_FINISHED=Your job is finished!
 EMAIL_TITLE_JOB_NEAR_EXPIRATION=Your job is about to expire!
+
+SETUP_BASE_DIR=/app
  ```
 
 
