@@ -8,7 +8,7 @@ interface TextAreaProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  validate?: (value: string) => boolean; // 👈 zamiast regexa, funkcja
+  validate?: (value: string) => boolean;
 }
 
 const TextArea: React.FC<TextAreaProps> = ({

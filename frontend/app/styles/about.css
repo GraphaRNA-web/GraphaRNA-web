@@ -30,7 +30,7 @@
 .about-title{
     color: var(--brown-base);
     font-family: 'Raleway';
-    font-weight: lighter;
+    font-weight: normal;
     font-size: 38px;
     height: 45px;
     width: 100%;
@@ -58,7 +58,7 @@
     color: var(--brown-base);
     font-size: 16px;
     font-family: 'Inter';
-    font-weight: lighter;
+    font-weight: normal;
     text-align: justify;
 }
 
@@ -109,7 +109,7 @@
     height: 45px;
     font-family: 'Raleway';
     font-size: 38px;
-    font-weight: lighter;
+    font-weight: normal;
     color: var(--brown-base);
 }
 
@@ -150,8 +150,8 @@
 .authors-rectangle, 
 .authors-rectangle1{
     background-color: var(--background-lighten-5);
-    width: 535px;
-    height: 457px;
+    width: 450px;
+    height: 300px;
     border-radius: 20px;
     position: absolute;
     z-index: 1;
@@ -295,7 +295,7 @@
     font-size: 38px;
     color: var(--brown-base);
     font-family: 'Raleway';
-    font-weight: lighter;
+    font-weight: normal;
 }
 
 .funds-text{
@@ -305,7 +305,7 @@
     font-size: 16px;
     color: var(--brown-base);
     font-family: 'Inter';
-    font-weight: lighter;
+    font-weight: normal;
     font-size: 16px;
     text-align: justify;
 }

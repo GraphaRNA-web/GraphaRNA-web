@@ -512,12 +512,14 @@ const handleExampleClick3 = async () => {
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-title'>Interactive form hint</p>
-                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. In the second line, provide the secondary structure in dot-bracket notation. You can add multiple sequences by using the plus (+) button or separating them with dashes (-) or spaces.</p>
+                  <p className='sjp-hint-text'>The first line of input is the RNA sequence in the text field. In the second line, provide the secondary structure in 
+                    dot-bracket notation. You can add multiple sequences by using the plus (+) button or separating them with dashes (-) or spaces.
+                  </p>
                 </div>
 
                 <div className='sjp-int-input-title'>
                   <p className='sjp-rna-structure-title'>RNA structure</p>
-                  <p className='sjp-rna-structure-text'>Paste sequence with dotbracket and add another if needed.</p>
+                  <p className='sjp-rna-structure-text'>Paste the sequence with dotbracket and add another if needed.</p>
                 </div>
 
                 {structures.map((s, idx) => (
@@ -578,8 +580,10 @@ const handleExampleClick3 = async () => {
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-title'>Format hint</p>
-                  <p className='sjp-hint-text'>First line of input is RNA sequence in the text field. You can add multiple sequences by separating them with dashes or spaces (-).
-In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures separated by dashes or spaces (-).</p>
+                  <p className='sjp-hint-text'>The first line of input is the RNA sequence in the text field. You can add multiple sequences by separating them with dashes 
+                    or spaces (-). In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures separated by dashes 
+                    or spaces (-).
+                  </p>
                 </div>
 
                 <div className='sjp-text-input-title'>
@@ -717,9 +721,9 @@ In the second line, provide the secondary structure in dot-bracket notation. You
                 </p>
                 <div className='sjp-opt-params-2'>
 
-                  <p><b className="sjp-bold">Seed:</b> An integer value to initialize the random number generator for reproducibility. Default is auto, meaning a random seed will be automatically generated.</p>
-                  <p><b className="sjp-bold">Name:</b> A custom name for your job to help you identify it later. Default is auto, meaning a name will be generated based on the current date and a random number.</p>
-                  <p><b className="sjp-bold">#Alternative conformations:</b> Number of alternative conformations to generate for the given RNA structure. Number bigger than 1 will cause the calcuation of the input sequence with incremented seed values.</p>
+                  <p><b className="sjp-bold">Seed:</b>An integer value to initialize the random number generator for reproducibility. The default is auto, meaning a random seed will be automatically generated.</p>
+                  <p><b className="sjp-bold">Name:</b>A custom name for your job to help you identify it later. The default is auto, meaning a name will be generated based on the current date and a random number.</p>
+                  <p><b className="sjp-bold">#Alternative conformations:</b>Number of alternative conformations to generate for the given RNA structure. Numbers bigger than 1 will cause the calculation of the input sequence with incremented seed values.</p>
                 </div>
               </div>
               

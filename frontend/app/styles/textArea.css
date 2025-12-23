@@ -7,9 +7,20 @@
   border-radius: 20px;
   transition: border 0.3s ease-in-out;
   padding: 20px 30px;
-  font-family: Consolas;
   font-weight: 400;
+}
+
+.textarea-wrapper textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: Consolas;
   font-size: 18px;
+  color: var(--brown-lighten-5);
   resize: vertical;
-  color: var(--brown-lighten-5)
+}
+
+.textarea-wrapper:focus-within {
+  border: 1px solid var(--brown-lighten-5);
 }
