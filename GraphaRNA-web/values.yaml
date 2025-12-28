@@ -87,6 +87,7 @@ backend:
     MODEL_NAME: "model_800.h5"
     MODEL_EPOCHS: "800"
     UUID_HASH_LENGTH: "5"
+    MAX_RNA_LENGTH: "100"
 
     # Example jobs
     EXAMPLE_JOB_NAME_PREFIX: "example_job_"
@@ -108,7 +109,7 @@ backend:
 
     # Engine configuration
     ENGINE_URL: "http://grapharna-engine-svc:8080"
-    ENGINE_TIMEOUT_SECONDS: "600000"
+    ENGINE_TIMEOUT_SECONDS: "60000"
     ENGINE_POLL_INTERVAL_SECONDS: 60
    
 
