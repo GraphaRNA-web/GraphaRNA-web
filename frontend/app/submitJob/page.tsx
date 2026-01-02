@@ -76,8 +76,10 @@ export default function SubmitJob() {
 
 
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
-
-  const emailValidator = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  const emailValidator = (val: string): boolean => {
+    const asciiEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return asciiEmailRegex.test(val);
+  };
 
   const validateStructures = (): boolean => {
   const newErrors: string[] = [];
@@ -295,6 +297,8 @@ const handleValidate = async () => {
 
 const handleNext = async () => {
   setErrors([]);
+  setWarnings([]);
+  setApproves([]);
   if (currentStep === 0) {
     const res = await validateStructure(true);
     console.log(res);
@@ -423,6 +427,9 @@ const goNextWithGetSuggestedData = async () => {
   }
 
   const handlePrev = () => {
+    setErrors([]);
+    setWarnings([]);
+    setApproves([]);
     setCurrentStep(prev => prev - 1);
   }
 
