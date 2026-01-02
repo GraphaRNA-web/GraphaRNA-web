@@ -161,11 +161,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       const { result, status} = await validateRNA({fasta_raw: trimmedText});
       console.log(result, status);
 
-      if(status >= 400 && status < 500){
-        setErrors([result.error]);
-        return "error";
-      }
-      else if(status >= 500){
+      if(status >= 500){
         setServer500(true);
         return "error";
       }
@@ -245,11 +241,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
         setMismatchingBrackets(result["Mismatching Brackets"] || []);
         setIncorrectPairs(result["Incorrect Pairs"] || []);
 
-        if(status >= 400 && status < 500){
-          setErrors([result.error]);
-          return "error";
-        }
-        else if(status >= 500){
+        if(status >= 500){
           setServer500(true);
           return "error";
         }
