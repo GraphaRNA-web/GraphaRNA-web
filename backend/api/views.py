@@ -250,6 +250,8 @@ def DownloadZipFile(request: Request) -> HttpResponse:
 def ValidateEmailAddress(email: Optional[str]) -> bool:
     if email is None:
         return True
+    if not email.isascii():
+        return False
     validator = EmailValidator()
     try:
         validator(email)
