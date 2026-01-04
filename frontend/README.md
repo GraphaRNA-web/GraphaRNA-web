@@ -5,6 +5,9 @@ Create the .env file with the backend and origin url parameter:
 ```
 BACKEND_URL=http://backend:8000
 DOMAIN_URL=http://127.0.0.1:3000
+NEXT_PUBLIC_EXAMPLE_RNA_1=CCGAGUAGGUA\n((.....))..
+NEXT_PUBLIC_EXAMPLE_RNA_2=GACUUAUAGAU UGAGUCC\n(((((..(... )))))).
+NEXT_PUBLIC_EXAMPLE_RNA_3=UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)
 ```
 First, run the development server:
 
