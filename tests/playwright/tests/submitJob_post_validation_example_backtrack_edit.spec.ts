@@ -2,34 +2,30 @@
 import { test, expect } from "@playwright/test";
 import { SubmitJobPage } from "../pages/submitJobPage";
 test.describe("SubmitJob full with example1 success", () => {
-  test("Should do entirety of submitJob with example1 and backtrack with edit", async ({ page }) => {
+  test("Should do entirety of submitJob with example1 and backtrack with edit", 
+  {
+    annotation: [
+      { type: 'bug', description: 'Veryfing old bug ' }
+    ]
+  }, async ({ page }) => {
+    
     const submitJob = new SubmitJobPage(page);
-
-    await submitJob.goto();
-    await page.waitForTimeout(2000);
-    await submitJob.clickExample1();
-    await submitJob.fillTextArea("CCGAGUAGGUA\n((.....))..");
-    await submitJob.clickValidate();
-    await expect(submitJob.approveBox).toBeVisible({ timeout: 150000 });
-    await expect(submitJob.approveBox).toHaveText(
-      "The structure is valid. You can now proceed with the job."
-    );
+    await submitJob.gotoAndValidate("CCGAGUAGGUA\n((.....))..",1)
 
     //NEXT
     
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
+    await submitJob.next();
+    await page.waitForSelector('.sjp-params-section');
     const seedItems = page.locator(".sjp-seed-name-param");
-    const firstSeedCheckbox = seedItems.nth(0).locator('.custom-checkbox');
-    const secondSeedCheckbox = seedItems.nth(1).locator('.custom-checkbox');
+    const firstSeedCheckbox = page.locator('[data-testid="custom-checkbox"]').first();
+    const secondSeedCheckbox = page.locator('[data-testid="custom-checkbox"]').nth(1);
+    console.log("opacity");
+    
 
-    const firstOpacity = await firstSeedCheckbox.evaluate(
-    el => window.getComputedStyle(el).opacity
-    );
+
+    const firstOpacity = await firstSeedCheckbox.evaluate(el => window.getComputedStyle(el).opacity);
     expect(firstOpacity).not.toBe("1");
-
-    const secondOpacity = await secondSeedCheckbox.evaluate(
-    el => window.getComputedStyle(el).opacity
-    );
+    const secondOpacity = await secondSeedCheckbox.evaluate(el => window.getComputedStyle(el).opacity);
     expect(secondOpacity).not.toBe("1");
 
     const NameText = seedItems.nth(0).locator('p');
@@ -42,12 +38,13 @@ test.describe("SubmitJob full with example1 success", () => {
     expect(text2?.trim()).toBe("Name example_job_1");
     await page.locator('button.button--primary-outlined', { hasText: 'Previous' }).click();
     await submitJob.fillTextArea("CCGAGUAGGUAa\n((.....))...");
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
+    await submitJob.next();
+    //NEXT
 
-
+    
     const seedItemsPrev = page.locator(".sjp-seed-name-param");
-    const firstSeedCheckboxPrev = seedItemsPrev.nth(0).locator('.custom-checkbox');
-    const secondSeedCheckboxPrev = seedItemsPrev.nth(1).locator('.custom-checkbox');
+    const firstSeedCheckboxPrev = seedItemsPrev.nth(0).locator('[data-testid="custom-checkbox"]');
+    const secondSeedCheckboxPrev = seedItemsPrev.nth(1).locator('[data-testid="custom-checkbox"]');
 
     const firstOpacityPrev = await firstSeedCheckboxPrev.evaluate(
     el => window.getComputedStyle(el).opacity);
@@ -84,13 +81,15 @@ test.describe("SubmitJob full with example1 success", () => {
 
     const jobSeedField = page.locator('.textarea-wrapper textarea[placeholder="Enter custom seed"]');
     await jobSeedField.fill("54321");
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
+
+    //NEXT i PREVIOUS
+    await submitJob.next();
     await page.locator('button.button--primary-outlined', { hasText: 'Previous' }).click();
 
 
     const seedItemsPrev2 = page.locator(".sjp-seed-name-param");
-    const firstSeedCheckboxPrev2 = seedItemsPrev2.nth(0).locator('.custom-checkbox');
-    const secondSeedCheckboxPrev2 = seedItemsPrev2.nth(1).locator('.custom-checkbox');
+    const firstSeedCheckboxPrev2 = seedItemsPrev2.nth(0).locator('[data-testid="custom-checkbox"]');
+    const secondSeedCheckboxPrev2 = seedItemsPrev2.nth(1).locator('[data-testid="custom-checkbox"]');
 
     const firstOpacityPrev2 = await firstSeedCheckboxPrev2.evaluate(
     el => window.getComputedStyle(el).opacity
@@ -114,7 +113,7 @@ test.describe("SubmitJob full with example1 success", () => {
     console.log("text2:", currentValueNamePrev);
     expect(currentValueNamePrev?.trim()).toBe("test123");
     expect(currentValueSeedPrev?.trim()).toBe("54321");
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
+    await submitJob.next();
 
 
     //NEXT

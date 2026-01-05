@@ -1,106 +1,77 @@
 // tests/submitJob_postValidation_example_success.spec.ts
 import { test, expect } from "@playwright/test";
 import { SubmitJobPage } from "../pages/submitJobPage";
-test.describe("SubmitJob full with example1 success", () => {
-  test("Should do entirety of submitJob with example1", async ({ page }) => {
-    const submitJob = new SubmitJobPage(page);
 
-    await submitJob.goto();
-    await page.waitForTimeout(2000);
-    await submitJob.clickExample1();
-    await submitJob.clickValidate();
-    await expect(submitJob.approveBox).toBeVisible({ timeout: 150000 });
-    await expect(submitJob.approveBox).toHaveText(
-      "The structure is valid. You can now proceed with the job."
-    );
+const examples = [
+  {
+    name: "example 1",
+    input: "CCGAGUAGGUA\n((.....))..",
+    expectedJobName: "Name example_job_1",
+  },
+  {
+    name: "example 2",
+    input: "GACUUAUAGAU UGAGUCC\n(((((..(... )))))).",
+    expectedJobName: "Name example_job_2",
+  },
+  {
+    name: "example 3",
+    input: "UUAUGUGCC UGUUA AAUACAAUAG\n.....(... (.(.. ).....)..)",
+    expectedJobName: "Name example_job_3",
+  },
+];
 
-    //NEXT
+test.describe("SubmitJob full success)", () => {
+  for (let i = 0; i < examples.length; i++) {
+    const example = examples[i];
+    test(`Should do entirety of submitJob with ${example.name}`,{
+    annotation: [
+      { type: 'success', description: 'SubmitJob full success with correct data' }
+    ]
+  }, async ({ page }) => {
+      const submitJob = new SubmitJobPage(page);
 
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
-    const seedCheckbox = page.locator('.sjp-seed-name-param').first().locator('.custom-checkbox');
-    const opacity = await seedCheckbox.evaluate(el => window.getComputedStyle(el).opacity);
-    expect(opacity).not.toBe("1");
-    console.log("Opacity:", opacity);
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
+      await submitJob.goto();
+      await page.waitForTimeout(2000);
 
-    //NEXT
+      await submitJob.selectExample(i+1);
+      await submitJob.clickValidate();
 
-    const emailInput = page.locator(".sjp-email-param textarea");
-    await expect(emailInput).toBeVisible();
-    await emailInput.fill("test@example.com");
-    await page.locator('button.button--primary-filled', { hasText: 'Submit' }).click();
+      await expect(submitJob.approveBox).toBeVisible({ timeout: 150000 });
+      await expect(submitJob.approveBox).toHaveText(
+        "The structure is valid. You can now proceed with the job."
+      );
 
-    await page.waitForURL(/\/results/, { timeout: 10000 });
-    expect(page.url()).toMatch(/\/results/);
 
-  });
-});
+      //NEXT
+      await submitJob.next();
+      await page.waitForTimeout(2000);
+      await page.waitForSelector(".sjp-params-section");
 
-test.describe("SubmitJob full with example2 success", () => {
-  test("Should do entirety of submitJob with example2", async ({ page }) => {
-    const submitJob = new SubmitJobPage(page);
+      const seedCheckbox = page
+        .locator(".sjp-seed-name-param")
+        .first()
+        .locator('[data-testid="custom-checkbox"]');
 
-    await submitJob.goto();
-    await page.waitForTimeout(2000);
-    await submitJob.clickExample2();
-    await submitJob.clickValidate();
-    await expect(submitJob.approveBox).toBeVisible({ timeout: 15000 });
-    await expect(submitJob.approveBox).toHaveText(
-      "The structure is valid. You can now proceed with the job."
-    );
+      const opacity = await seedCheckbox.evaluate(el =>
+        window.getComputedStyle(el).opacity
+      );
 
-    //NEXT
+      expect(opacity).not.toBe("1");
+      console.log(`[${example.name}] seed opacity:`, opacity);
 
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
-    const seedCheckbox = page.locator('.sjp-seed-name-param').first().locator('.custom-checkbox');
-    const opacity = await seedCheckbox.evaluate(el => window.getComputedStyle(el).opacity);
-    expect(opacity).not.toBe("1");
-    console.log("Opacity:", opacity);
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
 
-    //NEXT
 
-    const emailInput = page.locator(".sjp-email-param textarea");
-    await expect(emailInput).toBeVisible( {timeout: 150000 });
-    await emailInput.fill("test@example.com");
-    await page.locator('button.button--primary-filled', { hasText: 'Submit' }).click();
+      //NEXT
+      await submitJob.next();
 
-    await page.waitForURL(/\/results/, { timeout: 10000 });
-    expect(page.url()).toMatch(/\/results/);
+      const emailInput = page.locator(".sjp-email-param textarea");
+      await expect(emailInput).toBeVisible({ timeout: 150000 });
 
-  });
-});
-test.describe("SubmitJob full with example3 success", () => {
-  test("Should do entirety of submitJob with example3", async ({ page }) => {
-    const submitJob = new SubmitJobPage(page);
+      await emailInput.fill("test@example.com");
+      await page.locator('button.button--primary-filled', { hasText: "Submit" }).click();
 
-    await submitJob.goto();
-    await page.waitForTimeout(2000);
-    await submitJob.clickExample3();
-    await submitJob.clickValidate();
-    await expect(submitJob.approveBox).toBeVisible({ timeout: 150000 });
-    await expect(submitJob.approveBox).toHaveText(
-      "The structure is valid. You can now proceed with the job."
-    );
-
-    //NEXT
-
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
-    const seedCheckbox = page.locator('.sjp-seed-name-param').first().locator('.custom-checkbox');
-    const opacity = await seedCheckbox.evaluate(el => window.getComputedStyle(el).opacity);
-    expect(opacity).not.toBe("1");
-    console.log("Opacity:", opacity);
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
-
-    //NEXT
-
-    const emailInput = page.locator(".sjp-email-param textarea");
-    await expect(emailInput).toBeVisible();
-    await emailInput.fill("test@example.com");
-    await page.locator('button.button--primary-filled', { hasText: 'Submit' }).click();
-
-    await page.waitForURL(/\/results/, { timeout: 10000 });
-    expect(page.url()).toMatch(/\/results/);
-
-  });
+      await page.waitForURL(/\/results/, { timeout: 10000 });
+      expect(page.url()).toMatch(/\/results/);
+    });
+  }
 });

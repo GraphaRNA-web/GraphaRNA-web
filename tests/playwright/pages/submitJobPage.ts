@@ -1,5 +1,5 @@
 // pages/submitJobPage.ts
-import { Page, Locator } from "@playwright/test";
+import { Page, Locator,expect } from "@playwright/test";
 
 export class SubmitJobPage {
   readonly page: Page;
@@ -31,7 +31,7 @@ export class SubmitJobPage {
     }
 
   async goto() {
-    await this.page.goto("/submitJob");
+    await this.page.goto("http://127.0.0.1:3000/submitJob");
   }
 
   async fillTextArea(text: string) {
@@ -40,14 +40,13 @@ export class SubmitJobPage {
   async clickValidate() {
     await this.validateButton.click();
   }
-  async clickExample1() {
-    await this.example1Button.click();
-  }
-  async clickExample2() {
-    await this.example2Button.click();
-  }
-  async clickExample3() {
-    await this.example3Button.click();
+  async selectExample(exampleNumber: number) {
+    switch (exampleNumber) {
+      case 1: await this.example1Button.click(); break;
+      case 2: await this.example2Button.click(); break;
+      case 3: await this.example3Button.click(); break;
+    }
+    await this.page.waitForTimeout(500);
   }
   async selectInputFormat(option: string) {
     await this.sliderOption(option).click();
@@ -58,5 +57,25 @@ export class SubmitJobPage {
   async fillStructure(index: number, value: string) {
     const textarea = this.interactiveBox.locator("textarea").nth(index);
     await textarea.fill(value);
+  }
+  async next() {
+    await this.page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
+  }
+  async gotoAndValidate(input?: string, example?: number) {
+    await this.goto();
+if (example && example <= 3) {
+    await this.selectExample(example);
+    await this.page.waitForTimeout(1500);
+  }
+    if (input !== undefined){
+      await this.fillTextArea(input);
+    }
+    
+    await this.clickValidate();
+    await expect(this.approveBox).toBeVisible({ timeout: 15000 });
+    await expect(this.approveBox).toHaveText(
+      "The structure is valid. You can now proceed with the job.",
+      { timeout: 30000  }
+    );
   }
 }

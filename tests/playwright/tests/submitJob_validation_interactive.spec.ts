@@ -1,139 +1,83 @@
 // tests/submitJob_validation_interactive.spec.ts
-// giga G
 import { test, expect } from "@playwright/test";
 import { SubmitJobPage } from "../pages/submitJobPage";
 
+type InteractiveCase = {
+  name: string;
+  structures: [string, string];
+  expectedErrors?: string[];
+  shouldPass?: boolean;
+};
 
-test.describe("SubmitJob interactive validation error", () => {
-  test("Should switch from text to Interactive format and succesfully validate", async ({ page }) => {
-    const submitJob = new SubmitJobPage(page);
+const cases: InteractiveCase[] = [
+  {
+    name: "valid structures",
+    structures: ["CC\n..", "GG\n.."],
+    shouldPass: true,
+  },
+  {
+    name: "blank structure 1",
+    structures: ["", "GG\n.."],
+    expectedErrors: ["Structure 1 cannot be empty."],
+  },
+  {
+    name: "blank structure 2",
+    structures: ["CC\n..", ""],
+    expectedErrors: ["Structure 2 cannot be empty."],
+  },
+  {
+    name: "both blank",
+    structures: ["", ""],
+    expectedErrors: [
+      "Structure 1 cannot be empty.",
+      "Structure 2 cannot be empty.",
+    ],
+  },
+  {
+    name: "both invalid",
+    structures: ["AB\n..", "GG\n8)"],
+    expectedErrors: [
+      "RNA contains invalid characters: B",
+      "DotBracket contains invalid brackets: 8",
+    ],
+  },
+];
 
-    await submitJob.goto();
-    await expect(submitJob.textArea).toBeVisible();
-    await submitJob.selectInputFormat("Interactive");
-    await expect(submitJob.interactiveBox).toBeVisible();
-    await submitJob.fillStructure(0, "CC\n..");
-    await submitJob.addStructure();
-    await submitJob.fillStructure(1, "GG\n..");
+test.describe("SubmitJob Interactive", () => {
+  for (const testCase of cases) {
+    test(`should handle interactive input – ${testCase.name}`, async ({ page }) => {
+      const submitJob = new SubmitJobPage(page);
+      await submitJob.goto();
+      await expect(submitJob.textArea).toBeVisible();
 
-    const firstVal = await submitJob.interactiveBox.locator("textarea").nth(0).inputValue();
-    const secondVal = await submitJob.interactiveBox.locator("textarea").nth(1).inputValue();
+      await submitJob.selectInputFormat("Interactive");
+      await expect(submitJob.interactiveBox).toBeVisible();
+      await submitJob.fillStructure(0, testCase.structures[0]);
+      await submitJob.addStructure();
+      await submitJob.fillStructure(1, testCase.structures[1]);
 
-    expect(firstVal).toBe("CC\n..");
-    expect(secondVal).toBe("GG\n..");
+      const values = submitJob.interactiveBox.locator("textarea");
+      await expect(values.nth(0)).toHaveValue(testCase.structures[0]);
+      await expect(values.nth(1)).toHaveValue(testCase.structures[1]);
 
-    await submitJob.clickValidate();
-    await expect(submitJob.approveBox).toBeVisible({ timeout: 15000 });
-    await expect(submitJob.approveBox).toHaveText("The structure is valid. You can now proceed with the job.",{ timeout: 15000 });
+      await submitJob.clickValidate();
 
-  });
+      if (testCase.shouldPass) {
+        await expect(submitJob.approveBox).toBeVisible({ timeout: 15000 });
+        await expect(submitJob.approveBox).toHaveText(
+          "The structure is valid. You can now proceed with the job."
+        );
+      } else {
+        await expect(submitJob.errorBox).toBeVisible({ timeout: 15000 });
 
-});
+        const errors = await submitJob.errorBox
+          .locator("li, p, div")
+          .allTextContents();
 
-
-
-test.describe("SubmitJob interactive blank 1 ", () => {
-  test("Should switch from Text to Interactive format and get validation error blank Structure 1 ", async ({ page }) => {
-    const submitJob = new SubmitJobPage(page);
-
-    await submitJob.goto();
-    await expect(submitJob.textArea).toBeVisible();
-    await submitJob.selectInputFormat("Interactive");
-    await expect(submitJob.interactiveBox).toBeVisible();
-    await submitJob.fillStructure(0, "");
-    await submitJob.addStructure();
-    await submitJob.fillStructure(1, "GG\n..");
-
-    const firstVal = await submitJob.interactiveBox.locator("textarea").nth(0).inputValue();
-    const secondVal = await submitJob.interactiveBox.locator("textarea").nth(1).inputValue();
-
-    expect(firstVal).toBe("");
-    expect(secondVal).toBe("GG\n..");
-
-    await submitJob.clickValidate();
-    await expect(submitJob.errorBox).toBeVisible();
-    await expect(submitJob.errorBox).toContainText("Structure 1 cannot be empty.",{ timeout: 15000 });
-  });
-});
-
-
-test.describe("SubmitJob interactive blank 2", () => {
-  test("Should switch from Text to Interactive format and get validation error blank Structure 2", async ({ page }) => {
-    const submitJob = new SubmitJobPage(page);
-
-    await submitJob.goto();
-    await expect(submitJob.textArea).toBeVisible();
-    await submitJob.selectInputFormat("Interactive");
-    await expect(submitJob.interactiveBox).toBeVisible();
-    await submitJob.fillStructure(0, "CC\n..");
-    await submitJob.addStructure();
-    await submitJob.fillStructure(1, "");
-
-    const firstVal = await submitJob.interactiveBox.locator("textarea").nth(0).inputValue();
-    const secondVal = await submitJob.interactiveBox.locator("textarea").nth(1).inputValue();
-
-    expect(firstVal).toBe("CC\n..");
-    expect(secondVal).toBe("");
-
-    await submitJob.clickValidate();
-    await expect(submitJob.errorBox).toBeVisible();
-    await expect(submitJob.errorBox).toContainText("Structure 2 cannot be empty.",{ timeout: 15000 });
-  });
-});
-
-
-test.describe("SubmitJob interactive Both blank", () => {
-  test("Should switch from Text to Interactive format and get validation error both blank", async ({ page }) => {
-    const submitJob = new SubmitJobPage(page);
-
-    await submitJob.goto();
-    await expect(submitJob.textArea).toBeVisible();
-
-    await submitJob.selectInputFormat("Interactive");
-    await expect(submitJob.interactiveBox).toBeVisible();
-    await submitJob.fillStructure(0, "");
-    await submitJob.addStructure();
-    await submitJob.fillStructure(1, "");
-
-    const firstVal = await submitJob.interactiveBox.locator("textarea").nth(0).inputValue();
-    const secondVal = await submitJob.interactiveBox.locator("textarea").nth(1).inputValue();
-
-    expect(firstVal).toBe("");
-    expect(secondVal).toBe("");
-
-    await submitJob.clickValidate();
-    await expect(submitJob.errorBox).toBeVisible();
-    const errorMessages = await submitJob.errorBox.locator("li, p, div").allTextContents();
-    expect(errorMessages.length).toBeGreaterThanOrEqual(2);
-    expect(errorMessages).toContain("Structure 1 cannot be empty.");
-    expect(errorMessages).toContain("Structure 2 cannot be empty.");
-  });
-});
-
-test.describe("SubmitJob interactive Both invalid", () => {
-  test("Should switch from Text to Interactive format and get validation error both invalid", async ({ page }) => {
-    const submitJob = new SubmitJobPage(page);
-
-    await submitJob.goto();
-    await expect(submitJob.textArea).toBeVisible();
-
-    await submitJob.selectInputFormat("Interactive");
-    await expect(submitJob.interactiveBox).toBeVisible();
-    await submitJob.fillStructure(0, "AB\n..");
-    await submitJob.addStructure();
-    await submitJob.fillStructure(1, "GG\n8)");
-
-    const firstVal = await submitJob.interactiveBox.locator("textarea").nth(0).inputValue();
-    const secondVal = await submitJob.interactiveBox.locator("textarea").nth(1).inputValue();
-
-    expect(firstVal).toBe("AB\n..");
-    expect(secondVal).toBe("GG\n8)");
-
-    await submitJob.clickValidate();
-    await expect(submitJob.errorBox).toBeVisible();
-    const errorMessages = await submitJob.errorBox.locator("li, p, div").allTextContents();
-    expect(errorMessages.length).toBeGreaterThanOrEqual(2);
-    expect(errorMessages).toContain("RNA contains invalid characters: B");
-    expect(errorMessages).toContain("DotBracket contains invalid brackets: 8");
-  });
+        for (const expectedError of testCase.expectedErrors!) {
+          expect(errors).toContain(expectedError);
+        }
+      }
+    });
+  }
 });

@@ -1,5 +1,4 @@
 // tests/submitJob_validation_upload.spec.ts
-//wsm zrobione ale mozna wiecej kliknac
 import path from "path";
 import { test, expect } from "@playwright/test";
 import { SubmitJobPage } from "../pages/submitJobPage";
@@ -23,7 +22,7 @@ test.describe("SubmitJob File upload", () => {
     await fileInput.setInputFiles(fastaPath, { force: true });
 
     await page.locator("#modal-upload-button").click();
-    await page.locator('button.button--primary-filled', { hasText: 'Next' }).click();
+    await submitJob.clickValidate();
     await expect(submitJob.approveBox).toHaveText("The structure is valid. You can now proceed with the job.",{ timeout: 15000 });
   });
 });
