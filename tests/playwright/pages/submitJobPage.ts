@@ -1,6 +1,7 @@
 // pages/submitJobPage.ts
 import { Page, Locator,expect } from "@playwright/test";
 
+
 export class SubmitJobPage {
   readonly page: Page;
   readonly textArea: Locator;
@@ -30,9 +31,10 @@ export class SubmitJobPage {
     };
     }
 
-  async goto() {
-    await this.page.goto("http://127.0.0.1:3000/submitJob");
-  }
+async goto() {
+  await this.page.goto('/submitJob', { waitUntil: 'domcontentloaded' });
+}
+
 
   async fillTextArea(text: string) {
     await this.textArea.fill(text);
