@@ -55,7 +55,7 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
       <tbody>
         {rows.map((row) => (
           <tr key={row.id}
-              style={{ cursor: "pointer" }}>
+              style={{ cursor: "default" }}>
             {!isFinishedTable && <td>{row.id}</td>}
             <td>{row.job_name}</td>
             <td>

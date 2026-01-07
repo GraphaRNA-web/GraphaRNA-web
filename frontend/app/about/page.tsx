@@ -35,8 +35,8 @@ export default function About(){
                         <div className='authors-profs'>
                             <div className='authors-circle'>
                                 <img className='rocket-icon' src='icons/rocket.svg'></img>
+                                <p className='graphaRNA-text'>GraphaRNA</p>
                             </div>
-                            <p className='graphaRNA-text'>GraphaRNA</p>
                             <div className='authors-rectangle'>
                                 <div className='authors-row'>
                                     <div className='author'>
@@ -63,11 +63,10 @@ export default function About(){
                         <div className='authors-students'>
                             <div className='authors-circle1'>
                                 <img className='web-icon' src='icons/web.svg'></img>
+                                <p className='graphaRNAweb-text'>Grapha
+                                    <span className='rna'>RNA</span>
+                                </p>
                             </div>
-                            <p className='graphaRNAweb-text'>Grapha
-                                <span className='rna'>RNA</span>
-                                <span className='web'>-web</span>
-                            </p>
                             <div className='authors-rectangle1'>
                                 <div className='authors-row'>
                                     <div className='author'>

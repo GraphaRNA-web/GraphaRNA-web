@@ -15,7 +15,7 @@
   border: none;
   outline: none;
   background: transparent;
-  font-family: Consolas;
+  font-family: 'Inconsolata', 'Consolas', 'Menlo', 'Monaco', monospace;
   font-size: 18px;
   color: var(--brown-lighten-5);
   resize: vertical;
