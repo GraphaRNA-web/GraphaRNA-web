@@ -84,7 +84,7 @@
 
 .sem-value {
   flex: 1;
-  font-family: Consolas, monospace;
+  font-family: 'Inconsolata', 'Consolas', 'Menlo', 'Monaco', monospace;
   font-size: 14px;
   color: #42361E;
 }
