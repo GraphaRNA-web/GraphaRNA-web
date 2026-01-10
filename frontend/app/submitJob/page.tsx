@@ -461,30 +461,11 @@ const handleExampleClick3 = async () => {
   return (
     <div className='submit-jobs-page'>
       <div className='sjp-content'> 
-        <div className='sjp-header' style={{ height: isExpanded ? 'auto' : '35px', overflow: 'hidden' }}>
+        <div className='sjp-header'>
           <div className='sjp-header-top'>
-            <div className='sjp-header-title-div'>
-              {currentStep > 0 && currentStep < 3 && (
-                <img
-                  src="icons/arrow_back.svg"
-                  alt="Next step"
-                  className="sjp-step-arrow"
-                  style={{ width: "20px", height: "20px" }}
-                  onClick={handlePrev}
-                />
-              )}
-              <p className='sjp-header-title'>RNA structure form</p>
-            </div>
-            <div className="sjp-toggle-button" onClick={() => setIsExpanded(prev => !prev)}>
-              <span>{isExpanded ? "show less" : "show more"}</span>
-              <img
-                  src={isExpanded ? "icons/arrow_up.svg" : "icons/arrow_down.svg"}
-                  alt="Toggle icon"
-                  className="sjp-toggle-icon"
-              />
-            </div>
+            <p className='sjp-header-title'>RNA structure form</p>
           </div>
-          {isExpanded && (
+          {currentStep === 0 && (
             <p className='sjp-header-bottom'>
               Please input your RNA sequence 
               and secondary structure using the Interactive, Text, or File upload options below. 
@@ -498,7 +479,7 @@ const handleExampleClick3 = async () => {
         {currentStep === 0 && (
           <div className='sjp-step-0'>
             <div className='sjp-format-select'>
-                <p className='sjp-format-top'>Input format</p>
+                <p className='sjp-format-top'>Input method</p>
                 <Slider 
                   options={["Interactive", "Text", "File"]}
                   selectedOption={inputFormat}
@@ -510,7 +491,6 @@ const handleExampleClick3 = async () => {
             {inputFormat === "Interactive" && (
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
-                  <p className='sjp-hint-title'>Interactive form hint</p>
                   <p className='sjp-hint-text'>The first line of input is the RNA sequence in the text field. In the second line, provide the secondary structure in 
                     dot-bracket notation. You can add multiple sequences by using the plus (+) button or separating them with dashes (-) or spaces.
                   </p>
@@ -578,7 +558,6 @@ const handleExampleClick3 = async () => {
             {inputFormat === "Text" && (
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
-                  <p className='sjp-hint-title'>Format hint</p>
                   <p className='sjp-hint-text'>The first line of input is the RNA sequence in the text field. You can add multiple sequences by separating them with dashes 
                     or spaces (-). In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures separated by dashes 
                     or spaces (-).
@@ -645,7 +624,6 @@ const handleExampleClick3 = async () => {
             <div className='sjp-int-gray-box'>
               <div className='sjp-hint-upload'>
                 <div className='sjp-file-hint'>
-                  <p className='sjp-hint-title'>Format hint</p>
                   <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
                 </div>
                 
@@ -720,9 +698,9 @@ const handleExampleClick3 = async () => {
                 </p>
                 <div className='sjp-opt-params-2'>
 
-                  <p><b className="sjp-bold">Seed:</b>An integer value to initialize the random number generator for reproducibility. The default is auto, meaning a random seed will be automatically generated.</p>
-                  <p><b className="sjp-bold">Name:</b>A custom name for your job to help you identify it later. The default is auto, meaning a name will be generated based on the current date and a random number.</p>
-                  <p><b className="sjp-bold">#Alternative conformations:</b>Number of alternative conformations to generate for the given RNA structure. Numbers bigger than 1 will cause the calculation of the input sequence with incremented seed values.</p>
+                  <p><b className="sjp-bold">Seed:</b> An integer value to initialize the random number generator for reproducibility. The default is auto, meaning a random seed will be automatically generated.</p>
+                  <p><b className="sjp-bold">Name:</b> A custom name for your job to help you identify it later. The default is auto, meaning a name will be generated based on the current date and a random number.</p>
+                  <p><b className="sjp-bold">#Alternative conformations:</b> Number of alternative conformations to generate for the given RNA structure. Numbers bigger than 1 will cause the calculation of the input sequence with incremented seed values.</p>
                 </div>
               </div>
               

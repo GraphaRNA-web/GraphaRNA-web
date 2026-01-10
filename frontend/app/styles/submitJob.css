@@ -26,12 +26,6 @@
     justify-content: space-between;
 }
 
-.sjp-header-title-div{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 15px;
-}
 
 .sjp-header-bottom{
     height: auto;
@@ -50,21 +44,6 @@
     font-size: 30px;
     font-weight: 200;
     font-family: "Raleway";
-}
-
-.sjp-toggle-button{
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    font-size: 18px;
-    color: var(--primary2-base);
-    align-items: center;
-    cursor: pointer;
-}
-
-.sjp-toggle-icon{
-    width: 20px;
-    height: 20px;
 }
 
 .sjp-buttons-section{
@@ -127,16 +106,6 @@
     height: 71px;
     gap: 16px;
     margin-bottom: 60px;
-}
-
-.sjp-hint-title{
-    font-family: Raleway;
-    font-weight: 700;
-    font-style: Bold;
-    font-size: 18px;
-    line-height: 100%;
-    letter-spacing: 0%;
-    color: var(--brown-base)
 }
 
 .sjp-hint-text{
@@ -414,10 +383,6 @@
 
     .sjp-text-examples{
         align-items: center;
-    }
-
-    .sjp-toggle-button span{
-        font-size: 0px;
     }
 
     .sjp-int-hint{
