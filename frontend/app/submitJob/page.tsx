@@ -43,8 +43,7 @@ export default function SubmitJob() {
 
 
   const router = useRouter();
-  const [inputFormat, setInputFormat] = useState("Text");
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [inputFormat, setInputFormat] = useState("Interactive");
   const [currentStep, setCurrentStep] = useState(0);
   const [text, setText] = useState('');
   const [correctedText, setCorrectedText] = useState('');
@@ -434,7 +433,12 @@ const goNextWithGetSuggestedData = async () => {
   }
 
 const handleExampleClick1 = async () => {
-    setText(examples[0]);
+    if(inputFormat === "Text"){
+      setText(examples[0]);
+    }
+    else if(inputFormat === "Interactive"){
+      setStructures(["CCGAGUAGGUA\n((.....)).."]);
+    }
     setSelectedExampleNumber(1);
     setAutoSeed(true);
     setAutoName(true);
@@ -442,7 +446,12 @@ const handleExampleClick1 = async () => {
 };
 
 const handleExampleClick2 = async () => {
-    setText(examples[1]);
+    if(inputFormat === "Text"){
+      setText(examples[1]);
+    }
+    else if(inputFormat === "Interactive"){
+      setStructures(["GACUUAUAGAU\n(((((..(...", "UGAGUCC\n))))))."]);
+    }
     setSelectedExampleNumber(2);
     setAutoSeed(true);
     setAutoName(true);
@@ -450,8 +459,12 @@ const handleExampleClick2 = async () => {
 };
 
 const handleExampleClick3 = async () => {
-    setText(examples[2]);
-    setSelectedExampleNumber(3);
+    if(inputFormat === "Text"){
+      setText(examples[2]);
+    }
+    else if(inputFormat === "Interactive"){
+      setStructures(["UUAUGUGCC\n.....(...", "UGUUA\n(.(..", "AAUACAAUAG\n).....)..)"]);
+    }    setSelectedExampleNumber(3);
     setAutoSeed(true);
     setAutoName(true);
     setDisplayCheckbox(false);
@@ -481,7 +494,7 @@ const handleExampleClick3 = async () => {
             <div className='sjp-format-select'>
                 <p className='sjp-format-top'>Input method</p>
                 <Slider 
-                  options={["Interactive", "Text", "File"]}
+                  options={["Text", "Interactive", "File"]}
                   selectedOption={inputFormat}
                   onChange={handleFormatChange}
                 />
@@ -497,8 +510,36 @@ const handleExampleClick3 = async () => {
                 </div>
 
                 <div className='sjp-int-input-title'>
-                  <p className='sjp-rna-structure-title'>RNA structure</p>
-                  <p className='sjp-rna-structure-text'>Paste the sequence with dotbracket and add another if needed.</p>
+                  <div className='sjp-int-title-text'>
+                    <p className='sjp-rna-structure-title'>RNA structure</p>
+                    <p className='sjp-rna-structure-text'>Paste the sequence with dotbracket and add another if needed.</p>
+                  </div>
+                  <div className='sjp-int-examples'>
+                    <Button
+                      color="green1"
+                      width='175px'
+                      height='30px'
+                      label='Example 1'
+                      fontSize='12px'
+                      action={handleExampleClick1}
+                    />
+                    <Button
+                      color="green2"
+                      width='175px'
+                      height='30px'
+                      label='Example 2'
+                      fontSize='12px'
+                      action={handleExampleClick2}
+                    />
+                    <Button
+                      color="green3"
+                      width='175px'
+                      height='30px'
+                      label='Example 3'
+                      fontSize='12px'
+                      action={handleExampleClick3}
+                    />
+                  </div>
                 </div>
 
                 {structures.map((s, idx) => (
