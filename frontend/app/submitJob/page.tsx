@@ -21,7 +21,8 @@ const getEnvExample = (val: string | undefined) => {
 };
 
 export default function SubmitJob() {
-  const [examples, setExamples] = useState<string[]>(["", "", ""]);
+  const [examples, setExamples] = useState<string[]>(["", "", "", "", ""]);
+  const [intExamples, setIntExamples] = useState<string[][]>([[],[],[]]);
   
   useEffect(() => {
     fetch('/api/config')
@@ -31,12 +32,37 @@ export default function SubmitJob() {
       })
       .then((data) => {
         const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
+
+        const normalizeIntExample = (val: unknown): string[] => {
+          if (Array.isArray(val)) {
+            return val;
+          }
+
+          if (typeof val === "string") {
+            try {
+              const parsed = JSON.parse(val);
+              return Array.isArray(parsed) ? parsed : [];
+            } catch {
+              return [];
+            }
+          }
+
+          return [];
+        };
+
         
         setExamples([
           fixNewlines(data.rnaExample1),
           fixNewlines(data.rnaExample2),
-          fixNewlines(data.rnaExample3)
+          fixNewlines(data.rnaExample3),
+          fixNewlines(data.rnaExampleInt2string),
+          fixNewlines(data.rnaExampleInt3string),
         ]);
+        setIntExamples([
+          normalizeIntExample(data.rnaExampleInt1),
+          normalizeIntExample(data.rnaExampleInt2),
+          normalizeIntExample(data.rnaExampleInt3)
+        ])
       })
       .catch((err) => console.error("Failed to load runtime config:", err));
   }, []);
@@ -214,7 +240,6 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
     setApproves([]);
 
     if (validateStructures()) {
-      // znormalizowany format
       const normalized = structures
       .map((s, idx) => {
         const lines = s
@@ -316,7 +341,7 @@ const [hasData, setHasData] = useState(false);
 const goNextWithGetSuggestedData = async () => {
   let effectiveExampleNumber = selectedExampleNumber;
 
-  const isExampleValid =examples.includes(text);
+  const isExampleValid = examples.includes(text);
 
   if  (isExampleValid){
     effectiveExampleNumber = examples.findIndex(ex => ex === text) + 1;
@@ -437,7 +462,9 @@ const handleExampleClick1 = async () => {
       setText(examples[0]);
     }
     else if(inputFormat === "Interactive"){
-      setStructures(["CCGAGUAGGUA\n((.....)).."]);
+      console.log(examples)
+      console.log(intExamples)
+      setStructures(intExamples[0]);
     }
     setSelectedExampleNumber(1);
     setAutoSeed(true);
@@ -450,7 +477,7 @@ const handleExampleClick2 = async () => {
       setText(examples[1]);
     }
     else if(inputFormat === "Interactive"){
-      setStructures(["GACUUAUAGAU\n(((((..(...", "UGAGUCC\n))))))."]);
+      setStructures(intExamples[1]);
     }
     setSelectedExampleNumber(2);
     setAutoSeed(true);
@@ -463,8 +490,9 @@ const handleExampleClick3 = async () => {
       setText(examples[2]);
     }
     else if(inputFormat === "Interactive"){
-      setStructures(["UUAUGUGCC\n.....(...", "UGUUA\n(.(..", "AAUACAAUAG\n).....)..)"]);
-    }    setSelectedExampleNumber(3);
+      setStructures(intExamples[2]);
+    }
+    setSelectedExampleNumber(3);
     setAutoSeed(true);
     setAutoName(true);
     setDisplayCheckbox(false);
