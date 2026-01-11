@@ -19,7 +19,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
   checked,
   onChange,
   size = 24,
-  isActive = true // Default to true 
+  isActive = true
 }) => {
   const [internalChecked, setInternalChecked] = useState(true);
   const isControlled = typeof checked === 'boolean';
@@ -39,6 +39,7 @@ const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
 
   return (
     <div
+      data-testid="custom-checkbox"
       style={{
         display: 'flex',
         alignItems: 'center',
