@@ -21,8 +21,8 @@ const getEnvExample = (val: string | undefined) => {
 };
 
 export default function SubmitJob() {
-  const [examples, setExamples] = useState<string[]>(["", "", "", "", ""]);
-  const [intExamples, setIntExamples] = useState<string[][]>([[],[],[]]);
+  const [examples, setExamples] = useState<string[]>(["", "", ""]);
+  const [intExamples, setIntExamples] = useState<string[][]>([[], [], []])
   
   useEffect(() => {
     fetch('/api/config')
@@ -33,36 +33,31 @@ export default function SubmitJob() {
       .then((data) => {
         const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
 
-        const normalizeIntExample = (val: unknown): string[] => {
-          if (Array.isArray(val)) {
-            return val;
+        function transformToInteractive(input: string): string[] {
+          const [sequenceLine, structureLine] = input.trim().split("\n");
+
+          const sequences = sequenceLine.split(" ");
+          const structures = structureLine.split(" ")
+          const result: string[] = [];
+
+          for (let i = 0; i < sequences.length; i++) {
+            result.push(`${sequences[i]}\n${structures[i]}`);
           }
 
-          if (typeof val === "string") {
-            try {
-              const parsed = JSON.parse(val);
-              return Array.isArray(parsed) ? parsed : [];
-            } catch {
-              return [];
-            }
-          }
+          return result;
+        }
 
-          return [];
-        };
+        const example1 = fixNewlines(data.rnaExample1)
+        const example2 = fixNewlines(data.rnaExample2)
+        const example3 = fixNewlines(data.rnaExample3)
 
-        
-        setExamples([
-          fixNewlines(data.rnaExample1),
-          fixNewlines(data.rnaExample2),
-          fixNewlines(data.rnaExample3),
-          fixNewlines(data.rnaExampleInt2string),
-          fixNewlines(data.rnaExampleInt3string),
-        ]);
+        setExamples([example1, example2, example3]);
+
         setIntExamples([
-          normalizeIntExample(data.rnaExampleInt1),
-          normalizeIntExample(data.rnaExampleInt2),
-          normalizeIntExample(data.rnaExampleInt3)
-        ])
+          transformToInteractive(example1),
+          transformToInteractive(example2),
+          transformToInteractive(example3)
+        ]);
       })
       .catch((err) => console.error("Failed to load runtime config:", err));
   }, []);
@@ -335,8 +330,8 @@ const handleNext = async () => {
     goNext();
   }
 };
+
 const [hasData, setHasData] = useState(false);
-// const [exampleMode, setExampleMode] = useState(false);
 
 const goNextWithGetSuggestedData = async () => {
   let effectiveExampleNumber = selectedExampleNumber;
@@ -462,8 +457,6 @@ const handleExampleClick1 = async () => {
       setText(examples[0]);
     }
     else if(inputFormat === "Interactive"){
-      console.log(examples)
-      console.log(intExamples)
       setStructures(intExamples[0]);
     }
     setSelectedExampleNumber(1);
