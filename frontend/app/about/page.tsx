@@ -21,8 +21,7 @@ export default function About(){
                             Designed for flexibility and exploration, GraphaRNA allows users to model small RNA motifs, test structural hypotheses, and examine alternative base-pairing scenarios -- all through a fast and intuitive interface, without installing any software.
                         </p>
                         <p className='about-p4'>
-                            The source code of the GraphaRNA computational engine is available on <a className="about-link" href="https://github.com/mjustynaPhD/GraphaRNA">GitHub</a>, and the training/test datasets together with pre-trained model weights are provided on on 
-                            <a className="about-link" href="https://zenodo.org/records/13750967">Zenodo</a>.
+                            The source code of the GraphaRNA computational engine is available on <a className="about-link" href="https://github.com/mjustynaPhD/GraphaRNA">GitHub</a>, and the training/test datasets together with pre-trained model weights are provided on <a className="about-link" href="https://zenodo.org/records/13750967">Zenodo</a>.
                         </p>
                     </div>
                 </div>
@@ -36,8 +35,8 @@ export default function About(){
                         <div className='authors-profs'>
                             <div className='authors-circle'>
                                 <img className='rocket-icon' src='icons/rocket.svg'></img>
+                                <p className='graphaRNA-text'>GraphaRNA</p>
                             </div>
-                            <p className='graphaRNA-text'>GraphaRNA</p>
                             <div className='authors-rectangle'>
                                 <div className='authors-row'>
                                     <div className='author'>
@@ -64,11 +63,10 @@ export default function About(){
                         <div className='authors-students'>
                             <div className='authors-circle1'>
                                 <img className='web-icon' src='icons/web.svg'></img>
+                                <p className='graphaRNAweb-text'>Grapha
+                                    <span className='rna'>RNA</span>
+                                </p>
                             </div>
-                            <p className='graphaRNAweb-text'>Grapha
-                                <span className='rna'>RNA</span>
-                                <span className='web'>-web</span>
-                            </p>
                             <div className='authors-rectangle1'>
                                 <div className='authors-row'>
                                     <div className='author'>

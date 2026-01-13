@@ -19,7 +19,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
   const [examples, setExamples] = useState<string[]>(["", "", ""]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const allowedExtensions = ['txt', 'fasta'];
+  const allowedExtensions = ['fasta'];
 
   useEffect(() => {
     fetch('/api/config')
@@ -62,7 +62,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
       setSelectedExampleNumber(0);
     } else {
       setUploadedFiles([]);
-      setErrorMessage('File has other format than .fasta or .txt');
+      setErrorMessage('File has other format than .fasta');
     }
   };
 
@@ -81,7 +81,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
       setSelectedExampleNumber(0);
     } else {
       setUploadedFiles([]);
-      setErrorMessage('File has other format than .fasta or .txt');
+      setErrorMessage('File has other format than .fasta');
     }
   };
 
@@ -139,7 +139,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
         <div className="modal-top-text">
           <h2 className="modal-title">Upload file</h2>
           <p className="modal-subtitle">
-            Choose a file from your computer. The file should be in .txt or .fasta format.
+            Choose a file from your computer. The file should be in .fasta format.
           </p>
         </div>
 
@@ -254,7 +254,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onFileUploaded, setSelec
 
           <input
             type="file"
-            accept=".txt,.fasta"
+            accept=".fasta"
             ref={fileInputRef}
             onChange={handleFileChange}
             style={{ display: 'none' }}
