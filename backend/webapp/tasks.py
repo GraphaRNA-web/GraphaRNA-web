@@ -253,6 +253,10 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
             except EngineTimeoutError as e:
                 logger.error(f"Engine timeout error: {e}")
                 job_data.status = "E"
+                job_data.finished_at = timezone.now()
+                job_data.expires_at = timezone.now() + timedelta(
+                    weeks=settings.JOB_EXPIRATION_WEEKS
+                )
                 job_data.save()
                 raise
             except Exception as e:
@@ -266,6 +270,9 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
             logger.error("Max retries reached. Failing the job.")
             job_data.status = "E"
             job_data.finished_at = timezone.now()
+            job_data.expires_at = timezone.now() + timedelta(
+                weeks=settings.JOB_EXPIRATION_WEEKS
+            )
             job_data.save()
             raise
         output_path_pdb = result_data.get("pdbFilePath")
