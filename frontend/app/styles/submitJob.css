@@ -26,12 +26,6 @@
     justify-content: space-between;
 }
 
-.sjp-header-title-div{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 15px;
-}
 
 .sjp-header-bottom{
     height: auto;
@@ -50,21 +44,6 @@
     font-size: 30px;
     font-weight: 200;
     font-family: "Raleway";
-}
-
-.sjp-toggle-button{
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    font-size: 18px;
-    color: var(--primary2-base);
-    align-items: center;
-    cursor: pointer;
-}
-
-.sjp-toggle-icon{
-    width: 20px;
-    height: 20px;
 }
 
 .sjp-buttons-section{
@@ -129,16 +108,6 @@
     margin-bottom: 60px;
 }
 
-.sjp-hint-title{
-    font-family: Raleway;
-    font-weight: 700;
-    font-style: Bold;
-    font-size: 18px;
-    line-height: 100%;
-    letter-spacing: 0%;
-    color: var(--brown-base)
-}
-
 .sjp-hint-text{
     font-family: Inter;
     font-weight: 300;
@@ -151,11 +120,10 @@
 
 .sjp-int-input-title{
     width: 100%;
-    height: 22px;
+    height: auto;
     display: flex;
     flex-direction: row;
-    justify-content: flex-start;
-    gap: 20px;
+    justify-content: space-between;
     align-items: end;
     margin-bottom: 20px;
     align-items: center;
@@ -199,7 +167,7 @@
     margin-bottom: 20px;
 }
 
-.sjp-text-examples{
+.sjp-text-examples, .sjp-int-examples{
     display: flex;
     flex-direction: row;
     gap: 10px;
@@ -379,6 +347,12 @@
     margin-left: auto;
 }
 
+.sjp-int-title-text{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
 @media (max-width: 1160px){
     .submit-jobs-page{
         padding-left: 10px;
@@ -401,8 +375,23 @@
     }
 }
 
+@media (max-width: 960px) {
+    .sjp-int-input-title{
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .sjp-int-title-text{
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 20px;
+        width: 100%;
+    }
+    
+}
+
 @media (max-width: 755px){
-    .sjp-text-examples {
+    .sjp-text-examples, .sjp-int-examples {
         transform: scale(0.8);
     }
 
@@ -416,10 +405,6 @@
         align-items: center;
     }
 
-    .sjp-toggle-button span{
-        font-size: 0px;
-    }
-
     .sjp-int-hint{
         height: auto;
     }
@@ -429,11 +414,6 @@
 }
 
 @media (max-width: 580px){
-    .sjp-text-examples {
-        text-align: start;
-        margin-left: -50px;
-    }
-
     .sjp-hint-upload{
         flex-direction: column;
         height: auto;
@@ -452,20 +432,6 @@
 }
 
 @media (max-width: 450px){
-    .sjp-text-examples {
-        display: flex;
-        flex-direction: column;
-        width: 175px;
-        height: 120px;
-        margin-top: -10px;
-        padding-top: 0px;
-    }
-
-    .sjp-text-input-title{
-        flex-direction: row;
-        height: auto;
-    }
-
     .sjp-header-title{
         font-size: 24px;
     }

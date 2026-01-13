@@ -22,6 +22,7 @@ const getEnvExample = (val: string | undefined) => {
 
 export default function SubmitJob() {
   const [examples, setExamples] = useState<string[]>(["", "", ""]);
+  const [intExamples, setIntExamples] = useState<string[][]>([[], [], []])
   
   useEffect(() => {
     fetch('/api/config')
@@ -31,11 +32,31 @@ export default function SubmitJob() {
       })
       .then((data) => {
         const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
-        
-        setExamples([
-          fixNewlines(data.rnaExample1),
-          fixNewlines(data.rnaExample2),
-          fixNewlines(data.rnaExample3)
+
+        function transformToInteractive(input: string): string[] {
+          const [sequenceLine, structureLine] = input.trim().split("\n");
+
+          const sequences = sequenceLine.split(" ");
+          const structures = structureLine.split(" ")
+          const result: string[] = [];
+
+          for (let i = 0; i < sequences.length; i++) {
+            result.push(`${sequences[i]}\n${structures[i]}`);
+          }
+
+          return result;
+        }
+
+        const example1 = fixNewlines(data.rnaExample1)
+        const example2 = fixNewlines(data.rnaExample2)
+        const example3 = fixNewlines(data.rnaExample3)
+
+        setExamples([example1, example2, example3]);
+
+        setIntExamples([
+          transformToInteractive(example1),
+          transformToInteractive(example2),
+          transformToInteractive(example3)
         ]);
       })
       .catch((err) => console.error("Failed to load runtime config:", err));
@@ -43,8 +64,7 @@ export default function SubmitJob() {
 
 
   const router = useRouter();
-  const [inputFormat, setInputFormat] = useState("Text");
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [inputFormat, setInputFormat] = useState("Interactive");
   const [currentStep, setCurrentStep] = useState(0);
   const [text, setText] = useState('');
   const [correctedText, setCorrectedText] = useState('');
@@ -215,7 +235,6 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
     setApproves([]);
 
     if (validateStructures()) {
-      // znormalizowany format
       const normalized = structures
       .map((s, idx) => {
         const lines = s
@@ -311,13 +330,13 @@ const handleNext = async () => {
     goNext();
   }
 };
+
 const [hasData, setHasData] = useState(false);
-// const [exampleMode, setExampleMode] = useState(false);
 
 const goNextWithGetSuggestedData = async () => {
   let effectiveExampleNumber = selectedExampleNumber;
 
-  const isExampleValid =examples.includes(text);
+  const isExampleValid = examples.includes(text);
 
   if  (isExampleValid){
     effectiveExampleNumber = examples.findIndex(ex => ex === text) + 1;
@@ -434,7 +453,12 @@ const goNextWithGetSuggestedData = async () => {
   }
 
 const handleExampleClick1 = async () => {
-    setText(examples[0]);
+    if(inputFormat === "Text"){
+      setText(examples[0]);
+    }
+    else if(inputFormat === "Interactive"){
+      setStructures(intExamples[0]);
+    }
     setSelectedExampleNumber(1);
     setAutoSeed(true);
     setAutoName(true);
@@ -442,7 +466,12 @@ const handleExampleClick1 = async () => {
 };
 
 const handleExampleClick2 = async () => {
-    setText(examples[1]);
+    if(inputFormat === "Text"){
+      setText(examples[1]);
+    }
+    else if(inputFormat === "Interactive"){
+      setStructures(intExamples[1]);
+    }
     setSelectedExampleNumber(2);
     setAutoSeed(true);
     setAutoName(true);
@@ -450,7 +479,12 @@ const handleExampleClick2 = async () => {
 };
 
 const handleExampleClick3 = async () => {
-    setText(examples[2]);
+    if(inputFormat === "Text"){
+      setText(examples[2]);
+    }
+    else if(inputFormat === "Interactive"){
+      setStructures(intExamples[2]);
+    }
     setSelectedExampleNumber(3);
     setAutoSeed(true);
     setAutoName(true);
@@ -461,30 +495,11 @@ const handleExampleClick3 = async () => {
   return (
     <div className='submit-jobs-page'>
       <div className='sjp-content'> 
-        <div className='sjp-header' style={{ height: isExpanded ? 'auto' : '35px', overflow: 'hidden' }}>
+        <div className='sjp-header'>
           <div className='sjp-header-top'>
-            <div className='sjp-header-title-div'>
-              {currentStep > 0 && currentStep < 3 && (
-                <img
-                  src="icons/arrow_back.svg"
-                  alt="Next step"
-                  className="sjp-step-arrow"
-                  style={{ width: "20px", height: "20px" }}
-                  onClick={handlePrev}
-                />
-              )}
-              <p className='sjp-header-title'>RNA structure form</p>
-            </div>
-            <div className="sjp-toggle-button" onClick={() => setIsExpanded(prev => !prev)}>
-              <span>{isExpanded ? "show less" : "show more"}</span>
-              <img
-                  src={isExpanded ? "icons/arrow_up.svg" : "icons/arrow_down.svg"}
-                  alt="Toggle icon"
-                  className="sjp-toggle-icon"
-              />
-            </div>
+            <p className='sjp-header-title'>RNA structure form</p>
           </div>
-          {isExpanded && (
+          {currentStep === 0 && (
             <p className='sjp-header-bottom'>
               Please input your RNA sequence 
               and secondary structure using the Interactive, Text, or File upload options below. 
@@ -498,9 +513,9 @@ const handleExampleClick3 = async () => {
         {currentStep === 0 && (
           <div className='sjp-step-0'>
             <div className='sjp-format-select'>
-                <p className='sjp-format-top'>Input format</p>
+                <p className='sjp-format-top'>Input method</p>
                 <Slider 
-                  options={["Interactive", "Text", "File"]}
+                  options={["Text", "Interactive", "File"]}
                   selectedOption={inputFormat}
                   onChange={handleFormatChange}
                 />
@@ -510,15 +525,42 @@ const handleExampleClick3 = async () => {
             {inputFormat === "Interactive" && (
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
-                  <p className='sjp-hint-title'>Interactive form hint</p>
                   <p className='sjp-hint-text'>The first line of input is the RNA sequence in the text field. In the second line, provide the secondary structure in 
                     dot-bracket notation. You can add multiple sequences by using the plus (+) button or separating them with dashes (-) or spaces.
                   </p>
                 </div>
 
                 <div className='sjp-int-input-title'>
-                  <p className='sjp-rna-structure-title'>RNA structure</p>
-                  <p className='sjp-rna-structure-text'>Paste the sequence with dotbracket and add another if needed.</p>
+                  <div className='sjp-int-title-text'>
+                    <p className='sjp-rna-structure-title'>RNA structure</p>
+                    <p className='sjp-rna-structure-text'>Paste the sequence with dotbracket and add another if needed.</p>
+                  </div>
+                  <div className='sjp-int-examples'>
+                    <Button
+                      color="green1"
+                      width='175px'
+                      height='30px'
+                      label='Example 1'
+                      fontSize='12px'
+                      action={handleExampleClick1}
+                    />
+                    <Button
+                      color="green2"
+                      width='175px'
+                      height='30px'
+                      label='Example 2'
+                      fontSize='12px'
+                      action={handleExampleClick2}
+                    />
+                    <Button
+                      color="green3"
+                      width='175px'
+                      height='30px'
+                      label='Example 3'
+                      fontSize='12px'
+                      action={handleExampleClick3}
+                    />
+                  </div>
                 </div>
 
                 {structures.map((s, idx) => (
@@ -578,7 +620,6 @@ const handleExampleClick3 = async () => {
             {inputFormat === "Text" && (
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
-                  <p className='sjp-hint-title'>Format hint</p>
                   <p className='sjp-hint-text'>The first line of input is the RNA sequence in the text field. You can add multiple sequences by separating them with dashes 
                     or spaces (-). In the second line, provide the secondary structure in dot-bracket notation. You can also add multiple structures separated by dashes 
                     or spaces (-).
@@ -645,7 +686,6 @@ const handleExampleClick3 = async () => {
             <div className='sjp-int-gray-box'>
               <div className='sjp-hint-upload'>
                 <div className='sjp-file-hint'>
-                  <p className='sjp-hint-title'>Format hint</p>
                   <p className='sjp-hint-text'>A valid file should be in .fasta format.</p>
                 </div>
                 
@@ -720,9 +760,9 @@ const handleExampleClick3 = async () => {
                 </p>
                 <div className='sjp-opt-params-2'>
 
-                  <p><b className="sjp-bold">Seed:</b>An integer value to initialize the random number generator for reproducibility. The default is auto, meaning a random seed will be automatically generated.</p>
-                  <p><b className="sjp-bold">Name:</b>A custom name for your job to help you identify it later. The default is auto, meaning a name will be generated based on the current date and a random number.</p>
-                  <p><b className="sjp-bold">#Alternative conformations:</b>Number of alternative conformations to generate for the given RNA structure. Numbers bigger than 1 will cause the calculation of the input sequence with incremented seed values.</p>
+                  <p><b className="sjp-bold">Seed:</b> An integer value to initialize the random number generator for reproducibility. The default is auto, meaning a random seed will be automatically generated.</p>
+                  <p><b className="sjp-bold">Name:</b> A custom name for your job to help you identify it later. The default is auto, meaning a name will be generated based on the current date and a random number.</p>
+                  <p><b className="sjp-bold">#Alternative conformations:</b> Number of alternative conformations to generate for the given RNA structure. Numbers bigger than 1 will cause the calculation of the input sequence with incremented seed values.</p>
                 </div>
               </div>
               
