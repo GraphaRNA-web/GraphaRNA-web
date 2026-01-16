@@ -99,36 +99,23 @@
     display: flex;
     flex-direction: column;
     gap: 40px;
-    justify-content: center;
-    align-items: center;
     position: relative;
 }
 
 .authors-title{
-    text-align: center;
-    width: 100%;
-    height: 45px;
-    font-family: 'Raleway';
-    font-size: 38px;
-    font-weight: normal;
     color: var(--brown-base);
-}
-
-.author-groups{
-    height: 475px;
+    font-family: 'Raleway';
+    font-weight: normal;
+    font-size: 38px;
+    height: auto;
     width: 100%;
-    display: flex;
-    flex-direction: row;
-    position: relative;
-    z-index: 2;
-    justify-content: space-between;
 }
 
-.triangle-mid{
-    position: absolute;
-    z-index: 1;
-    top: 280px;
-    left: 350px;
+.authors-names{
+    color: var(--brown-base);
+    font-family: 'Inter';
+    font-size: 16px;
+
 }
 
 .circle-mid{
@@ -136,123 +123,6 @@
     z-index: 1;
     top: -20px;
     left: calc(700px - (1440px - 100vw)*0.2);
-}
-
-.authors-profs,
-.authors-students{
-    position: relative;
-    width: 535px;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-}
-
-.authors-rectangle, 
-.authors-rectangle1{
-    background-color: var(--background-lighten-5);
-    width: 450px;
-    height: 300px;
-    border-radius: 20px;
-    position: absolute;
-    z-index: 1;
-    top: 129px;
-    display: flex;
-    flex-direction: column;
-    padding-top: 70px;
-    gap: 10px;
-}
-
-
-.authors-circle, 
-.authors-circle1{
-    background-color: var(--background-lighten-5);
-    width: 240px;
-    height: 240px;
-    border-radius: 120px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 40px;
-    gap: 10px;
-}
-
-.web-icon{
-    top: -5px;
-    position: relative;
-    z-index: 3;
-    width: 100px;
-    height: 100px;
-}
-
-.rocket-icon{
-    position: relative;
-    z-index: 3;
-    height: 90px;
-    width: 90px;
-}
-
-.graphaRNA-text{
-    position: relative;
-    z-index: 4;
-    color: var(--primary2-darken-10);
-    font-family: 'Raleway';
-    font-size: 26px;
-    font-weight: bolder;
-    width: 100%;
-    height: 31px;
-    text-align: center;
-}
-
-.graphaRNAweb-text{
-    top: -10px;
-    position: relative;
-    z-index: 4;
-    color: var(--primary2-darken-10);
-    font-family: 'Raleway';
-    font-size: 26px;
-    font-weight: bolder;
-    width: 100%;
-    height: 31px;
-    text-align: center;
-}
-
-.about-link{
-    color: var(--primary2-base);
-    text-decoration: underline;
-}
-
-.rna{
-    font-weight: normal;
-}
-
-.authors-row{
-    width: 100%;
-    height: 95px;
-    display: flex;
-    flex-direction: row;
-    z-index: 5;
-    justify-content: space-evenly;
-}
-
-.author
-{
-    width: 130px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: var(--brown-base);
-    font-size: 14px;
-    font-family: 'Inter';
-    gap: 5px;
-    text-align: center;
-}
-
-.name{
-    width: 115px;
 }
 
 /* sekcja dolna*/
@@ -324,11 +194,9 @@
 
     .authors-content{
         padding-top: 20px;
-        width: 575px;
         flex-direction: column;
         height: auto;
-        justify-content: center;
-        align-items: center;
+        width: 90vw;
     }
 
     .authors{
@@ -336,21 +204,9 @@
         height: auto;
     }
 
-    .author-groups{
-        flex-direction: column;
-        height: auto;
-        align-items: center;
-        gap: 20px;
-    }
-
-    .triangle-mid{
-        left: -250px;
-        top: 1000px;
-    }
-
     .circle-mid{
-        left: calc(400px - (1440px - 100vw)*0.5);
-        top: 200px;
+        left: calc(400px - (1440px - 100vw)*0.3);
+        top: 0px;
     }
 
     .circle-top{
@@ -362,12 +218,10 @@
     }
 
     .funds-title{
-        padding-left: 20px;
         height: auto;
     }
 
     .funds-text{
-        padding-left: 20px;
         height: auto;
         margin-bottom: 40px;
     }
@@ -379,27 +233,13 @@
 }
 
 @media (max-width: 575px){
-    .authors-rectangle, .authors-rectangle1{
-        width: calc(100% - 40px);
-        margin-left: 20px;
-        margin-right: 20px;
-    }
-
     .authors{
         height: auto;
     }
 
     .authors-content{
-        width: 100%;
+        width: 90vw;
         height: auto;
-    }
-
-    .author-groups{
-        height: auto;
-    }
-
-    .authors-profs, .authors-students{
-        width: 100%;
     }
 
     .funds-text{
@@ -410,58 +250,13 @@
         font-size: 14px;
     }
 
-    .authors-circle, .authors-circle1{
-        width: 180px;
-        height: 180px;
-        border-radius: 90px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .rocket-icon{
-        width: 70px;
-        height: 70px;
-    }
-
-    .web-icon{
-        width: 75px;
-        height: 75px;
-    }
-
-    .graphaRNA-text, .graphaRNAweb-text{
-        font-size: 16px;
-    }
-
-    .authors-rectangle, .authors-rectangle1{
-        padding-top: 70px;
-        padding-bottom: 20px;
-        height: auto;
-        gap: 5px;
-    }
-
-    .triangle-mid, .circle-top, .triangle-bottom, .circle-mid{
+    .circle-top, .triangle-bottom, .circle-mid{
         width: 0px;
         height: 0px;
     }
 }
 
 @media (max-width: 390px){
-    .authors-row{
-        flex-direction: column;
-        height: auto;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .authors-students{
-        height: 800px;
-    }
-
-    .authors-profs{
-        height: 580px;
-    }
-
     .funds-title{
         padding-left: 5px;
         font-size: 30px;
