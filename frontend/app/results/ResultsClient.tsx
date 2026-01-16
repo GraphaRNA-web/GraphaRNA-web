@@ -128,7 +128,8 @@ export default function Results() {
     return backendStatus ? statusMap[backendStatus] : "unknown";
   };
 
-  const arcWidth = windowWidth < 1120 ? 550 : 1120;
+  const arcWidth = windowWidth < 1120 ? windowWidth - 60 : 1120;
+  const viewerWidth = windowWidth < 1120 ? windowWidth - 60 : 550;
   
   const isFound = !isLoading && jobData && !error;
   const jobStatus = mapStatusToFrontend(jobData?.status);
@@ -294,16 +295,15 @@ const formatDate = (dateString: string) => {
                             ? `data:image/svg+xml;base64,${btoa(currentResult.result_secondary_structure_svg)}`
                             : "/photos/notfound.png"
                         }
-                      width={550}
+                      width={viewerWidth}
                       height={612}
-                      onExpandChange={setIs2DExpanded}
                     />
                   </div>
                   {!is2DExpanded && (
                     <div className='3d-image'>
                       <PdbViewer
                         pdbData={currentResult.result_tetriary_structure}
-                        width={550}
+                        width={viewerWidth}
                         height={612}
                       />
                     </div>
