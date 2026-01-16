@@ -14,7 +14,7 @@ export default function ImageViewer({
   width,
   height,
 }: ImageViewerProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const viewerRef = useRef<HTMLDivElement | null>(null);
 
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -23,10 +23,10 @@ export default function ImageViewer({
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = () => {
-    if (!containerRef.current) return;
+    if (!viewerRef.current) return;
 
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen();
+      viewerRef.current.requestFullscreen();
     } else {
       document.exitFullscreen();
     }
@@ -44,6 +44,7 @@ export default function ImageViewer({
 
   const zoomIn = () => setScale((s) => Math.min(s * 1.2, 5));
   const zoomOut = () => setScale((s) => Math.max(s * 0.8, 0.2));
+  const downloadFile = () => {console.log("pobieranko")}; //TODO
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,11 +60,12 @@ export default function ImageViewer({
   const stopDragging = () => setDragging(false);
 
   useEffect(() => {
-    const el = containerRef.current;
+    const el = viewerRef.current;
     if (!el) return;
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
+      e.stopPropagation();
 
       let delta = e.deltaY;
       if (e.ctrlKey) delta = -delta;
@@ -97,7 +99,6 @@ export default function ImageViewer({
 
   return (
     <div
-      ref={containerRef}
       className={`pdb-viewer-wrapper ${isFullscreen ? "fullscreen" : ""}`}
       style={{
         width: isFullscreen ? "100%" : width,
@@ -107,22 +108,24 @@ export default function ImageViewer({
       <div className="header-bar">
         <span className="file-name">{title}</span>
         <div className="controls-header">
-          <button onClick={zoomIn}>＋</button>
-          <button onClick={zoomOut}>－</button>
-          <button onClick={toggleFullscreen}>
-            {isFullscreen ? "🡽" : "⛶"}
+          <button className='download-single-file' onClick={downloadFile}>
+            <img src='/icons/download.svg' alt="Download icon"/>
           </button>
+          <button className='controls-header-button' onClick={zoomIn}>＋</button>
+          <button className='controls-header-button' onClick={zoomOut}>－</button>
+          <button className='controls-header-button' onClick={toggleFullscreen}>{isFullscreen ? "🡽" : "⛶"}</button>
         </div>
       </div>
 
       <div
+        ref={viewerRef}
         className="viewer-container"
         style={{
           width: "100%",
           height: "calc(100% - 50px)",
           overflow: "hidden",
           background: "#fff",
-          cursor: dragging ? "grabbing" : "grab",
+          cursor: dragging ? "grabbing" : "grab"
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

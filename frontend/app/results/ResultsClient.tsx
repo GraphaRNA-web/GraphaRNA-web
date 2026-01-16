@@ -248,7 +248,7 @@ const formatDate = (dateString: string) => {
               <div className='pagination'>
               <div className='pagination-divider'></div>
 
-              <p className='conf-label'>Alternative Conformations</p>
+              <p className='conf-label'>Results</p>
                 <AltConfSlider
                   count={jobData.result_list.length}
                   activeIndex={currentResultIndex}
@@ -287,18 +287,6 @@ const formatDate = (dateString: string) => {
                   )}
                 </div>
                 <div className='images-2d3d'>
-                  <div className='2d-image'>
-                    <ImageViewer
-                      title="2D structure"
-                      src={
-                          currentResult.result_secondary_structure_svg
-                            ? `data:image/svg+xml;base64,${btoa(currentResult.result_secondary_structure_svg)}`
-                            : "/photos/notfound.png"
-                        }
-                      width={viewerWidth}
-                      height={612}
-                    />
-                  </div>
                   {!is2DExpanded && (
                     <div className='3d-image'>
                       <PdbViewer
@@ -308,10 +296,22 @@ const formatDate = (dateString: string) => {
                       />
                     </div>
                   )}
+                  <div className='2d-image'>
+                    <ImageViewer
+                      title="3D-annotated 2D structure"
+                      src={
+                          currentResult.result_secondary_structure_svg
+                            ? `data:image/svg+xml;base64,${btoa(currentResult.result_secondary_structure_svg)}`
+                            : "/photos/notfound.png"
+                        }
+                      width={viewerWidth}
+                      height={612}
+                    />
+                  </div>
                 </div>
                 <div className='arc-diagram'>
                   <ImageViewer
-                    title="Arc diagram"
+                    title="Arc diagram: input vs 3D-annotated 2D structure"
                     src={
                         currentResult.result_arc_diagram
                           ? `data:image/svg+xml;base64,${btoa(currentResult.result_arc_diagram)}`
