@@ -11,14 +11,14 @@ export default function About(){
                     <div className='about-text'>
                         <p className='about-p1'>
                             GraphaRNA is an interactive platform for RNA 3D structure exploration powered by generative graph neural networks. 
-                            Our method represents RNA molecules as graphs, capturing both nucleotide sequence information and complex 2D structural interactions. Instead of predicting full atomic models directly, GraphaRNA focuses on RNA 3D descriptors—local structural motifs that reflect how small groups of nucleotides arrange in space.
+                            Our method represents RNA molecules as graphs, capturing both nucleotide sequence information and complex 2D structural interactions. Instead of predicting full atomic models directly, GraphaRNA focuses on RNA 3D descriptors — local structural motifs that reflect how small groups of nucleotides arrange in space.
                         </p>
                         <p className='about-p2'>
                             By learning a distribution of these descriptors from experimentally determined RNA structures, the model composes them into coherent 3D conformations that respect user-defined secondary-structure constraints. 
                             The result is a fast, intuitive tool that helps users visualize, compare, and analyze possible RNA folds. 
                         </p>
                         <p className='about-p3'>
-                            Designed for flexibility and exploration, GraphaRNA allows users to model small RNA motifs, test structural hypotheses, and examine alternative base-pairing scenarios -- all through a fast and intuitive interface, without installing any software.
+                            Designed for flexibility and exploration, GraphaRNA allows users to model small RNA motifs, test structural hypotheses, and examine alternative base-pairing scenarios - all through a fast and intuitive interface, without installing any software.
                         </p>
                         <p className='about-p4'>
                             The source code of the GraphaRNA computational engine is available on <a className="about-link" href="https://github.com/mjustynaPhD/GraphaRNA">GitHub</a>, and the training/test datasets together with pre-trained model weights are provided on <a className="about-link" href="https://zenodo.org/records/13750967">Zenodo</a>.

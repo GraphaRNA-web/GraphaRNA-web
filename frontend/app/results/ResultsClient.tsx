@@ -194,7 +194,7 @@ const formatDate = (dateString: string) => {
   return (
     <div className='whole-page'>
       <div className='found'>
-        <div className='content'>
+        <div className='results-content'>
           <ServerErrorModal
             isOpen={server500}
             onClose={() => setServer500(false)}
