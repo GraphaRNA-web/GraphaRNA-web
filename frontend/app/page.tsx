@@ -30,7 +30,7 @@ export default function Home() {
               <span className="intro-rna-web">RNA</span>
             </span>
           </div>
-          <div className="home-description-header">Define interaction graphs, predict RNA structure, and visualize the results for structural analysis easily.</div>
+          <div className="home-description-header">Effortlessly define interaction graphs, predict RNA structure, and visualize the results for structural analysis.</div>
           <div className="home-description-text">
             <p>GraphaRNA is the web implementation of <span style={{ fontWeight: 500 }}>'Graph neural network and diffusion model for modeling RNA interatomic interactions'</span> .</p>
           </div>

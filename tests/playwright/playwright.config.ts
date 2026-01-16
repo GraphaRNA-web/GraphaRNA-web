@@ -19,7 +19,7 @@ export default defineConfig<TestOptions>({
   globalTimeout: 60000,
   testDir: './tests',
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: false, //ustawilem na false bo czasami potrafi sie wysypać na mojej maszynie
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
@@ -46,8 +46,17 @@ export default defineConfig<TestOptions>({
             testMatch: /.*\.setup\.ts/,
         },
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'firefox-incognito',
+      use: {
+        browserName: 'firefox',
+        headless: false,
+        // launchOptions: {
+        // slowMo: 500},
+        contextOptions: {
+          viewport: { width: 1280, height: 720 },
+          ignoreHTTPSErrors: true,
+        },
+      },
       dependencies: ['setup'],
     },
 

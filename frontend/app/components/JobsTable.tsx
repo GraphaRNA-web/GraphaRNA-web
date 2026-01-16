@@ -55,7 +55,7 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
       <tbody>
         {rows.map((row) => (
           <tr key={row.id}
-              style={{ cursor: "pointer" }}>
+              style={{ cursor: "default" }}>
             {!isFinishedTable && <td>{row.id}</td>}
             <td>{row.job_name}</td>
             <td>
@@ -99,7 +99,7 @@ export default function JobsTable({ rows, isFinishedTable = false }: JobsTablePr
                 
               })()}
             </td >
-            {isFinishedTable && <td style={{color: "var(--brown-lighten-20)"}}>{(row as JobRowFinished).processing_time}</td>}
+            {isFinishedTable && <td style={{color: "var(--brown-lighten-20)"}}>{(row as JobRowFinished).processing_time.split('.')[0]}</td>}
             <td>
               <JobStatus status={FullStatus(row.status)} />
             </td>

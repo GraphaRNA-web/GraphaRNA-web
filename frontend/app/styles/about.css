@@ -1,7 +1,7 @@
 .ap-content{
     display: flex;
     flex-direction: column;
-    padding-top: 130px;
+    padding-top: 110px;
     height: auto;
     width: 100%;
     padding-left: 0px;
@@ -30,7 +30,7 @@
 .about-title{
     color: var(--brown-base);
     font-family: 'Raleway';
-    font-weight: lighter;
+    font-weight: normal;
     font-size: 38px;
     height: 45px;
     width: 100%;
@@ -58,7 +58,7 @@
     color: var(--brown-base);
     font-size: 16px;
     font-family: 'Inter';
-    font-weight: lighter;
+    font-weight: normal;
     text-align: justify;
 }
 
@@ -76,7 +76,7 @@
 .triangle-top{
     position: absolute;
     z-index: 1;
-    top: 250px;
+    top: 180px;
     left: calc(100px - (1440px - 100vw)*0.05);
 }
 
@@ -84,7 +84,7 @@
 
 .authors{
     width: 100%;
-    height: 750px;
+    height: auto;
     background-color: var(--background-darken-5);
     display: flex;
     justify-content: center;
@@ -92,9 +92,10 @@
 }
 
 .authors-content{
-    padding-top: 50px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     width: 1140px;
-    height: 670px;
+    height: auto;
     display: flex;
     flex-direction: column;
     gap: 40px;
@@ -109,12 +110,12 @@
     height: 45px;
     font-family: 'Raleway';
     font-size: 38px;
-    font-weight: lighter;
+    font-weight: normal;
     color: var(--brown-base);
 }
 
 .author-groups{
-    height: 585px;
+    height: 475px;
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -126,7 +127,7 @@
 .triangle-mid{
     position: absolute;
     z-index: 1;
-    top: 370px;
+    top: 280px;
     left: 350px;
 }
 
@@ -141,7 +142,7 @@
 .authors-students{
     position: relative;
     width: 535px;
-    height: 585px;
+    height: auto;
     display: flex;
     flex-direction: column;
     align-items: center; 
@@ -150,16 +151,16 @@
 .authors-rectangle, 
 .authors-rectangle1{
     background-color: var(--background-lighten-5);
-    width: 535px;
-    height: 457px;
+    width: 450px;
+    height: 300px;
     border-radius: 20px;
     position: absolute;
     z-index: 1;
     top: 129px;
     display: flex;
     flex-direction: column;
-    padding-top: 170px;
-    gap: 30px;
+    padding-top: 70px;
+    gap: 10px;
 }
 
 
@@ -170,29 +171,30 @@
     height: 240px;
     border-radius: 120px;
     position: relative;
-    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top: 40px;
+    gap: 10px;
 }
 
 .web-icon{
+    top: -5px;
     position: relative;
     z-index: 3;
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
 }
 
 .rocket-icon{
     position: relative;
     z-index: 3;
-    height: 105px;
-    width: 105px;
+    height: 90px;
+    width: 90px;
 }
 
 .graphaRNA-text{
-    top: -50px;
     position: relative;
     z-index: 4;
     color: var(--primary2-darken-10);
@@ -205,7 +207,7 @@
 }
 
 .graphaRNAweb-text{
-    top: -50px;
+    top: -10px;
     position: relative;
     z-index: 4;
     color: var(--primary2-darken-10);
@@ -224,11 +226,6 @@
 
 .rna{
     font-weight: normal;
-}
-
-.web{
-    font-weight: lighter;
-    color: var(--primary2-base)
 }
 
 .authors-row{
@@ -262,7 +259,7 @@
 
 
 .funds{
-    height: 300px;
+    height: 260px;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -270,7 +267,7 @@
 }
 
 .funds-content{
-    margin-top: 90px;
+    margin-top: 50px;
     width: 1140px;
     height: 104px;
     position: relative;
@@ -295,7 +292,7 @@
     font-size: 38px;
     color: var(--brown-base);
     font-family: 'Raleway';
-    font-weight: lighter;
+    font-weight: normal;
 }
 
 .funds-text{
@@ -305,7 +302,7 @@
     font-size: 16px;
     color: var(--brown-base);
     font-family: 'Inter';
-    font-weight: lighter;
+    font-weight: normal;
     font-size: 16px;
     text-align: justify;
 }
@@ -403,7 +400,6 @@
 
     .authors-profs, .authors-students{
         width: 100%;
-        height: 500px; /*AUTO*/
     }
 
     .funds-text{
@@ -418,6 +414,9 @@
         width: 180px;
         height: 180px;
         border-radius: 90px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .rocket-icon{
