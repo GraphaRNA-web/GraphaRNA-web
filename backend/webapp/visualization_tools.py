@@ -73,7 +73,7 @@ def generateRchieDiagram(
     """
     import numpy as np
     import matplotlib.pyplot as plt
-    from matplotlib.lines import Line2D  # Dodano do tworzenia legendy
+    from matplotlib.lines import Line2D
 
     try:
         with open(fasta_input, "r") as f_in, open(fasta_output, "r") as f_out:
@@ -85,16 +85,13 @@ def generateRchieDiagram(
         input_lines = fasta_content_input.split("\n")
         output_lines = fasta_content_output.split("\n")
 
-        # Zakładamy, że sekwencja jest w drugiej linii
         nucleotites_input = input_lines[1].strip()
 
-        # Walidacja Input
         validator_input = RnaValidator(fasta_content_input)
         result_input = validator_input.ValidateRna()
         input_pairs_0_indexed = set(result_input.get("allPairs", set()))
         input_pairs = {(i + 1, j + 1) for i, j in input_pairs_0_indexed}
 
-        # Walidacja Output
         validator_output = RnaValidator(fasta_content_output)
         result_output = validator_output.ValidateRna()
         output_pairs_0_indexed = set(result_output.get("allPairs", set()))
@@ -125,7 +122,9 @@ def generateRchieDiagram(
     lw = np.clip(1.5 * (50 / max(total_arcs, 1)), 0.5, 1.85)
 
     y_offset = max_r * 0.01
-    text_y_padding = 0.5
+    
+    text_y_pos = max_r + 2.0  
+    total_plot_height = text_y_pos + 2.0
 
     seq_font_size = np.clip(300 / n, 5, 10)
     index_font_size = seq_font_size * 0.85
@@ -140,13 +139,9 @@ def generateRchieDiagram(
         ys = (ys + y_offset) if top else (-ys - y_offset)
         ax.plot(xs, ys, color=color, lw=lw)
 
-    # Zwiększamy lekko wysokość wykresu, żeby zmieścić napisy
-    total_plot_height = max_r + text_y_padding * 2
-
     for x in range(1, n + 1, grid_step):
         ax.vlines(x, -total_plot_height, total_plot_height, color="lightgrey", lw=0.5)
 
-    # Rysowanie nukleotydów i indeksów
     for i in range(n):
         ax.text(
             i + 1,
@@ -169,7 +164,6 @@ def generateRchieDiagram(
                 color="gray",
             )
 
-    # Rysowanie łuków
     for i, j in missing_pairs:
         draw_arc(i, j, color="red", top=True)
     for i, j in common_pairs:
@@ -180,27 +174,26 @@ def generateRchieDiagram(
     for i, j in common_pairs:
         draw_arc(i, j, color="green", top=False)
 
-    # 1. Etykiety tekstowe oznaczające góra/dół
     ax.text(
-        0.5,
-        total_plot_height * 0.95,
+        1.0,
+        text_y_pos,
         "Input Structure",
         color="black",
         fontsize=12,
         fontweight="bold",
         ha="left",
-        va="top",
+        va="bottom",
     )
 
     ax.text(
-        0.5,
-        -total_plot_height * 0.95,
+        1.0,
+        -text_y_pos,
         "Output Structure",
         color="black",
         fontsize=12,
         fontweight="bold",
         ha="left",
-        va="bottom",
+        va="top",
     )
 
     legend_elements = [
@@ -209,13 +202,14 @@ def generateRchieDiagram(
         Line2D([0], [0], color="blue", lw=2, label="Added (Output only)"),
     ]
 
-    # Dodanie legendy do wykresu
     ax.legend(
         handles=legend_elements,
-        loc="upper right",
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.0),
         fontsize="small",
-        framealpha=0.9,
-        bbox_to_anchor=(1.0, 1.0),
+        framealpha=1.0,
+        borderaxespad=0.5,
+        ncol=3
     )
 
     ax.set_xlim(0.5, n + 0.5)
@@ -223,7 +217,6 @@ def generateRchieDiagram(
     ax.set_aspect("equal")
     ax.axis("off")
 
-    # Strzałka osi X
     ax.annotate(
         "", xy=(n + 0.5, 0), xytext=(0.5, 0), arrowprops=dict(arrowstyle="->", lw=1)
     )
