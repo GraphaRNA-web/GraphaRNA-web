@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { validateRNA, getSuggestedData, submitJobRequest, submitExampleJobRequest } from "@/lib/api";
 import { useRouter } from "next/navigation";  
 import Modal from '../components/Modal';
@@ -15,6 +15,8 @@ import MessageBox from '../components/MessageBox';
 import ServerErrorModal from '../components/ServerErrorModal';
 import ValidationWarningModal from "../components/ValidationWarningModal";
 import FileDisplay from '../components/FileDisplay';
+
+
 const getEnvExample = (val: string | undefined) => {
   if (!val) return "";
   return val.replace(/\\n/g, "\n");
@@ -23,50 +25,11 @@ const getEnvExample = (val: string | undefined) => {
 export default function SubmitJob() {
   const [examples, setExamples] = useState<string[]>(["", "", ""]);
   const [intExamples, setIntExamples] = useState<string[][]>([[], [], []])
-  
-  useEffect(() => {
-    fetch('/api/config')
-      .then((res) => {
-        if (!res.ok) throw new Error("Config fetch failed");
-        return res.json();
-      })
-      .then((data) => {
-        const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
-
-        function transformToInteractive(input: string): string[] {
-          const [sequenceLine, structureLine] = input.trim().split("\n");
-
-          const sequences = sequenceLine.split(" ");
-          const structures = structureLine.split(" ")
-          const result: string[] = [];
-
-          for (let i = 0; i < sequences.length; i++) {
-            result.push(`${sequences[i]}\n${structures[i]}`);
-          }
-
-          return result;
-        }
-
-        const example1 = fixNewlines(data.rnaExample1)
-        const example2 = fixNewlines(data.rnaExample2)
-        const example3 = fixNewlines(data.rnaExample3)
-
-        setExamples([example1, example2, example3]);
-
-        setIntExamples([
-          transformToInteractive(example1),
-          transformToInteractive(example2),
-          transformToInteractive(example3)
-        ]);
-      })
-      .catch((err) => console.error("Failed to load runtime config:", err));
-  }, []);
-
-
   const router = useRouter();
   const [inputFormat, setInputFormat] = useState("Interactive");
   const [currentStep, setCurrentStep] = useState(0);
   const [text, setText] = useState('');
+  const textRef = useRef('');
   const [correctedText, setCorrectedText] = useState('');
   const [showValidation, setShowValidation] = useState(false);
   const [showValidationNext, setShowValidationNext] = useState(false);
@@ -93,16 +56,56 @@ export default function SubmitJob() {
   const [selectedExampleNumber, setSelectedExampleNumber] = useState<number>(0);
   const [displayCheckbox, setDisplayCheckbox] = useState(true);
   const [server500, setServer500] = useState(false);
-
-
   const dynamicHeight = 500 + 50 * errors.length + 50 * approves.length
   const emailValidator = (val: string): boolean => {
     const asciiEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return asciiEmailRegex.test(val);
   };
 
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
+  
+  useEffect(() => {
+    fetch('/api/config')
+      .then((res) => {
+        if (!res.ok) throw new Error("Config fetch failed");
+        return res.json();
+      })
+      .then((data) => {
+        const fixNewlines = (val: string) => val ? val.replace(/\\n/g, "\n") : "";
+
+        function transformToInteractive(input: string): string[] {
+          const [sequenceLine, structureLine] = input.trim().split("\n");
+          
+          const sequences = sequenceLine.split(" ");
+          const structures = structureLine.split(" ")
+          const result: string[] = [];
+
+          for (let i = 0; i < sequences.length; i++) {
+            result.push(`${sequences[i]}\n${structures[i]}`);
+          }
+
+          return result;
+        }
+        
+        const example1 = fixNewlines(data.rnaExample1)
+        const example2 = fixNewlines(data.rnaExample2)
+        const example3 = fixNewlines(data.rnaExample3)
+
+        setExamples([example1, example2, example3]);
+
+        setIntExamples([
+          transformToInteractive(example1),
+          transformToInteractive(example2),
+          transformToInteractive(example3)
+        ]);
+      })
+      .catch((err) => console.error("Failed to load runtime config:", err));
+  }, []);
+
   const validateStructures = (): boolean => {
-  const newErrors: string[] = [];
+    const newErrors: string[] = [];
 
   structures.forEach((s, idx) => {
     const trimmed = s.trim();
@@ -252,9 +255,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
       })
       .filter(block => block !== "")
       .join("\n");
-
       setText(normalized)
-
       try {
         console.log("[validateStructure] calling validateRNA...");
         const { result, status} = await validateRNA({fasta_raw: normalized});
@@ -334,12 +335,33 @@ const handleNext = async () => {
 const [hasData, setHasData] = useState(false);
 
 const goNextWithGetSuggestedData = async () => {
+
+function transformFromInteractive(input: string): string {
+          const blocks = input.trim().split(/\n>/).map((block, i) => 
+            i === 0 ? block : ">" + block
+          );
+          
+          const sequences: string[] = [];
+          const structures: string[] = [];
+          
+          blocks.forEach(block => {
+            const lines = block.split("\n").filter(line => line.trim() !== "");
+            const contentLines = lines.filter(line => !line.startsWith(">"));
+            
+            if (contentLines.length >= 2) {
+              sequences.push(contentLines[0].trimStart());
+              structures.push(contentLines[1].trimStart());
+            }
+          });
+          
+          return `${sequences.join(" ")}\n${structures.join(" ")}`.trimStart();
+        }
+  
   let effectiveExampleNumber = selectedExampleNumber;
-
-  const isExampleValid = examples.includes(text);
-
+  const transformedText= transformFromInteractive(textRef.current)
+  const isExampleValid = examples.includes(transformedText);
   if  (isExampleValid){
-    effectiveExampleNumber = examples.findIndex(ex => ex === text) + 1;
+    effectiveExampleNumber = examples.findIndex(ex => ex === transformedText) + 1;
     setDisplayCheckbox(false);
     setSelectedExampleNumber(effectiveExampleNumber);
   }
@@ -348,7 +370,6 @@ const goNextWithGetSuggestedData = async () => {
     setSelectedExampleNumber(0);
     effectiveExampleNumber = 0;
   }
-
   try {
     const {data, status} = await getSuggestedData(effectiveExampleNumber);
     if(status >= 500){
@@ -376,7 +397,7 @@ const goNextWithGetSuggestedData = async () => {
 
   const handleSubmit = async () => {
     if (uploadedFile === null && selectedExampleNumber !== 0){
-      if ((!examples.includes(text))){
+      if ((!examples.includes(textRef.current))){
         setSelectedExampleNumber(0);
       }
     }
@@ -399,7 +420,7 @@ const goNextWithGetSuggestedData = async () => {
       if  (selectedExampleNumber === 0){
         try {
           const {data: response, status} = await submitJobRequest({
-            fasta_raw: text,
+            fasta_raw: textRef.current,
             seed: seed,
             job_name: jobname,
             email: email,
@@ -423,7 +444,7 @@ const goNextWithGetSuggestedData = async () => {
       else{
         try {
           const {data: response, status} = await submitExampleJobRequest({
-            fasta_raw: text,
+            fasta_raw: textRef.current,
             email: email,
             example_number: selectedExampleNumber,
           });
