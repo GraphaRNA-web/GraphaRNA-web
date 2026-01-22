@@ -1,6 +1,7 @@
 .dot-and-text{
-    width: 100px;
+    width: auto;
     padding-left: 0px;
+    padding-right: 0px;
     display: flex;
     flex-direction: row;
     gap: 10px;
@@ -24,7 +25,6 @@
 
 @media (max-width: 510px){
     .dot-and-text{
-        width: 100%;
         gap: 5px;
     }
 

@@ -195,7 +195,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
         </div>
       </div>
 
-      <div className="jobsPage-main">
+      {/* <div className="jobsPage-main">
         <div
           className="jobsPage-header"
         >
@@ -223,7 +223,7 @@ const getPageRange = (current: number, total: number, delta = 2): (number | stri
             Next <img src="/icons/arrow_right.svg" alt="next" className="arrow"/>
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
