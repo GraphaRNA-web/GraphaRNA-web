@@ -5,6 +5,9 @@ on:
       - 'Deploy'
       - 'main'
 
+permissions:
+  contents: read
+
 env:
   REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
   STAGING_NS: staging-${{ github.sha }}
