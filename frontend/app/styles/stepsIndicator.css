@@ -26,6 +26,7 @@
 
 
 .step-circle {
+  position: relative;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -35,10 +36,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 12px;
   transition: all 0.3s ease;
   z-index: 2;
+}
+
+.step-circle span {
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: bold;
 }
 
 .step-circle.active {
@@ -65,6 +75,10 @@
     height: 26px;
     width: 26px;
   }
+
+  .step-circle span{
+    font-size: 10px;
+  }
 }
 
 @media (max-width: 960px){
@@ -80,5 +94,9 @@
 
   .middle-line{
     width: calc(120px - (1160px - 100%)*0.1);
+  }
+
+  .step-circle span{
+    font-size: 8px;
   }
 }

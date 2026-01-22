@@ -128,7 +128,8 @@ export default function Results() {
     return backendStatus ? statusMap[backendStatus] : "unknown";
   };
 
-  const arcWidth = windowWidth < 1120 ? 550 : 1120;
+  const arcWidth = windowWidth < 1120 ? windowWidth - 60 : 1120;
+  const viewerWidth = windowWidth < 1120 ? windowWidth - 60 : 550;
   
   const isFound = !isLoading && jobData && !error;
   const jobStatus = mapStatusToFrontend(jobData?.status);
@@ -244,7 +245,7 @@ const handleAnalyzeInDnatco = () => {
   return (
     <div className='whole-page'>
       <div className='found'>
-        <div className='content'>
+        <div className='results-content'>
           <ServerErrorModal
             isOpen={server500}
             onClose={() => setServer500(false)}
@@ -314,7 +315,7 @@ const handleAnalyzeInDnatco = () => {
               <div className='pagination'>
               <div className='pagination-divider'></div>
 
-              <p className='conf-label'>Alternative Conformations</p>
+              <p className='conf-label'>Results</p>
                 <AltConfSlider
                   count={jobData.result_list.length}
                   activeIndex={currentResultIndex}
@@ -353,32 +354,31 @@ const handleAnalyzeInDnatco = () => {
                   )}
                 </div>
                 <div className='images-2d3d'>
+                  {!is2DExpanded && (
+                    <div className='3d-image'>
+                      <PdbViewer
+                        pdbData={currentResult.result_tetriary_structure}
+                        width={viewerWidth}
+                        height={612}
+                      />
+                    </div>
+                  )}
                   <div className='2d-image'>
                     <ImageViewer
-                      title="2D structure"
+                      title="3D-annotated 2D structure"
                       src={
                           currentResult.result_secondary_structure_svg
                             ? `data:image/svg+xml;base64,${btoa(currentResult.result_secondary_structure_svg)}`
                             : "/photos/notfound.png"
                         }
-                      width={550}
+                      width={viewerWidth}
                       height={612}
-                      onExpandChange={setIs2DExpanded}
                     />
                   </div>
-                  {!is2DExpanded && (
-                    <div className='3d-image'>
-                      <PdbViewer
-                        pdbData={currentResult.result_tetriary_structure}
-                        width={550}
-                        height={612}
-                      />
-                    </div>
-                  )}
                 </div>
                 <div className='arc-diagram'>
                   <ImageViewer
-                    title="Arc diagram"
+                    title="Arc diagram: input vs 3D-annotated 2D structure"
                     src={
                         currentResult.result_arc_diagram
                           ? `data:image/svg+xml;base64,${btoa(currentResult.result_arc_diagram)}`

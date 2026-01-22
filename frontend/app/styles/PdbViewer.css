@@ -24,7 +24,7 @@
   gap: 10px;
 }
 
-.controls-header button {
+.controls-header-button {
   width: 35px;
   height: 35px;
   border-radius: 20px;
@@ -41,7 +41,7 @@
   transition: background 0.2s ease, transform 0.1s ease;
 }
 
-.controls-header button:hover {
+.controls-header-button:hover {
   background-color: var(--primary2-base);
   color: white;
   transform: scale(1.05);
@@ -52,7 +52,6 @@
   background: #fff;
   border: 1px solid #ddd;
   position: relative;
-  padding-bottom: 30px;
 }
 
 .pdb-viewer-wrapper.fullscreen {
@@ -88,4 +87,39 @@
 .pdb-viewer-wrapper.expanded {
   width: 1120px !important;
   height: 1274px !important;
+}
+
+.download-single-file:hover{
+  background-color: var(--background-darken-15);
+  transform: scale(1.05);
+  width: 35px;
+  height: 35px;
+  border-radius: 20px;
+}
+
+@media (max-width: 780px) {
+
+  .file-name{
+    width: 60%;
+  }
+}
+
+@media (max-width: 560px) {
+
+  .file-name{
+    width: 40%;
+  }
+}
+
+@media (max-width: 450px){
+
+  .header-bar{
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .file-name{
+    width: 100%;
+    text-align: center;
+  }
 }

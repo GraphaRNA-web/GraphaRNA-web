@@ -11,7 +11,7 @@ export default function About(){
                     <div className='about-text'>
                         <p className='about-p1'>
                             GraphaRNA is an interactive platform for RNA 3D structure exploration powered by generative graph neural networks. 
-                            Our method represents RNA molecules as graphs, capturing both nucleotide sequence information and complex 2D structural interactions. Instead of predicting full atomic models directly, GraphaRNA focuses on RNA 3D descriptors - local structural motifs that reflect how small groups of nucleotides arrange in space.
+                            Our method represents RNA molecules as graphs, capturing both nucleotide sequence information and complex 2D structural interactions. Instead of predicting full atomic models directly, GraphaRNA focuses on RNA 3D descriptors — local structural motifs that reflect how small groups of nucleotides arrange in space.
                         </p>
                         <p className='about-p2'>
                             By learning a distribution of these descriptors from experimentally determined RNA structures, the model composes them into coherent 3D conformations that respect user-defined secondary-structure constraints. 
@@ -28,77 +28,20 @@ export default function About(){
             </div>
             <div className='authors'>
                 <div className='authors-content'>
-                    <p className='authors-title'>Authors</p>
-                    <img className='triangle-mid' src='photos/ap_triangle_mid.png'></img>
-                    <img className='circle-mid' src='photos/ap_circle_mid.png'></img>
-                    <div className='author-groups'>
-                        <div className='authors-profs'>
-                            <div className='authors-circle'>
-                                <img className='rocket-icon' src='icons/rocket.svg'></img>
-                                <p className='graphaRNA-text'>GraphaRNA</p>
-                            </div>
-                            <div className='authors-rectangle'>
-                                <div className='authors-row'>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Marek Justyna</p>
-                                    </div>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Craig Zirbel</p>
-                                    </div>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Maciej Antczak</p>
-                                    </div>
-                                </div>
-                                <div className='authors-row'>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Marta Szachniuk</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className='authors-students'>
-                            <div className='authors-circle1'>
-                                <img className='web-icon' src='icons/web.svg'></img>
-                                <p className='graphaRNAweb-text'>Grapha
-                                    <span className='rna'>RNA</span>
-                                </p>
-                            </div>
-                            <div className='authors-rectangle1'>
-                                <div className='authors-row'>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Aleksandra Górska</p>
-                                    </div>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Katarzyna Róg</p>
-                                    </div>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Filip Urbański</p>
-                                    </div>
-                                </div>
-                                <div className='authors-row'>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Tymoteusz Pawłowski</p>
-                                    </div>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Bartosz Skrzypczak</p>
-                                    </div>
-                                    <div className='author'>
-                                        <img src='icons/person.svg'></img>
-                                        <p className='name'>Paweł Kelar</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <p className='authors-title'>Authors and Contributors</p>
+                    <div className='concept-and-engine'>
+                        <p className='authors-names'>Concept and engine</p>
+                        <p className='authors-names'>Marek Justyna, Maciej Antczak, Marta Szachniuk</p>
                     </div>
+                    <div className='gui-design'>
+                        <p className='authors-names'>GUI design</p>
+                        <p className='authors-names'>Aleksandra Górska, Katarzyna Róg, Marek Justyna, Maciej Antczak, Marta Szachniuk</p>
+                    </div>
+                    <div className='web-implementation'>
+                        <p className='authors-names'>Web implementation</p>
+                        <p className='authors-names'>Paweł Kelar, Tymoteusz Pawłowski, Bartosz Skrzypczak, Filip Urbański</p>
+                    </div>
+                    <img className='circle-mid' src='photos/ap_circle_mid.png'></img>
                 </div>
             </div>
             <div className='funds'>

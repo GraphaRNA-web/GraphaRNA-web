@@ -67,6 +67,8 @@ export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
   const zoomIn = () => { viewerRef.current?.zoom(1.2); viewerRef.current?.render(); };
   const zoomOut = () => { viewerRef.current?.zoom(0.8); viewerRef.current?.render(); };
 
+  const downloadFile = () => {console.log("pobieranko")}; //TODO
+
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
@@ -82,11 +84,14 @@ export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
       style={{ width, height }}
     >
       <div className="header-bar">
-        <span className="file-name">3D structure</span>
+        <span className="file-name">Predicted 3D structure</span>
         <div className="controls-header">
-          <button onClick={zoomIn}>＋</button>
-          <button onClick={zoomOut}>－</button>
-          <button onClick={toggleFullscreen}>{isFullscreen ? "🡽" : "⛶"}</button>
+          <button className='download-single-file' onClick={downloadFile}>
+            <img src='/icons/download.svg' alt="Download icon"/>
+          </button>
+          <button className='controls-header-button' onClick={zoomIn}>＋</button>
+          <button className='controls-header-button' onClick={zoomOut}>－</button>
+          <button className='controls-header-button' onClick={toggleFullscreen}>{isFullscreen ? "🡽" : "⛶"}</button>
         </div>
       </div>
       <div
