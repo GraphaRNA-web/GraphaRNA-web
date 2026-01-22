@@ -164,6 +164,56 @@ const formatDate = (dateString: string) => {
         time: date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) // format HH:MM
     };
   };
+
+const handleAnalyzeInDnatco = () => {
+  if (!currentResult?.result_tetriary_structure) return;
+
+  const structureData = currentResult.result_tetriary_structure;
+  const filename = jobData?.job_name ? `${jobData.job_name}.pdb` : 'structure.pdb';
+  
+  let dnatcoWindow: Window | null = null;
+  let transferCompleted = false;
+
+  const messageHandler = (event: MessageEvent) => {
+    if (event.origin !== 'https://dnatco.datmos.org') return;
+    if (event.source !== dnatcoWindow) return;
+
+    if (event.data.type === 'DNATCO_READY' && !transferCompleted) {
+      console.log('DNATCO ready, sending data...');
+      event.source?.postMessage(
+        {
+          type: 'GRAPHARNA_TRANSFER',
+          data: structureData,
+          filename: filename,
+          fileType: 'pdb'
+        },
+        'https://dnatco.datmos.org'
+      );
+    }
+
+    if (event.data.type === 'GRAPHARNA_TRANSFER_COMPLETE') {
+      transferCompleted = true;
+      console.log('Transfer to DNATCO complete:', event.data.success);
+      window.removeEventListener('message', messageHandler);
+    }
+  };
+
+  window.addEventListener('message', messageHandler);
+  
+  dnatcoWindow = window.open('https://dnatco.datmos.org/app', '_blank');
+
+  if (!dnatcoWindow) {
+    alert('Popup blocked! Please allow popups for this site to open DNATCO.');
+    window.removeEventListener('message', messageHandler);
+  }
+
+  // Cleanup po 10s
+  setTimeout(() => {
+    if (!transferCompleted) {
+      window.removeEventListener('message', messageHandler);
+    }
+  }, 10000);
+};
   
 
 
@@ -221,16 +271,33 @@ const formatDate = (dateString: string) => {
               </div>
             </div>
             <div className='top-right'>
-              <div 
-              className={`download-zip ${isDownloading || !jobFinished ? 'downloading' : ''}`}
-              onClick={handleDownload}
-            >
-              <img className='download-icon' src='/icons/download.svg' alt="Download icon" />
-              <p className='download-text'>
-                {isDownloading ? 'Downloading...' : 'Download ZIP'}
-              </p>
-            </div>
-              <div className='name-and-seed'>
+              <div className='res-page-download-box'>
+                {/* Przycisk 1: Download ZIP */}
+                <div 
+                  className={`download-zip ${isDownloading || !jobFinished ? 'downloading' : ''}`}
+                  onClick={handleDownload}
+                >
+                  <img className='download-icon' src='/icons/download.svg' alt="Download icon" width={30} height={30}/>
+                  <p className='download-text'>
+                    {isDownloading ? 'Downloading...' : 'Download ZIP'}
+                  </p>
+                </div>
+
+                {/* Przycisk 2: Analyze in DNATCO */}
+                <div 
+                  className={`download-zip ${!jobFinished || !currentResult ? 'downloading' : ''}`}
+                  onClick={() => {
+                    if (jobFinished && currentResult) {
+                      handleAnalyzeInDnatco();
+                    }
+                  }}
+                  title={jobFinished ? "Open structure in DNATCO for detailed analysis" : "Wait for job completion"}
+                >
+                  <img className='download-icon' src='/icons/web.svg' alt="DNATCO" width={30} height={30} /> 
+                  <p className='download-text'>Assess quality in DNATCO</p>
+                </div>
+              </div>
+                            <div className='name-and-seed'>
                 <div className='job-name'>
                   <p className='field-name'>Job name</p>
                   <p className='field-value'>{jobData.job_name}</p>

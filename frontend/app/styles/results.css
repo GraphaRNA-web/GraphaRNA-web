@@ -145,10 +145,17 @@
     flex-direction: row;
     gap: 10px;
     align-items: center;
-    padding-top: 25px;
-    padding-bottom: 25px;
-    margin-left: 255px;
-    padding-left: 25px;
+    justify-content: center;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.download-zip {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    padding: 20px 30px; 
     border-radius: 40px;
     cursor: pointer;
     user-select: none;
@@ -156,38 +163,37 @@
     width: 280px;
 }
 
-.download-zip:hover{
+.download-zip:hover {
     background-color: var(--background-darken-3);
 }
 
 .download-zip.downloading {
-  cursor: not-allowed;
-  opacity: 0.6;
-  background-color: var(--background-darken-3);
+    cursor: not-allowed;
+    opacity: 0.6;
+    background-color: var(--background-darken-3);
 }
 
-.download-text{
+.download-text {
     color: var(--primary2-base);
-    font-family: 'Inter';
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
-    font-size: 20px;
+    font-size: 17px;
+    margin: 0;
 }
 
-.name-and-seed{
+.name-and-seed {
     height: 175px;
     width: 100%;
     background-color: var(--background-darken-3);
     border-radius: 15px;
-    flex-direction: column;
     display: flex;
+    flex-direction: column;
     gap: 30px;
-    padding-top: 50px;
-    padding-bottom: 50px;
-    padding-left: 40px;
-    padding-right: 40px;
+    padding: 40px;
+    box-sizing: border-box;
 }
 
-.status{
+.status {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -425,7 +431,10 @@
         width: calc(100vw - 60px);
     }
 
-    .top-section{
+    .content {
+        width: 100%;
+        max-width: 100%;
+        display: flex;
         flex-direction: column;
         width: 100%;
     }
@@ -445,42 +454,98 @@
         align-items: center;
     }
 
-    .download-zip{
+    .top-right {
         flex-direction: column;
+        width: 100%;
+        height: auto;
         gap: 15px;
-        align-items: center;
-        justify-content: center;
-        height: 100px;
-        width: 115px;
+    }
+
+    .name-and-seed {
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        padding: 30px 20px;
         order: 1;
-        margin-left: 0px;
-        margin-top: 35px;
-        padding-top: 0px;
-        padding-bottom: 0px;
-        padding-left: 0px;
-        border-radius: 10px;
+        box-sizing: border-box;
     }
 
-    .download-text{
-        font-size: 16px;
-        text-align: center;
-        width: 110px;
+    .rep-time, .rep-date, .proc-time, .job-name, .seed {
+        width: 100%;
     }
 
-    .download-icon{
-        height: 20px;
-        width: 20px;
-    }
-
-    .pagination{
-        margin-right: 0px;
-        margin-top: 0px;
-    }
-    .content{
-        width: 610px;
-        display: flex;
+    .res-page-download-box {
+        width: 100%;
         flex-direction: column;
-        margin: 0 auto;
+        gap: 10px;
+        margin: 0;
+        order: 2;
+    }
+
+    .download-zip {
+        width: 100%;
+        height: auto;
+        min-height: 60px;
+        flex-direction: row;
+        justify-content: center;
+        padding: 15px;
+        background-color: transparent;
+        border: 1px solid var(--background-darken-3);
+        border-radius: 15px;
+        box-sizing: border-box;
+    }
+
+    .input-data {
+        width: 100%;
+        padding: 30px 20px;
+        box-sizing: border-box;
+    }
+    
+    .input-value, .input-value2 {
+        word-break: break-all;
+        white-space: pre-wrap;
+    }
+
+    .images-2d3d {
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+    }
+    
+    .images-2d3d > div, 
+    .arc-diagram > div {
+        max-width: 100%;
+        overflow: hidden; 
+    }
+
+    .arc-diagram {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin: 30px 0;
+    }
+
+    .pagination {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .pagination-divider {
+        width: 100%;
+    }
+
+    .not-found {
+        flex-direction: column;
+        margin: 100px 0 0 0;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .left-side, .headers, .add-info, .not-found-error {
+        width: 100%;
+        text-align: center;
     }
 
     .arc-diagram{

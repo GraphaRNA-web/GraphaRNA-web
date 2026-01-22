@@ -6,6 +6,9 @@ on:
 env:
   REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
 
+permissions:
+  contents: read
+
 jobs:
     build-push:
         name: Build push images
