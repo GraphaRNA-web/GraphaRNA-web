@@ -6,6 +6,7 @@ interface ImageViewerProps {
   src: string;
   width: number | string;
   height: number | string;
+  jobname: string;
 }
 
 export default function ImageViewer({
@@ -13,6 +14,7 @@ export default function ImageViewer({
   src,
   width,
   height,
+  jobname
 }: ImageViewerProps) {
   const viewerRef = useRef<HTMLDivElement | null>(null);
 
@@ -44,7 +46,40 @@ export default function ImageViewer({
 
   const zoomIn = () => setScale((s) => Math.min(s * 1.2, 5));
   const zoomOut = () => setScale((s) => Math.max(s * 0.8, 0.2));
-  const downloadFile = () => {console.log("pobieranko")}; //TODO
+
+  const downloadFile = () => {
+    if (!src) return;
+
+    const [meta, base64Data] = src.split(",");
+    if (!base64Data) return;
+
+    const isSvg = meta.includes("image/svg+xml");
+    const mime = isSvg ? "image/svg+xml" : "image/png";
+    const ext = isSvg ? "svg" : "png";
+
+    const byteString = atob(base64Data);
+    const byteArray = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
+      byteArray[i] = byteString.charCodeAt(i);
+    }
+
+    const blob = new Blob([byteArray], { type: mime });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    const baseName = title.toLowerCase().includes("arc")
+      ? "Arc_Diagram"
+      : "2D_structure";
+
+    a.download = jobname
+      ? `${jobname}_${baseName}.${ext}`
+      : `${baseName}.${ext}`;
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
