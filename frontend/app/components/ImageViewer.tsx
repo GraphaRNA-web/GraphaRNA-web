@@ -7,6 +7,7 @@ interface ImageViewerProps {
   width: number | string;
   height: number | string;
   jobname: string;
+  startScale?: number;
 }
 
 export default function ImageViewer({
@@ -14,7 +15,7 @@ export default function ImageViewer({
   src,
   width,
   height,
-  jobname
+  jobname,
   startScale = 1,
 }: ImageViewerProps) {
   const viewerRef = useRef<HTMLDivElement | null>(null);
