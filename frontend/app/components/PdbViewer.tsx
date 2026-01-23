@@ -36,7 +36,21 @@ export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
       viewerRef.current = window.$3Dmol.createViewer(containerRef.current, {
         backgroundColor: 0xffffff,
       });
+      const handleWheel = (e: WheelEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
 
+        if (!viewerRef.current) return;
+        const ratio = e.deltaY > 0 ? 0.8 : 1.2;
+        
+        viewerRef.current.zoom(ratio);
+        viewerRef.current.render();
+      };
+      containerRef.current.addEventListener('wheel', handleWheel, { 
+        passive: false, 
+        capture: true 
+      });
       if (pdbData) {
         try {
           viewerRef.current.clear();
