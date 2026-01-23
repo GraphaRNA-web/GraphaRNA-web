@@ -15,10 +15,11 @@ export default function ImageViewer({
   width,
   height,
   jobname
+  startScale = 1,
 }: ImageViewerProps) {
   const viewerRef = useRef<HTMLDivElement | null>(null);
 
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(startScale);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [start, setStart] = useState({ x: 0, y: 0 });
@@ -105,7 +106,7 @@ export default function ImageViewer({
       let delta = e.deltaY;
       if (e.ctrlKey) delta = -delta;
 
-      const zoomFactor = delta > 0 ? 1.1 : 0.9;
+      const zoomFactor = delta > 0 ? 0.9 : 1.1;
       setScale((s) => Math.min(Math.max(s * zoomFactor, 0.2), 5));
     };
 
