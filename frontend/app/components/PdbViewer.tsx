@@ -8,12 +8,13 @@ declare global {
 }
 
 interface PdbViewerProps {
-  pdbData: string;      // zmiana na string - backend zwraca dane a nie plik
+  pdbData: string;
   width: number | string; 
   height: number | string;
+  jobname: string;
 }
 
-export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
+export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -81,8 +82,6 @@ export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
   const zoomIn = () => { viewerRef.current?.zoom(1.2); viewerRef.current?.render(); };
   const zoomOut = () => { viewerRef.current?.zoom(0.8); viewerRef.current?.render(); };
 
-  const downloadFile = () => {console.log("pobieranko")}; //TODO
-
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
@@ -92,6 +91,21 @@ export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
     }
   };
 
+  const downloadPdb = () => {
+    if (!pdbData) return;
+
+    const blob = new Blob([pdbData], { type: "chemical/x-pdb" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${jobname}_3D.pdb`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+
   return (
     <div
       className={`pdb-viewer-wrapper ${isFullscreen ? "fullscreen" : ""}`}
@@ -100,8 +114,8 @@ export default function PdbViewer({ pdbData, width, height }: PdbViewerProps) {
       <div className="header-bar">
         <span className="file-name">Predicted 3D structure</span>
         <div className="controls-header">
-          <button className='download-single-file' onClick={downloadFile}>
-            <img src='/icons/download.svg' alt="Download icon"/>
+          <button className="download-single-file" onClick={downloadPdb}>
+            <img src="/icons/download.svg" alt="Download icon" />
           </button>
           <button className='controls-header-button' onClick={zoomIn}>＋</button>
           <button className='controls-header-button' onClick={zoomOut}>－</button>

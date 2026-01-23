@@ -156,7 +156,6 @@ const handleDownload = async () => {
     }
   };
 
-
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
@@ -360,6 +359,7 @@ const handleAnalyzeInDnatco = () => {
                         pdbData={currentResult.result_tetriary_structure}
                         width={viewerWidth}
                         height={612}
+                        jobname= {jobData.job_name}
                       />
                     </div>
                   )}
@@ -374,6 +374,7 @@ const handleAnalyzeInDnatco = () => {
                         }
                       width={viewerWidth}
                       height={612}
+                      jobname={jobData.job_name}
                     />
                   </div>
                 </div>
@@ -387,6 +388,7 @@ const handleAnalyzeInDnatco = () => {
                       }
                     width={arcWidth}
                     height={612}
+                    jobname={jobData.job_name}
                   />
                 </div>
               </div>
