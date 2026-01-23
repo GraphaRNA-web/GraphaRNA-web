@@ -366,6 +366,7 @@ const handleAnalyzeInDnatco = () => {
                   <div className='2d-image'>
                     <ImageViewer
                       title="3D-annotated 2D structure"
+                      startScale={4}
                       src={
                           currentResult.result_secondary_structure_svg
                             ? `data:image/svg+xml;base64,${btoa(currentResult.result_secondary_structure_svg)}`
