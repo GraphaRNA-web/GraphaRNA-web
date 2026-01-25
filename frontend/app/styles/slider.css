@@ -1,6 +1,6 @@
 .slider-wrapper {
   width: 502px;
-  height: 44px;
+  height: 60px;
   border: 3px solid var(--primary2-base);
   border-radius: 30px;
   display: flex;
@@ -13,7 +13,7 @@
 
 .slider-option {
   width: 146px;
-  height: 30px;
+  height: 47px;
   border-radius: 20px;
   background-color: transparent;
   color: var(--primary2-base);

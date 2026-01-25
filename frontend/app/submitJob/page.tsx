@@ -26,7 +26,7 @@ export default function SubmitJob() {
   const [examples, setExamples] = useState<string[]>(["", "", ""]);
   const [intExamples, setIntExamples] = useState<string[][]>([[], [], []])
   const router = useRouter();
-  const [inputFormat, setInputFormat] = useState("Interactive");
+  const [inputFormat, setInputFormat] = useState("Interactive input (paste or type)");
   const [currentStep, setCurrentStep] = useState(0);
   const [text, setText] = useState('');
   const textRef = useRef('');
@@ -126,7 +126,7 @@ const handleFormatChange = (newFormat: string) => {
     setMismatchingBrackets([]);
     setIncorrectPairs([]);
     
-    if (newFormat !== "File") {
+    if (newFormat !== "File upload") {
       setUploadedFile(null);
       setText("");
     }
@@ -167,7 +167,7 @@ const removeStructure = (index: number) => {
 type ValidationResult = "error" | "warning" | "ok";
 
 const validateStructure = async (fromNext = false) : Promise<ValidationResult> => {
-  if (inputFormat === "Text" || inputFormat === "File") {
+  if (inputFormat === "Text" || inputFormat === "File upload") {
     const trimmedText = text;
     console.log("[validateStructure] start", { inputFormat, text });
 
@@ -232,7 +232,7 @@ const validateStructure = async (fromNext = false) : Promise<ValidationResult> =
     }
   }
 
-  if (inputFormat === "Interactive") {
+  if (inputFormat === "Interactive input (paste or type)") {
     setErrors([]);
     setWarnings([]);
     setApproves([]);
@@ -477,7 +477,7 @@ const handleExampleClick1 = async () => {
     if(inputFormat === "Text"){
       setText(examples[0]);
     }
-    else if(inputFormat === "Interactive"){
+    else if(inputFormat === "Interactive input (paste or type)"){
       setStructures(intExamples[0]);
     }
     setSelectedExampleNumber(1);
@@ -490,7 +490,7 @@ const handleExampleClick2 = async () => {
     if(inputFormat === "Text"){
       setText(examples[1]);
     }
-    else if(inputFormat === "Interactive"){
+    else if(inputFormat === "Interactive input (paste or type)"){
       setStructures(intExamples[1]);
     }
     setSelectedExampleNumber(2);
@@ -503,7 +503,7 @@ const handleExampleClick3 = async () => {
     if(inputFormat === "Text"){
       setText(examples[2]);
     }
-    else if(inputFormat === "Interactive"){
+    else if(inputFormat === "Interactive input (paste or type)"){
       setStructures(intExamples[2]);
     }
     setSelectedExampleNumber(3);
@@ -536,14 +536,14 @@ const handleExampleClick3 = async () => {
             <div className='sjp-format-select'>
                 <p className='sjp-format-top'>Input method</p>
                 <Slider 
-                  options={["Text", "Interactive", "File"]}
+                  options={["Text", "Interactive input (paste or type)", "File upload"]}
                   selectedOption={inputFormat}
                   onChange={handleFormatChange}
                 />
             </div>
             
             {/*Sekcja na szarym tle INTERACTIVE*/}
-            {inputFormat === "Interactive" && (
+            {inputFormat === "Interactive input (paste or type)" && (
               <div className='sjp-int-gray-box'>
                 <div className='sjp-int-hint'>
                   <p className='sjp-hint-text'>The first line of input is the RNA sequence in the text field. In the second line, provide the secondary structure in 
@@ -703,7 +703,7 @@ const handleExampleClick3 = async () => {
               </div>
             )}
 
-            {inputFormat === "File" && (
+            {inputFormat === "File upload" && (
             <div className='sjp-int-gray-box'>
               <div className='sjp-hint-upload'>
                 <div className='sjp-file-hint'>
@@ -982,7 +982,7 @@ const handleExampleClick3 = async () => {
                 setSelectedExampleNumber(0);
                 setDisplayCheckbox(true);
               }
-            if (inputFormat === "Interactive") {
+            if (inputFormat === "Interactive input (paste or type)") {
               const blocks = correctedText
                 .split("\n>")
                 .map((b, i) => (i === 0 ? b : ">" + b))

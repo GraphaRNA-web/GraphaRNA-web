@@ -143,7 +143,7 @@ export default function ImageViewer({
       }}
     >
       <div className="header-bar">
-        <span className="file-name">{title}</span>
+        <span className="file-name-results">{title}</span>
         <div className="controls-header">
           <button className='download-single-file' onClick={downloadFile}>
             <img src='/icons/download.svg' alt="Download icon"/>

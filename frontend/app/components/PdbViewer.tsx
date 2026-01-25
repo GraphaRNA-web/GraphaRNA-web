@@ -15,6 +15,7 @@ interface PdbViewerProps {
 }
 
 export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewerProps) {
+  const outerRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -70,8 +71,21 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
 
     load3Dmol();
 
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const handleFullscreenChange = () => {
+        const isNowFullscreen = !!document.fullscreenElement;
+        setIsFullscreen(isNowFullscreen);
+
+        if (!isNowFullscreen) {
+          setTimeout(() => {
+            if (outerRef.current) {
+              outerRef.current.scrollIntoView({
+                behavior: 'auto',
+                block: 'nearest',
+              });
+            }
+          }, 50); 
+        }
+
       viewerRef.current?.render();
     };
 
@@ -108,11 +122,12 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
 
   return (
     <div
+      ref={outerRef}
       className={`pdb-viewer-wrapper ${isFullscreen ? "fullscreen" : ""}`}
       style={{ width, height }}
     >
       <div className="header-bar">
-        <span className="file-name">Predicted 3D structure</span>
+        <span className="file-name-results">Predicted 3D structure</span>
         <div className="controls-header">
           <button className="download-single-file" onClick={downloadPdb}>
             <img src="/icons/download.svg" alt="Download icon" />
