@@ -1,7 +1,7 @@
 import os
 import varnaapi
 from api.validation_tools import RnaValidator
-
+from xml.etree import ElementTree as ET
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 varna_path = os.path.join(CURRENT_DIR, "VARNAv3-93.jar")
 
@@ -27,7 +27,47 @@ def getNucleotites(path: str) -> str:
     with open(path, "r") as f:
         return f.readlines()[1]
 
+def crop_svg(input_svg, output_svg, padding=10):
+    tree = ET.parse(input_svg)
+    root = tree.getroot()
 
+    min_x, min_y = 999999999,999999999
+    max_x, max_y = 0,0
+
+    for elem in root:
+        tag = elem.tag.split('}')[-1]
+        if tag == 'line':
+            x_vals = [float(elem.attrib['x1']), float(elem.attrib['x2'])]
+            y_vals = [float(elem.attrib['y1']), float(elem.attrib['y2'])]
+        elif tag == 'circle':
+            cx = float(elem.attrib['cx'])
+            cy = float(elem.attrib['cy'])
+            r = float(elem.attrib.get('r', 0))
+            x_vals = [cx - r, cx + r]
+            y_vals = [cy - r, cy + r]
+        elif tag == 'text':
+            x_vals = [float(elem.attrib['x'])]
+            y_vals = [float(elem.attrib['y'])]
+        else:
+            continue
+
+        min_x = min(min_x, *x_vals)
+        max_x = max(max_x, *x_vals)
+        min_y = min(min_y, *y_vals)
+        max_y = max(max_y, *y_vals)
+
+    min_x -= padding
+    min_y -= padding
+    max_x += padding
+    max_y += padding
+
+    width = max_x - min_x
+    height = max_y - min_y
+    root.set('viewBox', f"{min_x} {min_y} {width} {height}")
+    root.set('width', str(width))
+    root.set('height', str(height))
+
+    tree.write(output_svg)
 def drawVARNAgraph(input_filepath: str, output_path: str) -> str:
     """
     Input:
@@ -50,11 +90,11 @@ def drawVARNAgraph(input_filepath: str, output_path: str) -> str:
     if not dotbracket:
         return "ERROR: Could not find structure in file"
 
+    
     v = varnaapi.Structure(sequence=seq, structure=dotbracket)
     v.savefig(f"{output_path}")
-
+    crop_svg(f"{output_path}", f"{output_path}", padding=15)
     return f"OK: File at: {output_path}"
-
 
 def generateRchieDiagram(
     fasta_input: str,
@@ -225,3 +265,5 @@ def generateRchieDiagram(
     fig.savefig(output_img_path, dpi=150, bbox_inches="tight", pad_inches=0.1)
     plt.close(fig)
     return "OK " + output_img_path
+
+
