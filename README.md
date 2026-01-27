@@ -86,7 +86,7 @@ Before deployment, edit `values.yaml` and adjust the sections:
 * **Resources:** Adjust `requests` and `limits` to your server's capabilities.
 
 ### 4. Launch (Helm)
-This step can be achieved by using the make run command or simply running the start_app.sh script.
+This step can be achieved by using the `make run` command or simply running the `start_app.sh` script.
 1.  Create a namespace:
     ```bash
     kubectl create namespace grapharna
@@ -104,7 +104,7 @@ This step can be achieved by using the make run command or simply running the st
     The application is ready when all pods have status `Running` and `1/1`.
 
 ### Restarting the app
-If you want to perform a hard restart of the application, user the make restart command or run the restart_app.sh script.
+If you want to perform a hard restart of the application, use the `make restart` command or run the `restart_app.sh` script.
 ---
 
 ## Local Run (Docker Compose)
