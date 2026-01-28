@@ -103,8 +103,12 @@ This step can be achieved by using the `make run` command or simply running the 
     ```
     The application is ready when all pods have status `Running` and `1/1`.
 
-### Restarting the app
-If you want to perform a hard restart of the application, use the `make restart` command or run the `restart_app.sh` script.
+### Maintenance 
+1. If you want to perform a hard restart of the application, use the `make restart` command or run the `restart_app.sh` script.
+2. Certificates used for internal communication within the cluster are (in most scenarios) valid for one year. 
+If, after this approximate amount of time, the app stops working, you should refresh the certificates using `sudo microk8s refresh-certs`.
+3. If the certificate for https gets outdated, the CSR should be automaticly regenerated. If there are any problems with this process, 
+you should restart the cluster with the  global.networkPolicy.enabled should be set to `false` in the `GraphaRNA-web/values.yaml` file.
 ---
 
 ## Local Run (Docker Compose)

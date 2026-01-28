@@ -142,6 +142,10 @@ def generateRchieDiagram(
     for x in range(1, n + 1, grid_step):
         ax.vlines(x, -total_plot_height, total_plot_height, color="lightgrey", lw=0.5)
 
+    # Line at the end of the structure
+    if (n - 1) % grid_step != 0:
+        ax.vlines(n, -total_plot_height, total_plot_height, color="lightgrey", lw=0.5)
+
     for i in range(n):
         ax.text(
             i + 1,
