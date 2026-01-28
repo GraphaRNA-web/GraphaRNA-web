@@ -1,313 +1,274 @@
-from collections import deque
-from django.conf import settings
-from webapp.models import SeparatorChoices
+import os
+import varnaapi
+from api.validation_tools import RnaValidator
+from xml.etree import ElementTree as ET
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+varna_path = os.path.join(CURRENT_DIR, "VARNAv3-93.jar")
 
 
-class RnaValidator:
-    def __init__(self, fasta_raw: str) -> None:
-        self.fasta_raw: str = fasta_raw
-        self.validBrackets: str = settings.VALID_BRACKETS + " "
-        self.validNucleotides: set[str] = settings.VALID_NUCLEOTIDES + " "
-        self.validPairs: list[str] = [
-            settings.VALID_PAIRS[i : i + 2]
-            for i in range(0, len(settings.VALID_PAIRS), 2)
-        ]
-        self.parsingResult: bool = True
-        self.errorList: list[str] = []
-        self.strandSeparator: str | None = None
+def log_to_file(message: str) -> None:
+    with open("/shared/celery_debug.log", "a") as f:
+        f.write(message + "\n")
 
-        self.FastaFileParse()
 
-    def FastaFileParse(self) -> None:
-        """
-        Converts strands to uppercase, replaces T with U, and joins them with spaces
-        """
-        nucleotides: str = ""
-        dotBracket: str = ""
-        inputStructureSplit: list[str] = [
-            item.strip()
-            for item in self.fasta_raw.split("\n")
-            if (item.strip() != "" and item[0] != "#")
-        ]  # remove empty lines and comments
+if not os.path.exists(varna_path):
+    print("FILE NOT FOUND")
+    raise FileNotFoundError(f"VARNA JAR not found at: {varna_path}")
 
-        potentialNameLines: list[str] = inputStructureSplit[::3]
-        areNameLines: list[bool] = [i[0] == ">" for i in potentialNameLines]
-        if all(areNameLines):  # check if all input lines contains strand names
-            containsStrandNames: bool = True
-        elif any(areNameLines):  # check if any input lines contains strand names
-            self.parsingResult = False
-            self.errorList.append("Parsing error: Inconsistent strand naming")
-            return None
+varnaapi.set_VARNA(varna_path)
+
+
+def getDotBracket(path: str) -> str:
+    with open(path, "r") as f:
+        return f.readlines()[2]
+
+
+def getNucleotites(path: str) -> str:
+    with open(path, "r") as f:
+        return f.readlines()[1]
+
+def crop_svg(input_svg: str, output_svg: str, padding: int = 10) -> None:
+    tree = ET.parse(input_svg)
+    root = tree.getroot()
+
+    min_x, min_y = 999999999.0,999999999.0
+    max_x, max_y = 0.0,0.0
+
+    for elem in root:
+        tag = elem.tag.split('}')[-1]
+        if tag == 'line':
+            x_vals = [float(elem.attrib['x1']), float(elem.attrib['x2'])]
+            y_vals = [float(elem.attrib['y1']), float(elem.attrib['y2'])]
+        elif tag == 'circle':
+            cx = float(elem.attrib['cx'])
+            cy = float(elem.attrib['cy'])
+            r = float(elem.attrib.get('r', 0))
+            x_vals = [cx - r, cx + r]
+            y_vals = [cy - r, cy + r]
+        elif tag == 'text':
+            x_vals = [float(elem.attrib['x'])]
+            y_vals = [float(elem.attrib['y'])]
         else:
-            containsStrandNames = False
+            continue
 
-        if containsStrandNames:
-            step = 3
-            rna_index = 1
-            dot_index = 2
-        else:
-            step = 2
-            rna_index = 0
-            dot_index = 1
+        min_x = min(min_x, *x_vals)
+        max_x = max(max_x, *x_vals)
+        min_y = min(min_y, *y_vals)
+        max_y = max(max_y, *y_vals)
 
-        for i in range(0, len(inputStructureSplit), step):
-            currentStrand: list[str] = inputStructureSplit[i : i + step]
-            if len(currentStrand) < step:
-                self.parsingResult = False
-                self.errorList.append("Parsing error: Missing Lines")
-                return None
-            if not any(
-                i in self.validBrackets for i in currentStrand[dot_index]
-            ) and all(
-                i in self.validNucleotides for i in currentStrand[dot_index].upper()
-            ):  # verify order of lines in a strand by checking checking characters in dotbracket line (doesn't contain any valid brackets and contains only valid nucleotides)
-                self.parsingResult = False
-                self.errorList.append("Parsing error: Wrong line order")
-                return None
-            if self.strandSeparator is None:
-                for separator in SeparatorChoices:
-                    if (
-                        currentStrand[rna_index].find(separator.value) != -1
-                        and self.strandSeparator is None
-                    ):
-                        self.strandSeparator = separator.value
-                    elif (
-                        currentStrand[rna_index].find(separator.value) != -1
-                        and self.strandSeparator is not None
-                    ):  # different separators found in one strand
-                        self.parsingResult = False
-                        self.errorList.append(
-                            "Parsing error: Mismatching strand separators"
-                        )
-            if self.strandSeparator is None:
-                self.strandSeparator = "N"  # No separator found
+    min_x -= padding
+    min_y -= padding
+    max_x += padding
+    max_y += padding
 
-            if currentStrand[rna_index].count(
-                self.strandSeparator
-            ) != currentStrand[  # diffrend separator in rna and dotbracket lines
-                dot_index
-            ].count(
-                self.strandSeparator
-            ):
-                self.errorList.append("Parsing error: Mismatching strand separators")
-                self.parsingResult = False
-                return None
-            if any(
-                [
-                    len(pair[0]) != len(pair[1])
-                    for pair in zip(
-                        currentStrand[rna_index].split(self.strandSeparator),
-                        currentStrand[dot_index].split(self.strandSeparator),
-                    )
-                ]
-            ):  # check if all strands are of equal length
-                self.parsingResult = False
-                self.errorList.append("Parsing error: Mismatching strand lengths")
-                return None
+    width = max_x - min_x
+    height = max_y - min_y
+    root.set('viewBox', f"{min_x} {min_y} {width} {height}")
+    root.set('width', str(width))
+    root.set('height', str(height))
 
-            # space as separator (for engine)
-            nucleotides += currentStrand[rna_index]
-            nucleotides += " "
+    tree.write(output_svg)
+def drawVARNAgraph(input_filepath: str, output_path: str) -> str:
+    """
+    Input:
+    - .dotseq file
+    - output file path
+    This funciton uses VARNA in order to generate a 2D graph of a given structure and saves it in output_path.
+    Output file should have a .svg extension
+    """
 
-            dotBracket += currentStrand[dot_index]
-            dotBracket += " "
+    if not os.path.exists(input_filepath):
+        return "ERROR: Input file does not exist"
 
-        if self.strandSeparator is not None and self.strandSeparator != "N":
-            sep = self.strandSeparator
-            self.parsedStructure: str = (
-                nucleotides.strip().upper().replace("T", "U").replace(sep, " ")
-                + "\n"
-                + dotBracket.strip().replace(sep, " ")
-            )
-        else:
-            self.parsedStructure = (
-                nucleotides.strip().upper().replace("T", "U")
-                + "\n"
-                + dotBracket.strip()
-            )
+    dotbracket: str = (
+        getDotBracket(input_filepath).strip().replace(" ", "").replace("-", "")
+    )
+    seq: str = getNucleotites(input_filepath).strip().replace(" ", "").replace("-", "")
 
-    def ValidateRna(
-        self,
-    ) -> dict:
-        """
-        Validates rna and returns a fix if needed
-        """
-        validatedRna: str = ""
-        validationResult: bool = False
-        fixSuggested: bool = False
-        mismatchingBrackets: list[int] = []
-        incorrectPairs: list[tuple[int, int]] = []
+    if not seq:
+        return "ERROR: Could not find sequence in file"
+    if not dotbracket:
+        return "ERROR: Could not find structure in file"
 
-        if not self.parsingResult:  # check for parsing errors
-            validationResult = False
-            return {
-                "Validation Result": validationResult,
-                "Error List": self.errorList,
-                "Validated RNA": validatedRna,
-                "Mismatching Brackets": mismatchingBrackets,
-                "Incorrect Pairs": incorrectPairs,
-                "Fix Suggested": fixSuggested,
-                "allPairs": [],
-            }
+    
+    v = varnaapi.Structure(sequence=seq, structure=dotbracket)
+    v.savefig(f"{output_path}")
+    crop_svg(f"{output_path}", f"{output_path}", padding=15)
+    return f"OK: File at: {output_path}"
 
-        inputStr = self.parsedStructure
-        rnaSplit: list[str] = inputStr.split("\n")
-        rna: str = rnaSplit[0]
-        dotBracket: str = rnaSplit[1]
+def generateRchieDiagram(
+    fasta_input: str,
+    fasta_output: str,
+    output_img_path: str,
+    grid_step: int = 20,
+) -> str:
+    """
+    Input:
+    1. The entire .dotseq of a structure that will be represented on the top half
+    2. The entire .dotseq of a structure that will be represented on the bottom half
+    3. Filepath of the output file (preferably .svg)
+    4. OPTIONAL: Step of the grey scale markings
 
-        # length check
-        if len(rna) == 0:
-            self.errorList.append("Invalid data")
-            validationResult = False
-            return {
-                "Validation Result": validationResult,
-                "Error List": self.errorList,
-                "Validated RNA": validatedRna,
-                "Mismatching Brackets": mismatchingBrackets,
-                "Incorrect Pairs": incorrectPairs,
-                "Fix Suggested": fixSuggested,
-                "allPairs": [],
-                "strandSeparator": self.strandSeparator,
-            }
+    Output: String of "OK " + output_img_path or "ERROR*" if any have occured.
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
 
-        if len(rna.replace(" ", "")) > settings.MAX_RNA_LENGTH:
-            self.errorList.append(
-                f"RNA length exceeds maximum allowed length of {settings.MAX_RNA_LENGTH} nucleotides"
-            )
-            validationResult = False
-            return {
-                "Validation Result": validationResult,
-                "Error List": self.errorList,
-                "Validated RNA": validatedRna,
-                "Mismatching Brackets": mismatchingBrackets,
-                "Incorrect Pairs": incorrectPairs,
-                "Fix Suggested": fixSuggested,
-                "allPairs": [],
-                "strandSeparator": self.strandSeparator,
-            }
-        if len(rna) != len(dotBracket):
-            self.errorList.append("RNA and DotBracket not of equal lengths")
-            validationResult = False
+    try:
+        with open(fasta_input, "r") as f_in, open(fasta_output, "r") as f_out:
+            fasta_content_input = f_in.read()
+            fasta_content_output = f_out.read()
+            fasta_content_input = fasta_content_input.replace(" ", "").replace("-", "")
+            fasta_content_output = fasta_content_output.replace(" ", "").replace("-", "")
 
-        # character check
-        invalidCharacters: set = set(
-            char for char in rna if char not in set(self.validNucleotides)
+        input_lines = fasta_content_input.split("\n")
+        output_lines = fasta_content_output.split("\n")
+
+        nucleotites_input = input_lines[1].strip()
+
+        validator_input = RnaValidator(fasta_content_input)
+        result_input = validator_input.ValidateRna()
+        input_pairs_0_indexed = set(result_input.get("allPairs", set()))
+        input_pairs = {(i + 1, j + 1) for i, j in input_pairs_0_indexed}
+
+        validator_output = RnaValidator(fasta_content_output)
+        result_output = validator_output.ValidateRna()
+        output_pairs_0_indexed = set(result_output.get("allPairs", set()))
+        output_pairs = {(i + 1, j + 1) for i, j in output_pairs_0_indexed}
+
+    except Exception as e:
+        return f"ERROR: RnaValidator or file reading failed. Details: {e}"
+    
+    common_pairs = input_pairs & output_pairs
+    missing_pairs = input_pairs - common_pairs
+    added_pairs = output_pairs - common_pairs
+
+    n = max(
+        len(input_lines[1]),
+        len(input_lines[2]),
+        len(output_lines[1]),
+        len(output_lines[2]),
+    )
+
+    if n == 0:
+        return "ERROR: Input sequences or structures are empty."
+
+    all_pairs = input_pairs | output_pairs
+    max_span = max((j - i) for (i, j) in all_pairs) if all_pairs else 1
+    max_r = max_span / 2.0 + 1
+
+    total_arcs = len(all_pairs)
+    lw = np.clip(1.5 * (50 / max(total_arcs, 1)), 0.5, 1.85)
+
+    y_offset = max_r * 0.01
+    
+    text_y_pos = max_r + 2.0  
+    total_plot_height = text_y_pos + 2.0
+
+    seq_font_size = np.clip(300 / n, 5, 10)
+    index_font_size = seq_font_size * 0.85
+
+    fig, ax = plt.subplots(figsize=(n / 2.5, 5))
+    theta = np.linspace(0, np.pi, 200)
+
+    def draw_arc(i: int, j: int, color: str, top: bool = True) -> None:
+        r = (j - i) / 2.0
+        ys = r * np.sin(theta)
+        xs = i + (j - i) * (1 - np.cos(theta)) / 2.0
+        ys = (ys + y_offset) if top else (-ys - y_offset)
+        ax.plot(xs, ys, color=color, lw=lw)
+
+    for x in range(1, n + 1, grid_step):
+        ax.vlines(x, -total_plot_height, total_plot_height, color="lightgrey", lw=0.5)
+
+    # Line at the end of the structure
+    if (n - 1) % grid_step != 0:
+        ax.vlines(n, -total_plot_height, total_plot_height, color="lightgrey", lw=0.5)
+
+    for i in range(n):
+        ax.text(
+            i + 1,
+            0,
+            nucleotites_input[i],
+            ha="center",
+            va="top",
+            fontsize=seq_font_size,
+            fontfamily="monospace",
         )
-        if len(invalidCharacters) > 0:
-            sortedInvalidCharacters = "".join(sorted(invalidCharacters))
-            self.errorList.append(
-                f"RNA contains invalid characters: {sortedInvalidCharacters}"
+
+        if (i + 1) % 10 == 0:
+            ax.text(
+                i + 1,
+                0,
+                str(i + 1),
+                ha="center",
+                va="bottom",
+                fontsize=index_font_size,
+                color="gray",
             )
-            validationResult = False
 
-        # bracket check
-        invalidBrackets: set = set(
-            char for char in dotBracket if char not in set(self.validBrackets)
-        )
-        if len(invalidBrackets) > 0:
-            sortedInvalidBrackets = "".join(sorted(invalidBrackets))
-            self.errorList.append(
-                f"DotBracket contains invalid brackets: {sortedInvalidBrackets}"
-            )
-            validationResult = False
+    for i, j in missing_pairs:
+        draw_arc(i, j, color="red", top=True)
+    for i, j in common_pairs:
+        draw_arc(i, j, color="green", top=True)
 
-        # return before stack check if rna invalid
-        if len(self.errorList) > 0:
-            return {
-                "Validation Result": validationResult,
-                "Error List": self.errorList,
-                "Validated RNA": validatedRna,
-                "Mismatching Brackets": mismatchingBrackets,
-                "Incorrect Pairs": incorrectPairs,
-                "Fix Suggested": fixSuggested,
-                "allPairs": [],
-                "strandSeparator": self.strandSeparator,
-            }
+    for i, j in added_pairs:
+        draw_arc(i, j, color="blue", top=False)
+    for i, j in common_pairs:
+        draw_arc(i, j, color="green", top=False)
 
-        (
-            bracketStacks,
-            suggestedDotBracketFixList,
-            mismatchingBrackets,
-            incorrectPairs,
-            allPairs,
-        ) = self.stackCheck(dotBracket, rna)
+    ax.text(
+        1.0,
+        text_y_pos,
+        "Input Structure",
+        color="black",
+        fontsize=12,
+        fontweight="bold",
+        ha="left",
+        va="bottom",
+    )
 
-        for (
-            stack
-        ) in bracketStacks.values():  # check stacks for unclosed opening bracket
-            for (
-                bracket
-            ) in stack:  # mismatched opening bracket, suggest replacement to .
-                mismatchingBrackets.append(bracket)
-                suggestedDotBracketFixList[bracket] = "."
-        if "".join(suggestedDotBracketFixList) != dotBracket:
-            validationResult = True
-            fixSuggested = True
-            validatedRna = rna + "\n" + "".join(suggestedDotBracketFixList)
-        else:
-            validationResult = True
-            validatedRna = self.parsedStructure
-        return {
-            "Validation Result": validationResult,
-            "Error List": self.errorList,
-            "Validated RNA": validatedRna,
-            "Mismatching Brackets": mismatchingBrackets,
-            "Incorrect Pairs": incorrectPairs,
-            "Fix Suggested": fixSuggested,
-            "allPairs": allPairs,
-            "strandSeparator": self.strandSeparator,
-        }
+    ax.text(
+        1.0,
+        -text_y_pos,
+        "Output Structure",
+        color="black",
+        fontsize=12,
+        fontweight="bold",
+        ha="left",
+        va="top",
+    )
 
-        # stack check
+    legend_elements = [
+        Line2D([0], [0], color="red", lw=2, label="Missing (Input only)"),
+        Line2D([0], [0], color="green", lw=2, label="Common (Match)"),
+        Line2D([0], [0], color="blue", lw=2, label="Added (Output only)"),
+    ]
 
-    def stackCheck(self, dotBracket: str, rna: str) -> tuple[
-        dict[str, deque[int]],
-        list[str],
-        list[int],
-        list[tuple[int, int]],
-        list[tuple[int, int]],
-    ]:  # Zmieniono kod aby nie trzeba było powtarzać kodu z liczeniem stacku i par
-        bracketStacks: dict[str, deque[int]] = {
-            self.validBrackets[i : i + 2]: deque()
-            for i in range(0, len(self.validBrackets), 2)
-            if self.validBrackets[i] != "."
-        }
-        allPairs: list[tuple[int, int]] = []
-        mismatchingBrackets: list[int] = []
-        incorrectPairs: list[tuple[int, int]] = []
-        openingLookup: dict[str, str] = {pair[0]: pair for pair in bracketStacks.keys()}
-        closingLookup: dict[str, str] = {pair[1]: pair for pair in bracketStacks.keys()}
-        suggestedDotBracketFixList: list[str] = list(dotBracket)
-        for i in range(len(dotBracket)):
-            if dotBracket[i] in openingLookup:  # opening brackets
-                bracketStacks[openingLookup[dotBracket[i]]].append(i)
-            elif dotBracket[i] in closingLookup:  # closing brackets
-                if (
-                    len(bracketStacks[closingLookup[dotBracket[i]]]) > 0
-                ):  # check if a matching bracket exists
-                    index = bracketStacks[closingLookup[dotBracket[i]]][-1]
-                    if (
-                        rna[bracketStacks[closingLookup[dotBracket[i]]][-1]] + rna[i]
-                        in self.validPairs
-                    ):  # check if the nucleotide pair is correct
-                        allPairs.append((index, i))
-                        bracketStacks[closingLookup[dotBracket[i]]].pop()
-                    else:  # incorrect nucleotide pair, suggest replacement to .
-                        incorrectPairs.append(
-                            (bracketStacks[closingLookup[dotBracket[i]]][-1], i)
-                        )
-                        suggestedDotBracketFixList[i] = "."
-                        suggestedDotBracketFixList[
-                            bracketStacks[closingLookup[dotBracket[i]]][-1]
-                        ] = "."
-                        bracketStacks[closingLookup[dotBracket[i]]].pop()
-                else:  # mismatched closing bracket, suggest replacement to .
-                    mismatchingBrackets.append(i)
-                    suggestedDotBracketFixList[i] = "."
-        return (
-            bracketStacks,
-            suggestedDotBracketFixList,
-            mismatchingBrackets,
-            incorrectPairs,
-            allPairs,
-        )
+    ax.legend(
+        handles=legend_elements,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.0),
+        fontsize="small",
+        framealpha=1.0,
+        borderaxespad=0.5,
+        ncol=3
+    )
+
+    ax.set_xlim(0.5, n + 0.5)
+    ax.set_ylim(-total_plot_height, total_plot_height)
+    ax.set_aspect("equal")
+    ax.axis("off")
+
+    ax.annotate(
+        "", xy=(n + 0.5, 0), xytext=(0.5, 0), arrowprops=dict(arrowstyle="->", lw=1)
+    )
+
+    plt.tight_layout()
+    fig.savefig(output_img_path, dpi=150, bbox_inches="tight", pad_inches=0.1)
+    plt.close(fig)
+    return "OK " + output_img_path
+
+
+
