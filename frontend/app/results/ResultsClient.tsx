@@ -156,7 +156,6 @@ const handleDownload = async () => {
     }
   };
 
-
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return {
@@ -262,17 +261,12 @@ const handleAnalyzeInDnatco = () => {
                 <p className='field-value'>{jobData.sum_processing_time ? formatProcessingTime(jobData.sum_processing_time) : '-'}</p>
               </div>
               <div className='rep-date'>
-                <p className='field-name'>Reported date</p>
-                <p className='field-value'>{reported_date}</p>
-              </div>
-              <div className='rep-time'>
-                <p className='field-name'>Reported time</p>
-                <p className='field-value'>{reported_time}</p>
+                <p className='field-name'>Reported date and time</p>
+                <p className='field-value'>{`${reported_date} ${reported_time}`}</p>
               </div>
             </div>
             <div className='top-right'>
               <div className='res-page-download-box'>
-                {/* Przycisk 1: Download ZIP */}
                 <div 
                   className={`download-zip ${isDownloading || !jobFinished ? 'downloading' : ''}`}
                   onClick={handleDownload}
@@ -283,21 +277,23 @@ const handleAnalyzeInDnatco = () => {
                   </p>
                 </div>
 
-                {/* Przycisk 2: Analyze in DNATCO */}
-                <div 
-                  className={`download-zip ${!jobFinished || !currentResult ? 'downloading' : ''}`}
-                  onClick={() => {
-                    if (jobFinished && currentResult) {
-                      handleAnalyzeInDnatco();
-                    }
-                  }}
-                  title={jobFinished ? "Open structure in DNATCO for detailed analysis" : "Wait for job completion"}
-                >
-                  <img className='download-icon' src='/icons/web.svg' alt="DNATCO" width={30} height={30} /> 
-                  <p className='download-text'>Assess quality in DNATCO</p>
-                </div>
+                {jobData.result_list.length === 1 &&(
+                  <div 
+                    className={`download-zip ${!jobFinished || !currentResult ? 'downloading' : ''}`}
+                    onClick={() => {
+                      if (jobFinished && currentResult) {
+                        handleAnalyzeInDnatco();
+                      }
+                    }}
+                    title={jobFinished ? "Open structure in DNATCO for detailed analysis" : "Wait for job completion"}
+                  >
+                    <img className='download-icon' src='/icons/web.svg' alt="DNATCO" width={30} height={30} /> 
+                    <p className='download-text'>Assess quality</p>
+                  </div>
+                )}
+
               </div>
-                            <div className='name-and-seed'>
+              <div className='name-and-seed'>
                 <div className='job-name'>
                   <p className='field-name'>Job name</p>
                   <p className='field-value'>{jobData.job_name}</p>
@@ -309,13 +305,17 @@ const handleAnalyzeInDnatco = () => {
               </div>
             </div>
           </div>
+          <p className='title-smaller'>Input data</p>
+          <div className='input-structure'>
+            <p className='input-value' style={{ whiteSpace: 'pre-wrap' }}>{jobData.input_structure}</p>
+          </div>
 
           {jobFinished && currentResult && (
             <div className='finished'>
               <div className='pagination'>
               <div className='pagination-divider'></div>
 
-              <p className='conf-label'>Results</p>
+              <p className='conf-label'>Prediction results</p>
                 <AltConfSlider
                   count={jobData.result_list.length}
                   activeIndex={currentResultIndex}
@@ -323,14 +323,24 @@ const handleAnalyzeInDnatco = () => {
                 />
               </div>
               <div className='rna-data'>
-                <div className='input-data'>
-                  <div className='input-structure'>
-                    <p className='input-field-name1'>Input secondary structure</p>
-                    <p className='input-value' style={{ whiteSpace: 'pre-wrap' }}>{jobData.input_structure}</p>
+                  {jobData.result_list.length > 1 &&(
+                  <div 
+                    className={`download-zip ${!jobFinished || !currentResult ? 'downloading' : ''}`}
+                    onClick={() => {
+                      if (jobFinished && currentResult) {
+                        handleAnalyzeInDnatco();
+                      }
+                    }}
+                    title={jobFinished ? "Open structure in DNATCO for detailed analysis" : "Wait for job completion"}
+                  >
+                    <img className='download-icon' src='/icons/web.svg' alt="DNATCO" width={30} height={30} /> 
+                    <p className='download-text'>Assess quality</p>
                   </div>
+                )}
+                <div className='input-data'>
                   {currentResult.result_secondary_structure_dotseq && (
                     <div className='result-structure'>
-                      <p className='input-field-name2'>Result secondary structure</p>
+                      <p className='input-field-name2'>3D-annotated secondary structure</p>
                       <p className='input-value' style={{ whiteSpace: 'pre-wrap' }}>{currentResult.result_secondary_structure_dotseq}</p>
                     </div>
                   )}
@@ -346,7 +356,7 @@ const handleAnalyzeInDnatco = () => {
                       <p className='input-value2'>{currentResult.f1.toFixed(3)}</p>
                     </div>
                   )}
-                  {currentResult.seed !== null && (
+                  {currentResult.seed !== null&& jobData.result_list.length > 1 && (
                     <div className='seed-val'>
                       <p className='input-field-name3'>Current conformation seed</p>
                       <p className='input-value2'>{currentResult.seed}</p>
@@ -360,6 +370,7 @@ const handleAnalyzeInDnatco = () => {
                         pdbData={currentResult.result_tetriary_structure}
                         width={viewerWidth}
                         height={612}
+                        jobname= {jobData.job_name}
                       />
                     </div>
                   )}
@@ -374,6 +385,7 @@ const handleAnalyzeInDnatco = () => {
                         }
                       width={viewerWidth}
                       height={612}
+                      jobname={jobData.job_name}
                     />
                   </div>
                 </div>
@@ -387,6 +399,7 @@ const handleAnalyzeInDnatco = () => {
                       }
                     width={arcWidth}
                     height={612}
+                    jobname={jobData.job_name}
                   />
                 </div>
               </div>

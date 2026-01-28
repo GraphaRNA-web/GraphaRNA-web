@@ -57,7 +57,7 @@ The following instructions assume installation on a clean Ubuntu system using Mi
     *Ensure all system pods are in `Running` status (`kubectl get pods -A`).*
 
 ### 2. Download Code and Model
-
+This step is unnecessary if you are using the default images. 
 1.  Clone the main repository:
     ```bash
     git clone [https://github.com/GraphaRNA-web/GraphaRNA-web.git](https://github.com/GraphaRNA-web/GraphaRNA-web.git)
@@ -86,7 +86,7 @@ Before deployment, edit `values.yaml` and adjust the sections:
 * **Resources:** Adjust `requests` and `limits` to your server's capabilities.
 
 ### 4. Launch (Helm)
-
+This step can be achieved by using the `make run` command or simply running the `start_app.sh` script.
 1.  Create a namespace:
     ```bash
     kubectl create namespace grapharna
@@ -103,6 +103,12 @@ Before deployment, edit `values.yaml` and adjust the sections:
     ```
     The application is ready when all pods have status `Running` and `1/1`.
 
+### Maintenance 
+1. If you want to perform a hard restart of the application, use the `make restart` command or run the `restart_app.sh` script.
+2. Certificates used for internal communication within the cluster are (in most scenarios) valid for one year. 
+If, after this approximate amount of time, the app stops working, you should refresh the certificates using `sudo microk8s refresh-certs`.
+3. If the certificate for https gets outdated, the CSR should be automaticly regenerated. If there are any problems with this process, 
+you should restart the cluster with the  global.networkPolicy.enabled should be set to `false` in the `GraphaRNA-web/values.yaml` file.
 ---
 
 ## Local Run (Docker Compose)
