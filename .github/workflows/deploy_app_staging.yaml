@@ -84,7 +84,6 @@ jobs:
             run: |
               docker build \
                 --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
-                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest \
                 --file backend/Dockerfile \
                 ./backend
 
@@ -92,7 +91,6 @@ jobs:
             run: |
               docker build \
                 --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
-                --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest \
                 --file frontend/Dockerfile \
                 ./frontend
           
@@ -126,12 +124,10 @@ jobs:
           - name: Push Backend Image
             run: |
               docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
-              docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:backend-latest
 
           - name: Push Frontend Image
             run: |
                 docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
-                docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-latest
 
           - name: Push Test Image
             run: |
@@ -251,6 +247,7 @@ jobs:
               helm uninstall grapharna-staging -n $STAGING_NS
               kubectl delete ns $STAGING_NS
               rm -rf "/tmp/deploy-${{ github.sha }}"
+
 
 
 

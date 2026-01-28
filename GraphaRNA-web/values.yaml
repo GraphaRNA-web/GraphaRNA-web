@@ -172,8 +172,8 @@ engine:
 
   resources:
     requests:
-      cpu: "4000m"
-      memory: "4Gi"
+      cpu: "2000m"
+      memory: "2Gi"
     limit:
       cpu: "12000m"
       memory: "12Gi"
