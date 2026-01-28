@@ -27,7 +27,7 @@ def getNucleotites(path: str) -> str:
     with open(path, "r") as f:
         return f.readlines()[1]
 
-def crop_svg(input_svg, output_svg, padding=10):
+def crop_svg(input_svg: str, output_svg: str, padding: int = 10) -> None:
     tree = ET.parse(input_svg)
     root = tree.getroot()
 
