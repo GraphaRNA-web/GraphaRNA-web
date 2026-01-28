@@ -31,7 +31,7 @@ def crop_svg(input_svg: str, output_svg: str, padding: int = 10) -> None:
     tree = ET.parse(input_svg)
     root = tree.getroot()
 
-    min_x, min_y = 999999999,999999999
+    min_x, min_y = 999999999.0,999999999.0
     max_x, max_y = 0,0
 
     for elem in root:
