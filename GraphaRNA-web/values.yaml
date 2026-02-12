@@ -1,6 +1,7 @@
 global:
   networkPolicy:
     enabled: true
+    allowInternetEgress: true
 
 monitoring:
   enabled: false
@@ -108,7 +109,7 @@ backend:
     RESULT_BASE_URL: "https://grapharna.cs.put.poznan.pl/results/"
 
     # Engine configuration
-    ENGINE_URL: "http://grapharna-engine-svc:8080"
+    ENGINE_URL: "http://127.0.0.1:8080"
     ENGINE_TIMEOUT_SECONDS: "60000"
     ENGINE_POLL_INTERVAL_SECONDS: 60
    

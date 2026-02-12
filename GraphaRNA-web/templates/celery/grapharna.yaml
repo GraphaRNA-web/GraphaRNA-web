@@ -37,6 +37,7 @@ spec:
                 name: backend-secret
             - secretRef:
                 name: rabbitmq-secret
+        
 
           volumeMounts:
             - name: shared-volume
@@ -63,9 +64,63 @@ spec:
             capabilities:
               drop:
                 - ALL
+
+        - name: {{ .Values.engine.name }}
+          image: {{ .Values.engine.image }}
+          imagePullPolicy: {{ .Values.engine.pullPolicy }}
+
+          ports:
+            - containerPort: {{ .Values.engine.port }}
+
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /shared
+            - name: tmp-dir
+              mountPath: /tmp
+            - name: data-volume
+              mountPath: /app/data
+            - name: cache-volume
+              mountPath: /.cache
+
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.engine.livenessPath }}
+              port: {{ .Values.engine.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 180
+            failureThreshold: 300
+            timeoutSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.engine.readinessPath }}
+              port: {{ .Values.engine.port }}
+            initialDelaySeconds: 5  
+            periodSeconds: 5
+
+          resources:
+            requests:
+              cpu: {{ .Values.engine.resources.requests.cpu }}
+              memory: {{ .Values.engine.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.engine.resources.limit.cpu }}
+              memory: {{ .Values.engine.resources.limit.memory }}
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+      
       volumes:
         - name: shared-volume
           persistentVolumeClaim:
             claimName: {{ .Values.backend.pvc }}
         - name: tmp-dir
+          emptyDir: {}
+        - name: data-volume
+          emptyDir: {}
+        - name: cache-volume
           emptyDir: {}
