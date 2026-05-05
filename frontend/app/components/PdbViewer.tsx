@@ -57,7 +57,16 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
         try {
           viewerRef.current.clear();
           viewerRef.current.addModel(pdbData, "pdb");
-          viewerRef.current.setStyle({}, { cartoon: { color: "spectrum" } });
+          viewerRef.current.setStyle({}, { 
+            cartoon: { 
+              colorfunc: (atom: any) => {
+                if (atom.b > 90) return '#0053d6'; 
+                if (atom.b > 70) return '#65cbf3'; 
+                if (atom.b > 50) return '#ffe082'; 
+                return '#ff7d45';
+              }
+            } 
+          });
           viewerRef.current.zoomTo();
           viewerRef.current.render();
         } catch (e: any) {
