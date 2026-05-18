@@ -785,8 +785,8 @@ const handleExampleClick3 = async () => {
 
                   <p><b className="sjp-bold">Seed:</b> An integer value to initialize the random number generator for reproducibility. The default is auto, meaning a random seed will be automatically generated.</p>
                   <p><b className="sjp-bold">Name:</b> A custom name for your job to help you identify it later. The default is auto, meaning a name will be generated based on the current date and a random number.</p>
+                  <p><b className="sjp-bold">Enable fast DPM Solver:</b> Utilizes the accelerated DPM-Solver++ hybrid algorithm. This dramatically reduces prediction time, but may offer lower prediction quality.</p>
                   <p><b className="sjp-bold">#Alternative conformations:</b> Number of alternative conformations to generate for the given RNA structure. Numbers bigger than 1 will cause the calculation of the input sequence with incremented seed values.</p>
-                  <p><b className="sjp-bold">Enable fast DPM Solver:</b> Utilizes the accelerated DPM-Solver++ hybrid algorithm. This dramatically reduces prediction time by ~84% while maintaining high accuracy.</p>
                 </div>
               </div>
               
