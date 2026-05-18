@@ -45,6 +45,7 @@ export default function SubmitJob() {
   const randomSeed = Math.floor(Math.random() * 90000) + 10000;
   const randomJob = Math.floor(Math.random() * 900) + 100;
   const [seed, setSeed] = useState<number | "">(randomSeed);
+  const [enableDPM, setEnableDPM] = useState(false);
   const [jobname, setJobname] = useState(`job-${day}${month}${year}-${randomJob}`);
   const [email, setEmail] = useState("");
   const [alternativeConformations, setAlternativeConformations] = useState(1);
@@ -425,6 +426,7 @@ function transformFromInteractive(input: string): string {
             job_name: jobname,
             email: email,
             alternative_conformations: alternativeConformations,
+            enable_dpm: enableDPM,
           });
 
           if(status >= 500){
@@ -784,6 +786,7 @@ const handleExampleClick3 = async () => {
                   <p><b className="sjp-bold">Seed:</b> An integer value to initialize the random number generator for reproducibility. The default is auto, meaning a random seed will be automatically generated.</p>
                   <p><b className="sjp-bold">Name:</b> A custom name for your job to help you identify it later. The default is auto, meaning a name will be generated based on the current date and a random number.</p>
                   <p><b className="sjp-bold">#Alternative conformations:</b> Number of alternative conformations to generate for the given RNA structure. Numbers bigger than 1 will cause the calculation of the input sequence with incremented seed values.</p>
+                  <p><b className="sjp-bold">Enable fast DPM Solver:</b> Utilizes the accelerated DPM-Solver++ hybrid algorithm. This dramatically reduces prediction time by ~84% while maintaining high accuracy.</p>
                 </div>
               </div>
               
@@ -819,25 +822,34 @@ const handleExampleClick3 = async () => {
 
                   {/* --- JOB NAME --- */}
                   <div className='sjp-seed-name-param'>
-                    <p>Name <span>{autoName ? jobname : ""}</span></p>
-                    <CustomCheckbox
-                        label="auto"
+                      <p>Name <span>{autoName ? jobname : ""}</span></p>
+                      <CustomCheckbox
+                          label="auto"
+                          size={45}
+                          checked={autoName}
+                          onChange={setAutoName}
+                          isActive={displayCheckbox}
+                        />
+                    </div>
+                      {!autoName && selectedExampleNumber === 0 && (
+                        <TextArea
+                          rows={1}
+                          value={jobname}
+                          onChange={setJobname}
+                          placeholder="Enter custom job name"
+                        />
+                      )}
+
+                    <div className='sjp-seed-name-param' style={{ marginTop: '15px' }}>
+                      <p>Fast Generation (DPM) <span>{enableDPM ? "ON" : "OFF"}</span></p>
+                      <CustomCheckbox
+                        label="enable"
                         size={45}
-                        checked={autoName}
-                        onChange={setAutoName}
+                        checked={enableDPM}
+                        onChange={setEnableDPM}
                         isActive={displayCheckbox}
                       />
-                  </div>
-                    {!autoName && selectedExampleNumber === 0 && (
-                      <TextArea
-                        rows={1}
-                        value={jobname}
-                        onChange={setJobname}
-                        placeholder="Enter custom job name"
-                      />
-                    )}
-
-
+                    </div>
 
                 {/* --- INTEGER FIELD --- */}
                 <div className='sjp-alt-param'>

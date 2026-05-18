@@ -17,6 +17,7 @@ def CreateNewJob(
     alternative_conformations: int,
     email: Optional[str],
     example_number: Optional[int],
+    enable_dpm: bool = False,
 ) -> Response:
     validator: RnaValidator = RnaValidator(sequence_raw)
     validationResult = validator.ValidateRna()
@@ -40,7 +41,7 @@ def CreateNewJob(
         f.write(dotseq_data)
 
     relative_path = os.path.relpath(input_filepath, settings.MEDIA_ROOT)
-    if example_number is not None:  # example job, do not store email
+    if example_number is not None:
         job = Job.objects.create(
             uid=job_uuid,
             hashed_uid=hashed_uid,
@@ -50,9 +51,10 @@ def CreateNewJob(
             status="Q",
             alternative_conformations=alternative_conformations,
             strand_separator=validationResult["strandSeparator"],
+            enable_dpm=enable_dpm,
         )
         ExampleStructures.objects.create(id=example_number, job=job)
-    else:  # normal job, store email
+    else: 
         job = Job.objects.create(
             uid=job_uuid,
             hashed_uid=hashed_uid,
@@ -63,6 +65,7 @@ def CreateNewJob(
             status="Q",
             alternative_conformations=alternative_conformations,
             strand_separator=validationResult["strandSeparator"],
+            enable_dpm=enable_dpm,
         )
 
     run_grapharna_task.delay(job.uid, example_number=example_number)

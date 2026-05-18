@@ -55,6 +55,7 @@ class Job(models.Model):
             ),
         ]
     )
+    enable_dpm: models.BooleanField = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return str(self.job_name)
