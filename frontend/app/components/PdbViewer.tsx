@@ -53,6 +53,7 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
         passive: false, 
         capture: true 
       });
+      
       if (pdbData) {
         try {
           viewerRef.current.clear();
@@ -60,10 +61,10 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
           viewerRef.current.setStyle({}, { 
             cartoon: { 
               colorfunc: (atom: any) => {
-                if (atom.b > 90) return '#0053d6'; 
-                if (atom.b > 70) return '#65cbf3'; 
-                if (atom.b > 50) return '#ffe082'; 
-                return '#ff7d45';
+                if (atom.b > 90) return '#0053d6'; // Very high
+                if (atom.b > 70) return '#65cbf3'; // Confident
+                if (atom.b > 50) return '#ffe082'; // Low
+                return '#ff7d45';                  // Very low
               }
             } 
           });
@@ -133,7 +134,12 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
     <div
       ref={outerRef}
       className={`pdb-viewer-wrapper ${isFullscreen ? "fullscreen" : ""}`}
-      style={{ width, height }}
+      style={{ 
+        width, 
+        height, 
+        display: "flex", 
+        flexDirection: "column" 
+      }}
     >
       <div className="header-bar">
         <span className="file-name-results">Predicted 3D structure</span>
@@ -146,14 +152,66 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
           <button className='controls-header-button' onClick={toggleFullscreen}>{isFullscreen ? "🡽" : "⛶"}</button>
         </div>
       </div>
+      
       <div
         className="viewer-container"
         ref={containerRef}
         style={{
             width: isFullscreen ? "100%" : (typeof width === "number" ? width - 60 : `calc(${width} - 60px)`),
-            height: isFullscreen ? "100%" : (typeof height === "number" ? height - 40 : `calc(${height} - 40px)`),
+            height: isFullscreen ? "100%" : (typeof height === "number" ? height - 80 : `calc(${height} - 80px)`),
+            flexGrow: 1
         }}
       />
+      
+      {/* pLDDT Legend */}
+      <div 
+        className="plddt-legend" 
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '8px 10px', 
+          background: isFullscreen ? '#fff' : 'transparent',
+          borderBottomLeftRadius: '8px',
+          borderBottomRightRadius: '8px',
+          gap: '6px'
+        }}
+      >
+        {/* Title & Help Icon */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 'bold', color: '#444' }}>
+          pLDDT Confidence Score
+          <div className="plddt-tooltip-container">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div className="plddt-tooltip-text">
+              <strong>pLDDT</strong> (predicted Local Distance Difference Test) is a per-residue confidence metric from 0 to 100. Higher scores indicate greater confidence in the predicted 3D structure.
+            </div>
+          </div>
+        </div>
+
+        {/* Color Items */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '14px', height: '14px', backgroundColor: '#0053d6', borderRadius: '3px' }}></span>
+            <span style={{ color: '#444' }}>Very high (pLDDT &gt; 90)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '14px', height: '14px', backgroundColor: '#65cbf3', borderRadius: '3px' }}></span>
+            <span style={{ color: '#444' }}>Confident (90 &gt; pLDDT &gt; 70)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '14px', height: '14px', backgroundColor: '#ffe082', borderRadius: '3px' }}></span>
+            <span style={{ color: '#444' }}>Low (70 &gt; pLDDT &gt; 50)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '14px', height: '14px', backgroundColor: '#ff7d45', borderRadius: '3px' }}></span>
+            <span style={{ color: '#444' }}>Very low (pLDDT &lt; 50)</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
