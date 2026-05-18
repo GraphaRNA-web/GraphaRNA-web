@@ -186,6 +186,7 @@ class PostRnaDataTests(TestCase):
             "seed": 12345,
             "job_name": "job-test-1",
             "alternative_conformations": 1,
+            "enable_dpm": True,  # <-- DODANY PARAMETR
         }
         # Avoid file creation during api call
         self.patcher_open = patch("builtins.open", mock_open())
@@ -230,6 +231,18 @@ class PostRnaDataTests(TestCase):
         self.assertIn("Job", response.data)
         self.assertTrue(response.data["success"])
         self.assertTrue(Job.objects.filter(job_name="job-test-1").exists())
+
+    def test_valid_post_with_dpm_disabled(self) -> None:
+        data = self.valid_data.copy()
+        data["job_name"] = "job-test-dpm-disabled"
+        data["enable_dpm"] = "false" # <-- Emulacja parsowania z frontendu
+
+        response: Response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["success"])
+        self.assertTrue(Job.objects.filter(job_name="job-test-dpm-disabled").exists())
+        job = Job.objects.get(job_name="job-test-dpm-disabled")
+        self.assertFalse(job.enable_dpm)
 
     def test_invalid_post_with_file_and_text(self) -> None:
         data = self.valid_data.copy()
