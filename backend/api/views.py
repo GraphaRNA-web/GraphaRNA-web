@@ -382,6 +382,15 @@ def ProcessRequestData(request: Request) -> Response:
     jobName: Optional[str] = request.data.get("job_name")
     email: Optional[str] = request.data.get("email")
     job_alternative_conformations: int = request.data.get("alternative_conformations")
+    
+    enable_dpm_raw = request.data.get("enable_dpm")
+    enable_dpm: bool = False
+    if enable_dpm_raw is not None:
+        if isinstance(enable_dpm_raw, str):
+            enable_dpm = ( enable_dpm_raw.lower() == "true" )
+        else:
+            enable_dpm = bool(enable_dpm_raw)
+
     today_str = date.today().strftime("%Y%m%d")
     count: int = Job.objects.filter(job_name__startswith=f"job-{today_str}").count()
 
@@ -425,7 +434,7 @@ def ProcessRequestData(request: Request) -> Response:
         jobName = f"job-{today_str}-{count}"
 
     return CreateNewJob(
-        sequence_raw, jobName, seed, job_alternative_conformations, email, None
+        sequence_raw, jobName, seed, job_alternative_conformations, email, None, enable_dpm
     )
 
 

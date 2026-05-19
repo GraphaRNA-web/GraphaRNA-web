@@ -70,6 +70,7 @@ export async function submitJobRequest(params: {
   job_name: string;
   email?: string;
   alternative_conformations?: number;
+  enable_dpm?: boolean; // <-- 1. DODANY PARAMETR
 }): Promise<{ data: any; status: number }> {
   console.log("[submitJobRequest] sending to /api/submitRequest", params);
 
@@ -83,8 +84,9 @@ export async function submitJobRequest(params: {
     if (params.seed !== undefined) form.append("seed", String(params.seed));
     if (params.job_name) form.append("job_name", params.job_name);
     if (params.email) form.append("email", params.email);
-    if (params.alternative_conformations !== undefined)
-      form.append("alternative_conformations", String(params.alternative_conformations));
+    if (params.alternative_conformations !== undefined) form.append("alternative_conformations", String(params.alternative_conformations));
+    if (params.enable_dpm !== undefined) form.append("enable_dpm", String(params.enable_dpm)); 
+    
     body = form;
   } else {
     const json: any = { ...params };
