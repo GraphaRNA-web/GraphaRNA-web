@@ -132,6 +132,7 @@ def send_email_task(
 def execute_and_poll_engine(
     uuid: str,
     seed: int,
+    enable_dpm: bool,
     timeout: int = settings.ENGINE_TIMEOUT_SECONDS,
     check_interval: int = settings.ENGINE_POLL_INTERVAL_SECONDS,
 ) -> dict[str, Any]:
@@ -142,7 +143,7 @@ def execute_and_poll_engine(
     logger.info(f"Sending request to engine at {run_url} for UUID: {uuid}")
 
     try:
-        response = requests.post(run_url, data={"uuid": uuid, "seed": seed})
+        response = requests.post(run_url, data={"uuid": uuid, "seed": seed, "enable_dpm": enable_dpm})
         response.raise_for_status()
     except requests.RequestException as e:
         raise Exception(f"Failed to contact engine: {e}")
@@ -247,6 +248,7 @@ def run_grapharna_task(uuid_param: UUID, example_number: int | None = None) -> s
                 result_data = execute_and_poll_engine(
                     uuid=uuid_str,
                     seed=seed + i,
+                    enable_dpm=job_data.enable_dpm
                 )
 
                 break
