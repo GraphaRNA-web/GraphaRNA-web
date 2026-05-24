@@ -61,10 +61,9 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
           viewerRef.current.setStyle({}, { 
             cartoon: { 
               colorfunc: (atom: any) => {
-                if (atom.b > 90) return '#0053d6'; // Very high
-                if (atom.b > 70) return '#65cbf3'; // Confident
-                if (atom.b > 50) return '#ffe082'; // Low
-                return '#ff7d45';                  // Very low
+                if (atom.b >= 80) return '#0053d6'; // High
+                if (atom.b >= 50) return '#65cbf3'; // Confident
+                return '#ff7d45';                   // Low
               }
             } 
           });
@@ -196,19 +195,15 @@ export default function PdbViewer({ pdbData, width, height, jobname }: PdbViewer
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px', fontSize: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ width: '14px', height: '14px', backgroundColor: '#0053d6', borderRadius: '3px' }}></span>
-            <span style={{ color: '#444' }}>Very high (pLDDT &gt; 90)</span>
+            <span style={{ color: '#444' }}>High (pLDDT &ge; 80)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ width: '14px', height: '14px', backgroundColor: '#65cbf3', borderRadius: '3px' }}></span>
-            <span style={{ color: '#444' }}>Confident (90 &gt; pLDDT &gt; 70)</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '14px', height: '14px', backgroundColor: '#ffe082', borderRadius: '3px' }}></span>
-            <span style={{ color: '#444' }}>Low (70 &gt; pLDDT &gt; 50)</span>
+            <span style={{ color: '#444' }}>Confident (80 &gt; pLDDT &ge; 50)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ width: '14px', height: '14px', backgroundColor: '#ff7d45', borderRadius: '3px' }}></span>
-            <span style={{ color: '#444' }}>Very low (pLDDT &lt; 50)</span>
+            <span style={{ color: '#444' }}>Low (pLDDT &lt; 50)</span>
           </div>
         </div>
       </div>

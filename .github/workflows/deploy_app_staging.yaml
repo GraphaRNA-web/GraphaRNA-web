@@ -93,17 +93,6 @@ jobs:
                 --tag ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }} \
                 --file frontend/Dockerfile \
                 ./frontend
-          
-          - name: Build Test Image
-            uses: docker/build-push-action@v5
-            with:
-              context: .
-              file: tests/Dockerfile
-              push: false
-              tags: ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-tests:${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
-              cache-from: type=gha
-              cache-to: type=gha,mode=max
-              load: true
 
           - name: Scan backend image
             uses: aquasecurity/trivy-action@master
@@ -128,10 +117,6 @@ jobs:
           - name: Push Frontend Image
             run: |
                 docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-web:frontend-${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
-
-          - name: Push Test Image
-            run: |
-              docker push ${{ secrets.DOCKERHUB_USERNAME }}/grapharna-tests:${{ steps.determine_tag.outputs.IMAGE_TAG_SHA }}
             
 
     staging-and-test:
